@@ -19,6 +19,14 @@ public class MarsikString {
     this.data = data.clone();
   }
 
+  public MarsikString(MarsikString string) {
+    if (string == null) {
+      throw new IllegalArgumentException("String cannot be null, my friend!");
+    }
+    this.data = string.data.clone();
+    this.size = string.size;
+  }
+
   public void setCharAt(int index, char c) {
     if (index < 0 || index >= data.length) {
       throw new IndexOutOfBoundsException("Index out of bounds: " + index + " my friend!");
@@ -141,12 +149,41 @@ public class MarsikString {
     data[size++] = c;
   }
 
+  public void append(String str) {
+    if (str == null) {
+      throw new IllegalArgumentException("String cannot be null, my friend!");
+    }
+    char[] strArray = str.toCharArray();
+    for (char c : strArray) {
+      append(c);
+    }
+  }
+
   public MarsikString subString(int start, int end) {
     if (start < 0 || end > data.length || start > end) {
       throw new IndexOutOfBoundsException("start and end are not valid, my friend!");
     }
     char[] newData = new char[end - start];
     System.arraycopy(data, start, newData, 0, end - start);
+    return new MarsikString(newData);
+  }
+
+  public String toJavaString() {
+    return new String(data);
+  }
+
+  public MarsikString replacePart(int start, int end, MarsikString replacement) {
+    if (start < 0 || end > data.length || start > end) {
+      throw new IndexOutOfBoundsException("start and end are not valid, my friend!");
+    }
+    if (replacement.isEmpty() || replacement.length() != end - start) {
+      throw new IllegalArgumentException("replacement-string must have same length as the " +
+              "size of the part you want to replace, my friend!");
+    }
+    char[] newData = data;
+    for (int i = start; i < end; i++) {
+      newData[i] = replacement.getCharAt(i - start);
+    }
     return new MarsikString(newData);
   }
 

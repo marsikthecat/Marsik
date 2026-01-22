@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.encoders.Hex;
 import org.example.internals.Sys;
+import org.example.internals.datastructures.MarsikString;
 import javax.crypto.*;
 import javax.crypto.spec.ChaCha20ParameterSpec;
 import javax.crypto.spec.GCMParameterSpec;
@@ -15,6 +16,7 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
+import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
 import java.util.Base64;
@@ -58,7 +60,7 @@ public class Crypto {
     Crypto.cryptoMode = cryptoMode;
   }
 
-  public static CryptoData generateKey() throws Exception {
+  public static CryptoData generateKey() {
     if (cryptoMode == null) {
       throw new IllegalStateException("You need to set the Mode before using it");
     }
@@ -72,12 +74,16 @@ public class Crypto {
     }
   }
 
-  private static SecretKey deriveKey(byte[] salt) throws Exception {
-    SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
-    char[] password = "secretPassword1234567890".toCharArray(); //TODO: Store this securely
-    KeySpec spec = new PBEKeySpec(password, salt, 1000000, 256);
-    SecretKey tmp = factory.generateSecret(spec);
-    return new SecretKeySpec(tmp.getEncoded(), "AES");
+  private static SecretKey deriveKey(byte[] salt) {
+    try {
+      SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
+      char[] password = "secretPassword1234567890".toCharArray(); //TODO: Store this securely
+      KeySpec spec = new PBEKeySpec(password, salt, 1000000, 256);
+      SecretKey tmp = factory.generateSecret(spec);
+      return new SecretKeySpec(tmp.getEncoded(), "AES");
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static CryptoData generateKeyWithArgon(char[] password, byte[] salt) {
@@ -98,15 +104,21 @@ public class Crypto {
     return new CryptoData().setSalt(salt).setArgonKey(result);
   }
 
-  public static CryptoData encrypt(String plainText, CryptoData cryptoData) throws Exception {
+  public static CryptoData encrypt(MarsikString plainTextWrapper, CryptoData cryptoData) {
+    String plainText = plainTextWrapper.toJavaString();
     if (cryptoMode == CryptoMode.NORMAL) {
-      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      byte[] iv = generateIV();
-      GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-      cipher.init(Cipher.ENCRYPT_MODE, cryptoData.getSecretKey(), spec);
-      cryptoData.destroyKey();
-      byte[] cipherText = cipher.doFinal(plainText.getBytes());
-      return cryptoData.setEncrypted(cipherText).setIv(iv);
+      try {
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        byte[] iv = generateIV();
+        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+        cipher.init(Cipher.ENCRYPT_MODE, cryptoData.getSecretKey(), spec);
+        cryptoData.destroyKey();
+        byte[] cipherText = cipher.doFinal(plainText.getBytes());
+        return cryptoData.setEncrypted(cipherText).setIv(iv);
+      } catch (NoSuchPaddingException | InvalidAlgorithmParameterException | IllegalBlockSizeException |
+               NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+        throw new RuntimeException(e);
+      }
     }
     else if (cryptoMode == CryptoMode.HARDCORE) {
       byte[] aesKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 0, 32);
@@ -128,88 +140,110 @@ public class Crypto {
     }
   }
 
-  private static byte[] aes(String plainText, CryptoData cryptoData, byte[] aesKey) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
-    SecretKeySpec keySpec = new SecretKeySpec(aesKey, "AES");
-    Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-    byte[] iv = generateIV();
-    cryptoData.setIv(iv);
-    GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-    cipher.init(Cipher.ENCRYPT_MODE, keySpec, spec);
-    byte[] cipherText = cipher.doFinal(plainText.getBytes());
-    byte[] salt = cryptoData.getSalt();
-    byte[] encrypted = new byte[salt.length + iv.length + cipherText.length];
-    System.arraycopy(salt, 0, encrypted, 0, salt.length);
-    System.arraycopy(iv, 0, encrypted, salt.length, iv.length);
-    System.arraycopy(cipherText, 0, encrypted, salt.length + iv.length, cipherText.length);
-    return encrypted;
+  private static byte[] aes(String plainText, CryptoData cryptoData, byte[] aesKey) {
+    try {
+      SecretKeySpec keySpec = new SecretKeySpec(aesKey, "AES");
+      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+      byte[] iv = generateIV();
+      cryptoData.setIv(iv);
+      GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+      cipher.init(Cipher.ENCRYPT_MODE, keySpec, spec);
+      byte[] cipherText = cipher.doFinal(plainText.getBytes());
+      byte[] salt = cryptoData.getSalt();
+      byte[] encrypted = new byte[salt.length + iv.length + cipherText.length];
+      System.arraycopy(salt, 0, encrypted, 0, salt.length);
+      System.arraycopy(iv, 0, encrypted, salt.length, iv.length);
+      System.arraycopy(cipherText, 0, encrypted, salt.length + iv.length, cipherText.length);
+      return encrypted;
+    } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+             InvalidAlgorithmParameterException | BadPaddingException | InvalidKeyException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  public static String decrypt(CryptoData cryptoData) throws Exception {
+  public static MarsikString decrypt(CryptoData cryptoData) {
     if (cryptoMode == CryptoMode.NORMAL) {
-      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      byte[] iv = cryptoData.getIv();
-      byte[] cipherText = cryptoData.getEncrypted();
-      byte[] salt = cryptoData.getSalt();
-      GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-      cipher.init(Cipher.DECRYPT_MODE, deriveKey(salt), spec);
-      return new String(cipher.doFinal(cipherText));
+      try {
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        byte[] iv = cryptoData.getIv();
+        byte[] cipherText = cryptoData.getEncrypted();
+        byte[] salt = cryptoData.getSalt();
+        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+        cipher.init(Cipher.DECRYPT_MODE, deriveKey(salt), spec);
+        String decrypted = new String(cipher.doFinal(cipherText));
+        return new MarsikString(decrypted);
+      } catch (InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException |
+               NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException e) {
+        throw new RuntimeException(e);
+      }
     }
     else if (cryptoMode == CryptoMode.HARDCORE) {
-      byte[] aesKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 0, 32);
-      byte[] hmacKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 32, 64);
-      byte[] encrypted = cryptoData.getEncrypted();
-      byte[] expectedHmac = cryptoData.getHmac();
-      byte[] actualHmac = computeHMAC(encrypted, hmacKey);
-      if (!MessageDigest.isEqual(expectedHmac, actualHmac)) {
-        throw new SecurityException("HMAC verification failed. Data may have been tampered with.");
-      }
-      byte[] salt = cryptoData.getSalt();
-      int saltLength = salt.length;
-      byte[] cipherText = Arrays.copyOfRange(encrypted, saltLength + GCM_NONCE_LENGTH, encrypted.length);
+      try {
+        byte[] aesKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 0, 32);
+        byte[] hmacKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 32, 64);
+        byte[] encrypted = cryptoData.getEncrypted();
+        byte[] expectedHmac = cryptoData.getHmac();
+        byte[] actualHmac = computeHMAC(encrypted, hmacKey);
+        if (!MessageDigest.isEqual(expectedHmac, actualHmac)) {
+          throw new SecurityException("HMAC verification failed. Data may have been tampered with.");
+        }
+        byte[] salt = cryptoData.getSalt();
+        int saltLength = salt.length;
+        byte[] cipherText = Arrays.copyOfRange(encrypted, saltLength + GCM_NONCE_LENGTH, encrypted.length);
 
-      cryptoData.destroyArgonKey();
-      Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
-      SecretKeySpec keySpec = new SecretKeySpec(aesKey, "AES");
-      GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, cryptoData.getIv());
-      cipher.init(Cipher.DECRYPT_MODE, keySpec, spec);
-      byte[] plainBytes = cipher.doFinal(cipherText);
-      return new String(plainBytes);
+        cryptoData.destroyArgonKey();
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        SecretKeySpec keySpec = new SecretKeySpec(aesKey, "AES");
+        GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH, cryptoData.getIv());
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, spec);
+        byte[] plainBytes = cipher.doFinal(cipherText);
+        String decrypted = new String(plainBytes);
+        return new MarsikString(decrypted);
+      } catch (InvalidAlgorithmParameterException | NoSuchPaddingException | IllegalBlockSizeException |
+               NoSuchAlgorithmException | BadPaddingException | InvalidKeyException e) {
+        throw new RuntimeException(e);
+      }
     } else {
-      byte[] aesKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 0, 32);
-      byte[] chaChaKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 32, 64);
-      byte[] kMacKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 64, 128);
+      try {
+        byte[] aesKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 0, 32);
+        byte[] chaChaKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 32, 64);
+        byte[] kMacKey = Arrays.copyOfRange(cryptoData.getArgonKey(), 64, 128);
 
-      int kMacLength = new KMAC(128, new byte[0]).getMacSize();
-      if (cryptoData.getKMac().length < kMacLength)
-        throw new IllegalArgumentException("Input too short");
+        int kMacLength = new KMAC(128, new byte[0]).getMacSize();
+        if (cryptoData.getKMac().length < kMacLength)
+          throw new IllegalArgumentException("Input too short");
 
-      byte[] expectedKMAC = Arrays.copyOfRange(cryptoData.getKMac(), 0, kMacLength);
-      byte[] actualEncrypted = Arrays.copyOfRange(cryptoData.getKMac(), kMacLength, cryptoData.getKMac().length);
-      byte[] actualKMAC = computeKMAC(kMacKey, actualEncrypted);
-      if (!MessageDigest.isEqual(expectedKMAC, actualKMAC)) {
-        throw new SecurityException("KMac verification failed");
+        byte[] expectedKMAC = Arrays.copyOfRange(cryptoData.getKMac(), 0, kMacLength);
+        byte[] actualEncrypted = Arrays.copyOfRange(cryptoData.getKMac(), kMacLength, cryptoData.getKMac().length);
+        byte[] actualKMAC = computeKMAC(kMacKey, actualEncrypted);
+        if (!MessageDigest.isEqual(expectedKMAC, actualKMAC)) {
+          throw new SecurityException("KMac verification failed");
+        }
+
+        byte[] nonce = Arrays.copyOfRange(actualEncrypted, 0, 12);
+        byte[] chaChaCiphertext = Arrays.copyOfRange(actualEncrypted, 12, actualEncrypted.length);
+
+        Cipher chachaCipher = Cipher.getInstance("ChaCha20");
+        SecretKey chachaSecretKey = new SecretKeySpec(chaChaKey, "ChaCha20");
+        ChaCha20ParameterSpec chaChaParamSpec = new ChaCha20ParameterSpec(nonce, 1);
+        chachaCipher.init(Cipher.DECRYPT_MODE, chachaSecretKey, chaChaParamSpec);
+        byte[] decryptedChaCha = chachaCipher.doFinal(chaChaCiphertext);
+
+        byte[] salt = Arrays.copyOfRange(decryptedChaCha, 0, cryptoData.getSalt().length);
+        byte[] iv = Arrays.copyOfRange(decryptedChaCha, salt.length, salt.length + GCM_NONCE_LENGTH);
+        byte[] aesCipherText = Arrays.copyOfRange(decryptedChaCha, salt.length + GCM_NONCE_LENGTH, decryptedChaCha.length);
+
+        Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+        SecretKeySpec aesKeySpec = new SecretKeySpec(aesKey, "AES");
+        GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+        aesCipher.init(Cipher.DECRYPT_MODE, aesKeySpec, gcmSpec);
+        byte[] plainBytes = aesCipher.doFinal(aesCipherText);
+        String decrypted = new String(plainBytes, StandardCharsets.UTF_8);
+        return new MarsikString(decrypted);
+      } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+               InvalidAlgorithmParameterException | BadPaddingException | InvalidKeyException e) {
+        throw new RuntimeException(e);
       }
-
-      byte[] nonce = Arrays.copyOfRange(actualEncrypted, 0, 12);
-      byte[] chaChaCiphertext = Arrays.copyOfRange(actualEncrypted, 12, actualEncrypted.length);
-
-      Cipher chachaCipher = Cipher.getInstance("ChaCha20");
-      SecretKey chachaSecretKey = new SecretKeySpec(chaChaKey, "ChaCha20");
-      ChaCha20ParameterSpec chaChaParamSpec = new ChaCha20ParameterSpec(nonce, 1);
-      chachaCipher.init(Cipher.DECRYPT_MODE, chachaSecretKey, chaChaParamSpec);
-      byte[] decryptedChaCha = chachaCipher.doFinal(chaChaCiphertext);
-
-      byte[] salt = Arrays.copyOfRange(decryptedChaCha, 0, cryptoData.getSalt().length);
-      byte[] iv = Arrays.copyOfRange(decryptedChaCha, salt.length, salt.length + GCM_NONCE_LENGTH);
-      byte[] aesCipherText = Arrays.copyOfRange(decryptedChaCha, salt.length + GCM_NONCE_LENGTH, decryptedChaCha.length);
-
-      Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
-      SecretKeySpec aesKeySpec = new SecretKeySpec(aesKey, "AES");
-      GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
-      aesCipher.init(Cipher.DECRYPT_MODE, aesKeySpec, gcmSpec);
-      byte[] plainBytes = aesCipher.doFinal(aesCipherText);
-
-      return new String(plainBytes, StandardCharsets.UTF_8);
     }
   }
 
@@ -219,25 +253,34 @@ public class Crypto {
     return iv;
   }
 
-  private static byte[] computeHMAC(byte[] data, byte[] hmacKey) throws Exception {
-    Mac hmac = Mac.getInstance("HmacSHA512");
-    SecretKeySpec keySpec = new SecretKeySpec(hmacKey, "HmacSHA512");
-    hmac.init(keySpec);
-    return hmac.doFinal(data);
+  private static byte[] computeHMAC(byte[] data, byte[] hmacKey) {
+    try {
+      Mac hmac = Mac.getInstance("HmacSHA512");
+      SecretKeySpec keySpec = new SecretKeySpec(hmacKey, "HmacSHA512");
+      hmac.init(keySpec);
+      return hmac.doFinal(data);
+    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  private static byte[] chaCha(byte[] key, byte[] encrypted) throws Exception {
-    byte[] nonce = new byte[12];
-    secureRandom.nextBytes(nonce);
-    Cipher cipher = Cipher.getInstance("ChaCha20");
-    SecretKey secretKey = new SecretKeySpec(key, "ChaCha20");
-    ChaCha20ParameterSpec paramSpec = new ChaCha20ParameterSpec(nonce, 1);
-    cipher.init(Cipher.ENCRYPT_MODE, secretKey, paramSpec);
-    byte[] ciphertext = cipher.doFinal(encrypted);
-    byte[] output = new byte[nonce.length + ciphertext.length];
-    System.arraycopy(nonce, 0, output, 0, nonce.length);
-    System.arraycopy(ciphertext, 0, output, nonce.length, ciphertext.length);
-    return output;
+  private static byte[] chaCha(byte[] key, byte[] encrypted) {
+    try {
+      byte[] nonce = new byte[12];
+      secureRandom.nextBytes(nonce);
+      Cipher cipher = Cipher.getInstance("ChaCha20");
+      SecretKey secretKey = new SecretKeySpec(key, "ChaCha20");
+      ChaCha20ParameterSpec paramSpec = new ChaCha20ParameterSpec(nonce, 1);
+      cipher.init(Cipher.ENCRYPT_MODE, secretKey, paramSpec);
+      byte[] ciphertext = cipher.doFinal(encrypted);
+      byte[] output = new byte[nonce.length + ciphertext.length];
+      System.arraycopy(nonce, 0, output, 0, nonce.length);
+      System.arraycopy(ciphertext, 0, output, nonce.length, ciphertext.length);
+      return output;
+    } catch (NoSuchPaddingException | IllegalBlockSizeException | NoSuchAlgorithmException |
+             InvalidAlgorithmParameterException | BadPaddingException | InvalidKeyException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static byte[] computeKMAC(byte[] key, byte[] data) {
@@ -250,34 +293,56 @@ public class Crypto {
   }
 
 
-  public static String sha256(String stuffToGetHashed) throws NoSuchAlgorithmException {
-    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-    byte[] hash256 = sha256.digest(stuffToGetHashed.getBytes());
-    return bytesToHex(hash256);
+  public static String sha256(String stuffToGetHashed) {
+    try {
+      MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+      byte[] hash256 = sha256.digest(stuffToGetHashed.getBytes());
+      return bytesToHex(hash256);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+
   }
 
-  public static String sha512(String stuffToGetHashed) throws NoSuchAlgorithmException {
-    MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
-    byte[] hash512 = sha512.digest(stuffToGetHashed.getBytes());
-    return bytesToHex(hash512);
+  public static String sha512(String stuffToGetHashed) {
+    try {
+      MessageDigest sha512 = MessageDigest.getInstance("SHA-512");
+      byte[] hash512 = sha512.digest(stuffToGetHashed.getBytes());
+      return bytesToHex(hash512);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
+
   }
 
-  public static String sha3_256(String stuffToGetHashed) throws NoSuchAlgorithmException {
-    MessageDigest sha3_256 = MessageDigest.getInstance("SHA3-256");
-    byte[] hash3_256 = sha3_256.digest(stuffToGetHashed.getBytes());
-    return bytesToHex(hash3_256);
+  public static String sha3_256(String stuffToGetHashed) {
+    try {
+      MessageDigest sha3_256 = MessageDigest.getInstance("SHA3-256");
+      byte[] hash3_256 = sha3_256.digest(stuffToGetHashed.getBytes());
+      return bytesToHex(hash3_256);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  public static String sha3_384(String stuffToGetHashed) throws NoSuchAlgorithmException {
-    MessageDigest sha3_384 = MessageDigest.getInstance("SHA3-384");
-    byte[] hash3_384 = sha3_384.digest(stuffToGetHashed.getBytes());
-    return bytesToHex(hash3_384);
+  public static String sha3_384(String stuffToGetHashed) {
+    try {
+      MessageDigest sha3_384 = MessageDigest.getInstance("SHA3-384");
+      byte[] hash3_384 = sha3_384.digest(stuffToGetHashed.getBytes());
+      return bytesToHex(hash3_384);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  public static String sha3_512(String stuffToGetHashed) throws NoSuchAlgorithmException {
-    MessageDigest sha3_512 = MessageDigest.getInstance("SHA3-512");
-    byte[] hash3_512 = sha3_512.digest(stuffToGetHashed.getBytes());
-    return bytesToHex(hash3_512);
+  public static String sha3_512(String stuffToGetHashed) {
+    try {
+      MessageDigest sha3_512 = MessageDigest.getInstance("SHA3-512");
+      byte[] hash3_512 = sha3_512.digest(stuffToGetHashed.getBytes());
+      return bytesToHex(hash3_512);
+    } catch (NoSuchAlgorithmException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static String shake_128(String stuffToGetHashed) {

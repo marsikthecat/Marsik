@@ -46,27 +46,27 @@ public class Sys {
     return clipBoardContent;
   }
 
-  public static String os() {
+  public static String getOs() {
     return java.lang.System.getProperty("os.name").toLowerCase();
   }
 
-  public static String osVersion() {
+  public static String getOsVersion() {
     return java.lang.System.getProperty("os.version").toLowerCase();
   }
 
-  public static String userName() {
+  public static String getUserName() {
     return java.lang.System.getProperty("user.name").toLowerCase();
   }
 
-  public static String numberOfCores() {
+  public static String getNumberOfCores() {
     return String.valueOf(hal.getProcessor().getPhysicalProcessorCount());
   }
 
-  public static long totalRamInGB() {
+  public static long getTotalRamInGB() {
     return hal.getMemory().getTotal() / 1_000_000_000;
   }
 
-  public static long availableRamInGB() {
+  public static long getAvailableRamInGB() {
     return hal.getMemory().getAvailable() / 1_000_000_000;
   }
 

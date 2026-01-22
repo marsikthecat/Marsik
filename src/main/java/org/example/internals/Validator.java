@@ -20,6 +20,10 @@ public class Validator {
   private int minLowerCase = 0;
   private int minUpperCase = 0;
 
+  private Validator() {
+    // No instantiation, bro.
+  }
+
   public void requireLength(int minSize, int maxSize) {
     if (minSize > maxSize) {
       throw new IllegalArgumentException("Min-size cannot be bigger than maxsize, bro!");
@@ -167,28 +171,28 @@ public class Validator {
     return true;
   }
 
+  /*
+  // Wrapper Example Usage //
+
   static void main(String[] args) {
-    /*
-    // Wrapper Example Usage //
-    Validator validator = new Validator();
-    validator.forbiddenSymbols('<', '>');
+    validator.forbiddenSymbols('<', '>');  <- define the conditions the input should have
     validator.atLeastDigits(3);
     validator.atLeastLetters(5);
     validator.atLeastSymbols(1);
     validator.requireLength(5, 20);
     validator.forbidWhiteSpace(true);
-    log(String.valueOf(validator.validate("Password"))); // false (at least 3 digits, only 0)
-    log(String.valueOf(validator.validate("t1234k567"))); // false (at least 5 letters, only 2)
-    log(String.valueOf(validator.validate("t1234password567"))); // false (at least 1 symbol, only 0)
-    log(String.valueOf(validator.validate("Pass"))); // false (length too small)
-    log(String.valueOf(validator.validate("Pass word"))); // false (whitespace)
-    log(String.valueOf(validator.validate("Pass>word"))); // false (forbidden symbol >)
-    log(String.valueOf(validator.validate("Password123!"))); // true
+    System.out.print(String.valueOf(validator.validate("Password"))); // false (at least 3 digits, only 0) <- test input based on conditions
+    System.out.print(String.valueOf(validator.validate("t1234k567"))); // false (at least 5 letters, only 2)
+    System.out.print(String.valueOf(validator.validate("t1234password567"))); // false (at least 1 symbol, only 0)
+    System.out.print(String.valueOf(validator.validate("Pass"))); // false (length too small)
+    System.out.print(String.valueOf(validator.validate("Pass word"))); // false (whitespace)
+    System.out.print(String.valueOf(validator.validate("Pass>word"))); // false (forbidden symbol >)
+    System.out.print(String.valueOf(validator.validate("Password123!"))); // true
     validator.atLeastLowerCase(5);
     validator.atLeastUpperCase(2);
-    log(String.valueOf(validator.validate("abc45,5aa"))); // false (at least 2 uppercase, only 0)
-    log(String.valueOf(validator.validate("ABC45,5dead"))); // false (at least 5 lowerCase, only 4)
-    log(String.valueOf(validator.validate("ABC45!5banana"))); // true
-     */
-  }
+    System.out.print(String.valueOf(validator.validate("abc45,5aa"))); // false (at least 2 uppercase, only 0)
+    System.out.print(String.valueOf(validator.validate("ABC45,5dead"))); // false (at least 5 lowerCase, only 4)
+    System.out.print(String.valueOf(validator.validate("ABC45!5banana"))); // true
+    System.out.print(validator.isValidEmail(fakemail@@.com) <- static validator methods
+  }*/
 }

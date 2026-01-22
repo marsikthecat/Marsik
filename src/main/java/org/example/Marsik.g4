@@ -6,7 +6,7 @@ program: (stmt* | class_def) EOF;
 type: INTEGER | BABY_INTEGER | CHAR | BOOLEAN | STRING | DOUBLE;
 
 // Data-Type declaration
-type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | AR_TYPE;
+type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | AR_TYPE | CRYPTODATA_TYPE;
 
 // statements
 stmt: (var_decl | const_decl | assign_stmt | if_stmt | while_stmt | return_stmt | expr
@@ -71,8 +71,7 @@ equality_expr : relational_expr (('==' | '!=') relational_expr)* ;
 relational_expr : additive_expr (('<'|'>'|'<='|'>=') additive_expr)* ;
 additive_expr : multiplicative_expr (('+'|'-') multiplicative_expr)* ;
 multiplicative_expr : unary_expr (('*'|'/'|'%') unary_expr)* ;
-unary_expr : ('+'|'-'|'not') unary_expr
-           | power_expr ;
+unary_expr : ('+'|'-'|'not') unary_expr | power_expr ;
 power_expr : atom_expr ('**' unary_expr)? ;
 atom_expr : other_stmt | NAME | INTEGER | BABY_INTEGER | CHAR
           | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
@@ -83,10 +82,11 @@ field_decl: ('public')? 'const'? type NAME;
 constructor_decl: '_constructor' '(' parameters? ')' block;
 method_decl: ('internal')? 'Method' (':' type)? NAME '(' parameters? ')' block;
 
-// They offer static methods. Only Validator can be instantiated.
-STANDARDLIBS     : 'Sys' | 'Math' | 'FileHandler' | 'Crypto' | 'Validator';
+// They offer static methods
+STANDARDLIBS     : 'Sys' | 'Math' | 'FileHandler' | 'Crypto' | 'Validator' | 'Threads' | 'DateTime'
+                   | 'RequestSender';
 
-// TODO: Threads + DateTime API
+// TODO: Thread support
 
 PLUSPLUS         : '++';
 MINUSMINUS       : '--';
@@ -140,7 +140,6 @@ WHILE    : 'while';
 EXIT     : 'exit';
 CONST    : 'const';
 SCAN     : 'scan';
-OPENFILE : 'openfile';
 TIME_MILLIS : 'getTime';
 AR_TYPE     : 'array';
 INT_TYPE    : 'int';
@@ -148,6 +147,9 @@ DOUBLE_TYPE : 'double';
 CHAR_TYPE   : 'char';
 BOOL_TYPE   : 'boolean';
 STRING_TYPE : 'string';
+
+// specific non-primitive Types
+CRYPTODATA_TYPE : 'CryptoData';
 
 NAME: (LETTER) (LETTER | DIGIT)*;
 NEWLINE: '\r'? '\n';

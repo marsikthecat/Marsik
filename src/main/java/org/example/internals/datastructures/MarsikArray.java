@@ -1,10 +1,6 @@
 package org.example.internals.datastructures;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class MarsikArray<E> {
 
@@ -12,10 +8,21 @@ public class MarsikArray<E> {
   private int top = -1;
   private int holeCount = 0;
 
-  @SafeVarargs
+  @SafeVarargs @SuppressWarnings("unchecked")
   public MarsikArray(E... elem) {
-    elements = Arrays.copyOf(elem, elem.length);
+    elements = (E[]) new Object[elem.length * 5];
+    System.arraycopy(elem, 0, elements, 0, elem.length);
     top += elem.length;
+  }
+
+  @SuppressWarnings("unchecked")
+  public MarsikArray() {
+    elements = (E[]) new Object[20];
+  }
+
+  @SuppressWarnings("unchecked")
+  public MarsikArray(int size) {
+    elements = (E[]) new Object[size];
   }
 
   public E get(int index) {
@@ -282,6 +289,72 @@ public class MarsikArray<E> {
 
   public double avg() {
     return sum() / elements.length;
+  }
+
+  public E percentile(double percentile) {
+    if (allNumbers()) {
+      MarsikArray<E> array = new MarsikArray<>(elements);
+      array.sort();
+      return array.get((int) Math.round(percentile * (length() - 1)));
+    }
+    throw new NoSuchElementException("Percentile is only supported for numbers in the Array!");
+  }
+
+  public E mostAppearingElement() {
+    HashMap<E, Integer> map = new HashMap<>();
+    for (int i = 0; i < length(); i++) {
+      map.merge(elements[i], 1, Integer::sum);
+    }
+    E mostElement = null;
+    int maxCount = 0;
+    for (Map.Entry<E, Integer> entry : map.entrySet()) {
+      if (entry.getValue() > maxCount) {
+        maxCount = entry.getValue();
+        mostElement = entry.getKey();
+      }
+    }
+    return mostElement;
+  }
+
+  public int mostAppearingElementCount() {
+    HashMap<E, Integer> map = new HashMap<>();
+    for (int i = 0; i < length(); i++) {
+      map.merge(elements[i], 1, Integer::sum);
+    }
+    int maxCount = 0;
+    for (Map.Entry<E, Integer> entry : map.entrySet()) {
+      if (entry.getValue() > maxCount) {
+        maxCount = entry.getValue();
+      }
+    }
+    return maxCount;
+  }
+
+  public MarsikArray<Integer> randomIntegerArray(int smallest, int largest, int numberOfElements) {
+    MarsikArray<Integer> marsikArray = new MarsikArray<>();
+    for (int i = 0; i < numberOfElements; i++) {
+      marsikArray.push(org.example.internals.math.Math.random(smallest, largest));
+    }
+    return marsikArray;
+  }
+
+  public MarsikArray<Double> randomDoubleArray(double smallest, double largest, int numberOfElements) {
+    MarsikArray<Double> marsikArray = new MarsikArray<>();
+    for (int i = 0; i < numberOfElements; i++) {
+      marsikArray.push(org.example.internals.math.Math.random(smallest, largest));
+    }
+    return marsikArray;
+  }
+
+  public E randomElement() {
+    return get(org.example.internals.math.Math.random(0,  length() - 1));
+  }
+
+  public E randomElementFromRange(int start, int end) {
+    if (start > end || end > length() || start < 0) {
+      throw new IndexOutOfBoundsException("Index out of bounds!");
+    }
+    return get(org.example.internals.math.Math.random(start, end));
   }
 
   public void defragmentation() {

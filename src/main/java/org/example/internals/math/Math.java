@@ -2,6 +2,10 @@ package org.example.internals.math;
 
 public class Math {
 
+  public static final double PI = 3.14159265358979323846;
+
+  public static final double EULER = 2.718281828459045;
+
   public static double round(double a) { return java.lang.Math.round(a); }
 
   public static double roundUp(double a) { return java.lang.Math.ceil(a); }
@@ -56,7 +60,15 @@ public class Math {
 
   public static double hypotenuse(double a, double b) { return java.lang.Math.hypot(a, b); }
 
+  public static double hypotenuse3D(double a, double b, double c) {
+    return Math.sqrt(a * a + b * b + c * c);
+  }
+
   public static double sqrt(double a) { return java.lang.Math.sqrt(a); }
+
+  public static boolean isEven(double a) {
+    return a % 2 == 0;
+  }
 
   public static boolean isPrime(int n) {
     if (n == 2 || n == 3)
@@ -181,7 +193,14 @@ public class Math {
     return sum(nums) / nums.length;
   }
 
-  public static double random(int start, int end) {
+  public static int random(int start, int end) {
+    if (start >= end) {
+      throw new IllegalArgumentException("Invalid range, my friend");
+    }
+    return (int) ((java.lang.Math.random() * (end - start + 1)) + start);
+  }
+
+  public static double random(double start, double end) {
     if (start >= end) {
       throw new IllegalArgumentException("Invalid range, my friend");
     }

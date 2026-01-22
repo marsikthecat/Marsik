@@ -1,13 +1,13 @@
 int a = 5
-int pow = a**a
+double pow = a**a
 const double pi = 3.141529
 string b = "aa"
 boolean c = false
 double d = 5.67
 print("hey")
 
-int num = scan("Your age")
-string time = getTime()
+string num = scan("Your age")
+int time = getTime()
 
 array<char> arr = ['a','b']
 arr.append('c')
@@ -15,18 +15,18 @@ int firstIndex = arr.indexOf('b')
 arr.remove('a')
 
 array<int> arr2 = [4,5,7,4,6,5]
-int average = arr2.avg( )
+double average = arr2.avg( )
 
-int nnn = Math.sqrt(a)
+double nnn = Math.sqrt(a)
 
-string fileContent = FileHandler.readFile( )
+string fileContent = FileHandler.readFile("notfound.txt")
 
 int e = a + 1
 int f = e - a
 int g = a / 2
-int h = a * b
-int mod = a % b
-if (e > Math.gcd(5)) {
+int h = a * e
+int mod = a % e
+if (e > Math.gcd(5, 12)) {
   e++
   exit()
 } else {
@@ -47,11 +47,20 @@ while(i < 5)
 
 string secret = "banana"
 secret.append("a")
-string encrypted = Crypto.encrypt(secret)
-string decrypted = Crypto.decrypt(secret)
+
+CryptoData cryptoData = Crypto.generateKey( )
+CryptoData encrypted = Crypto.encrypt(secret, cryptoData)
+string decrypted = Crypto.decrypt(encrypted)
 if (secret == decrypted) {
   printLine(Sys.getOs( ))
 }
 
 HashMap hashMap = new HashMap( )
-hashMap.put("a")
+hashMap.defineKeys("Letter")
+hashMap.set("Letter", a)
+
+string today = DateTime.now( )
+int year = DateTime.year(today)
+if (DateTime.isLeapYear(today)) {
+  print("this year is a leap year")
+}

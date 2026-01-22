@@ -49,6 +49,11 @@ public class MarsikHashMap {
     values = new Object[size];
   }
 
+  public MarsikHashMap() {
+    initialSize = 20;
+    values = new Object[initialSize];
+  }
+
   public void defineKeys(String... keys) {
     boolean mapperResult;
     do {

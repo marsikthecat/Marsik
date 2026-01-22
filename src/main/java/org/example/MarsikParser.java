@@ -25,10 +25,10 @@ public class MarsikParser extends Parser {
 		GREATEREQUAL=38, TILDE=39, CIRCUMFLEX=40, LEFTSHIFT=41, RIGHTSHIFT=42, 
 		DOUBLESTAR=43, PLUSEQUAL=44, MINEQUAL=45, STAREQUAL=46, SLASHEQUAL=47, 
 		NEW=48, BREAK=49, FUNCTION=50, ELSE=51, FOR=52, IF=53, PRINT=54, PRINTLN=55, 
-		RETURN=56, TRY=57, WHILE=58, EXIT=59, CONST=60, SCAN=61, OPENFILE=62, 
-		TIME_MILLIS=63, AR_TYPE=64, INT_TYPE=65, DOUBLE_TYPE=66, CHAR_TYPE=67, 
-		BOOL_TYPE=68, STRING_TYPE=69, NAME=70, NEWLINE=71, COMMENT=72, WS=73, 
-		INTEGER=74, BABY_INTEGER=75, STRING=76, CHAR=77, DOUBLE=78, BOOLEAN=79;
+		RETURN=56, TRY=57, WHILE=58, EXIT=59, CONST=60, SCAN=61, TIME_MILLIS=62, 
+		AR_TYPE=63, INT_TYPE=64, DOUBLE_TYPE=65, CHAR_TYPE=66, BOOL_TYPE=67, STRING_TYPE=68, 
+		CRYPTODATA_TYPE=69, NAME=70, NEWLINE=71, COMMENT=72, WS=73, INTEGER=74, 
+		BABY_INTEGER=75, STRING=76, CHAR=77, DOUBLE=78, BOOLEAN=79;
 	public static final int
 		RULE_program = 0, RULE_type = 1, RULE_type_label = 2, RULE_stmt = 3, RULE_method_call = 4, 
 		RULE_object_stmt = 5, RULE_build_in_stmt = 6, RULE_var_decl = 7, RULE_const_decl = 8, 
@@ -66,8 +66,8 @@ public class MarsikParser extends Parser {
 			"'!='", "'<='", "'>='", "'~'", "'^'", "'<<'", "'>>'", "'**'", "'+='", 
 			"'-='", "'*='", "'/='", "'new'", "'break'", "'function'", "'else'", "'for'", 
 			"'if'", "'print'", "'printLine'", "'return'", "'try'", "'while'", "'exit'", 
-			"'const'", "'scan'", "'openfile'", "'getTime'", "'array'", "'int'", "'double'", 
-			"'char'", "'boolean'", "'string'"
+			"'const'", "'scan'", "'getTime'", "'array'", "'int'", "'double'", "'char'", 
+			"'boolean'", "'string'", "'CryptoData'"
 		};
 	}
 	private static final String[] _LITERAL_NAMES = makeLiteralNames();
@@ -80,9 +80,9 @@ public class MarsikParser extends Parser {
 			"INEQUAL", "NOTEQUAL", "LESSEQUAL", "GREATEREQUAL", "TILDE", "CIRCUMFLEX", 
 			"LEFTSHIFT", "RIGHTSHIFT", "DOUBLESTAR", "PLUSEQUAL", "MINEQUAL", "STAREQUAL", 
 			"SLASHEQUAL", "NEW", "BREAK", "FUNCTION", "ELSE", "FOR", "IF", "PRINT", 
-			"PRINTLN", "RETURN", "TRY", "WHILE", "EXIT", "CONST", "SCAN", "OPENFILE", 
-			"TIME_MILLIS", "AR_TYPE", "INT_TYPE", "DOUBLE_TYPE", "CHAR_TYPE", "BOOL_TYPE", 
-			"STRING_TYPE", "NAME", "NEWLINE", "COMMENT", "WS", "INTEGER", "BABY_INTEGER", 
+			"PRINTLN", "RETURN", "TRY", "WHILE", "EXIT", "CONST", "SCAN", "TIME_MILLIS", 
+			"AR_TYPE", "INT_TYPE", "DOUBLE_TYPE", "CHAR_TYPE", "BOOL_TYPE", "STRING_TYPE", 
+			"CRYPTODATA_TYPE", "NAME", "NEWLINE", "COMMENT", "WS", "INTEGER", "BABY_INTEGER", 
 			"STRING", "CHAR", "DOUBLE", "BOOLEAN"
 		};
 	}
@@ -191,6 +191,7 @@ public class MarsikParser extends Parser {
 			case CHAR_TYPE:
 			case BOOL_TYPE:
 			case STRING_TYPE:
+			case CRYPTODATA_TYPE:
 			case NAME:
 			case INTEGER:
 			case BABY_INTEGER:
@@ -202,7 +203,7 @@ public class MarsikParser extends Parser {
 				setState(93);
 				_errHandler.sync(this);
 				_la = _input.LA(1);
-				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 2158350121442739216L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 64639L) != 0)) {
+				while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -7065021915412036592L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 64639L) != 0)) {
 					{
 					{
 					setState(90);
@@ -296,6 +297,7 @@ public class MarsikParser extends Parser {
 		public TerminalNode BOOL_TYPE() { return getToken(MarsikParser.BOOL_TYPE, 0); }
 		public TerminalNode STRING_TYPE() { return getToken(MarsikParser.STRING_TYPE, 0); }
 		public TerminalNode AR_TYPE() { return getToken(MarsikParser.AR_TYPE, 0); }
+		public TerminalNode CRYPTODATA_TYPE() { return getToken(MarsikParser.CRYPTODATA_TYPE, 0); }
 		public Type_labelContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
@@ -316,7 +318,7 @@ public class MarsikParser extends Parser {
 			{
 			setState(103);
 			_la = _input.LA(1);
-			if ( !(((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 63L) != 0)) ) {
+			if ( !(((((_la - 63)) & ~0x3f) == 0 && ((1L << (_la - 63)) & 127L) != 0)) ) {
 			_errHandler.recoverInline(this);
 			}
 			else {
@@ -1528,7 +1530,7 @@ public class MarsikParser extends Parser {
 			setState(267);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & 2158350121442739216L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 64639L) != 0)) {
+			while ((((_la) & ~0x3f) == 0 && ((1L << _la) & -7065021915412036592L) != 0) || ((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 64639L) != 0)) {
 				{
 				{
 				setState(264);
@@ -1602,7 +1604,7 @@ public class MarsikParser extends Parser {
 			setState(276);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
-			if (((((_la - 64)) & ~0x3f) == 0 && ((1L << (_la - 64)) & 127L) != 0)) {
+			if (((((_la - 63)) & ~0x3f) == 0 && ((1L << (_la - 63)) & 255L) != 0)) {
 				{
 				setState(275);
 				for_init();
@@ -1682,6 +1684,7 @@ public class MarsikParser extends Parser {
 			case CHAR_TYPE:
 			case BOOL_TYPE:
 			case STRING_TYPE:
+			case CRYPTODATA_TYPE:
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(289);
@@ -3327,7 +3330,7 @@ public class MarsikParser extends Parser {
 		",\u0003,\u01d1\b,\u0001,\u0001,\u0001,\u0003,\u01d6\b,\u0001,\u0001,\u0001"+
 		",\u0001,\u0000\u0000-\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012"+
 		"\u0014\u0016\u0018\u001a\u001c\u001e \"$&(*,.02468:<>@BDFHJLNPRTVX\u0000"+
-		"\u0007\u0001\u0000JO\u0001\u0000@E\u0002\u0000\"\"$$\u0002\u0000\u001d"+
+		"\u0007\u0001\u0000JO\u0001\u0000?E\u0002\u0000\"\"$$\u0002\u0000\u001d"+
 		"\u001e%&\u0001\u0000\u0017\u0018\u0002\u0000\u0019\u001a  \u0002\u0000"+
 		"\u0004\u0004\u0017\u0018\u01fa\u0000a\u0001\u0000\u0000\u0000\u0002e\u0001"+
 		"\u0000\u0000\u0000\u0004g\u0001\u0000\u0000\u0000\u0006{\u0001\u0000\u0000"+
@@ -3407,7 +3410,7 @@ public class MarsikParser extends Parser {
 		"\u0000\u00be\u00bf\u0005F\u0000\u0000\u00bf\u00c1\u0005\f\u0000\u0000"+
 		"\u00c0\u00c2\u0005J\u0000\u0000\u00c1\u00c0\u0001\u0000\u0000\u0000\u00c1"+
 		"\u00c2\u0001\u0000\u0000\u0000\u00c2\u0017\u0001\u0000\u0000\u0000\u00c3"+
-		"\u00c4\u0005@\u0000\u0000\u00c4\u00c5\u0005\u001d\u0000\u0000\u00c5\u00c6"+
+		"\u00c4\u0005?\u0000\u0000\u00c4\u00c5\u0005\u001d\u0000\u0000\u00c5\u00c6"+
 		"\u0003\u0004\u0002\u0000\u00c6\u00c7\u0005\u001e\u0000\u0000\u00c7\u00c8"+
 		"\u0005F\u0000\u0000\u00c8\u00c9\u0005\u0011\u0000\u0000\u00c9\u00d4\u0005"+
 		"\r\u0000\u0000\u00ca\u00d5\u0003\u0002\u0001\u0000\u00cb\u00cc\u0003\u0002"+
@@ -3478,7 +3481,7 @@ public class MarsikParser extends Parser {
 		"\u0000\u0140\u013f\u0001\u0000\u0000\u0000\u01411\u0001\u0000\u0000\u0000"+
 		"\u0142\u0143\u0005=\u0000\u0000\u0143\u0144\u0005\u0012\u0000\u0000\u0144"+
 		"\u0145\u0005L\u0000\u0000\u0145\u0146\u0005\u0014\u0000\u0000\u01463\u0001"+
-		"\u0000\u0000\u0000\u0147\u0148\u0005?\u0000\u0000\u0148\u0149\u0005\u0001"+
+		"\u0000\u0000\u0000\u0147\u0148\u0005>\u0000\u0000\u0148\u0149\u0005\u0001"+
 		"\u0000\u0000\u01495\u0001\u0000\u0000\u0000\u014a\u014b\u0005\n\u0000"+
 		"\u0000\u014b\u014c\u0005\u001f\u0000\u0000\u014c\u014d\u0005F\u0000\u0000"+
 		"\u014d\u014f\u0005\u0012\u0000\u0000\u014e\u0150\u00038\u001c\u0000\u014f"+
