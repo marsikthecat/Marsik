@@ -6,6 +6,7 @@ import java.util.Arrays;
 public class MarsikSplayArray<E extends Comparable<E>> extends MarsikArray<E> {
 
   private final int[] visited;
+
   @SafeVarargs
   public MarsikSplayArray(E... elem) {
     super(elem);
@@ -21,10 +22,15 @@ public class MarsikSplayArray<E extends Comparable<E>> extends MarsikArray<E> {
   }
 
   @Override
-  public int lastIndexOf(E value) {
-    int idx = super.lastIndexOf(value);
+  public E get(int idx) {
     updateVisited(idx);
-    return idx;
+    return super.get(idx);
+  }
+
+  @Override
+  public void set(int idx, E value) {
+    updateVisited(idx);
+    super.set(idx, value);
   }
 
   @Override
@@ -37,14 +43,14 @@ public class MarsikSplayArray<E extends Comparable<E>> extends MarsikArray<E> {
       int visitedCount = visited[idxOfElem];
       visited[idxOfElem] = ++visitedCount;
     }
-    if (Arrays.stream(visited).sum() % (length() / 2) == 0) {
+    if (Arrays.stream(visited).sum() % (size() / 2) == 0) {
       rearrange();
     }
   }
 
   private void rearrange() {
-    Object[][] pairs = new Object[length()][2];
-    for (int i = 0; i < length(); i++) {
+    Object[][] pairs = new Object[size()][2];
+    for (int i = 0; i < size(); i++) {
       pairs[i][0] = get(i);
       pairs[i][1] = visited[i];
     }

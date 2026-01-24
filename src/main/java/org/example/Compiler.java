@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.internals.FileHandler;
 import org.example.internals.compiler.*;
+import org.example.internals.datastructures.MarsikString;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -42,7 +43,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitBuild_in_stmt(org.example.MarsikParser.Build_in_stmtContext ctx) {
     String type = ctx.type_label().getText();
     if (ctx.type_label().STRING_TYPE() != null) {
-      type = "String";
+      type = "MarsikString";
     }
     String name = ctx.NAME().getText();
     String value;
@@ -61,8 +62,9 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   @Override
   public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
     // All instantiatable objects of the marsik runtime
-    List<String> buildInObjects = List.of("HashMap", "BitSet", "Array", "BinaryTree", "AVLTree",
-            "BTree", "SplayTree", "Graph", "WeightedGraph", "SplayArray", "CircularBuffer", "GapBuffer");
+    List<String> buildInObjects = List.of("Stack", "SparseArray", "Set", "Queue", "List",
+            "HashMap", "BitSet", "Array", "BinaryTree", "AVLTree", "BTree", "SplayTree",
+            "Graph", "WeightedGraph", "SplayArray", "CircularBuffer", "GapBuffer");
     String objectAtStart = ctx.NAME(0).getText();
     String variable = ctx.NAME(1).getText();
     String objectAtEnd = ctx.NAME(2).getText();
@@ -70,14 +72,28 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     if (objectAtStart.equals(objectAtEnd)) {
       // Here we translate the build-in objects into the Marsik objects of the runtime
       if (buildInObjects.contains(objectAtStart)) {
-        translatedObject = "Marsik" + objectAtStart;
-        imports.add("import org.example.internals.datastructures.*;\n");
+        if (ctx.type_label() != null && !objectAtStart.equals("BitSet")) { // Bitset has no datatype to store
+          String type = ctx.type_label().getText();
+          // Creating Types for generic: list<int> => MarsikList<Integer>
+          String genericType = switch (type) {
+            case "string" -> "MarsikString";
+            case "int" -> "Integer";
+            case "boolean" -> "Boolean";
+            case "double" -> "Double";
+            case "char" -> "Character";
+            default -> "Object";
+          };
+          imports.add("import org.example.internals.datastructures.*;\n");
+          translatedObject = "Marsik" + objectAtStart + "<" + genericType + ">";
+        } else {
+          throw new RuntimeException("Unknown Type of Elements detected");
+        }
       } else {
         // Custom objects + Matrix and Pointer because I forgot to put Marsik in the filename
         translatedObject = objectAtStart;
       }
       variables.put(variable, new ValueHolder(translatedObject, variable));
-      String parameters = ctx.parameters() != null ? ctx.parameters().getText() : "";
+      String parameters = ctx.arguments() != null ? ctx.arguments().getText() : "";
       code.append(translatedObject).append(" ").append(variable).append(" = new ").append(translatedObject).
               append("(").append(parameters).append(");\n");
     } else {
@@ -302,7 +318,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitScan_stmt(org.example.MarsikParser.Scan_stmtContext ctx) {
-    return "new java.util.Scanner(System.in).nextLine()";
+    // TODO: print scan message
+    return "new MarsikString(new java.util.Scanner(System.in).nextLine())";
   }
 
   @Override
@@ -316,12 +333,13 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitTime_stmt(org.example.MarsikParser.Time_stmtContext ctx) {
-    return "java.lang.Math.toIntExact(System.currentTimeMillis())";
+    return "new MarsikString(String.valueOf(System.currentTimeMillis()))";
   }
 
   @Override
   public String visitOther_stmt(org.example.MarsikParser.Other_stmtContext ctx) {
     String libraryObject = ctx.STANDARDLIBS().getText();
+    // TODO: find out why the hell it doesn't include math import despite being recognized as a Standard library
     switch (libraryObject) {
       case "Sys" -> imports.add("import org.example.internals.Sys;\n");
       case "Math" -> imports.add("import org.example.internals.math.Math;\n");
@@ -330,6 +348,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       case "Validator" -> imports.add("import org.example.internals.Validator;\n");
       case "DateTime" -> imports.add("import org.example.internals.time.DateTime;\n");
       case "RequestSender" -> imports.add("import org.example.internals.internet.MarsikRequestSender;\n");
+      case "TypeCaster" -> imports.add("import org.example.internals.TypeCaster;\n");
     }
     String function = ctx.NAME().getText();
     List<String> params = new ArrayList<>();
@@ -506,7 +525,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     
     package org.example;
     
-    import org.example.internals.Sys;
+    import org.example.internals.math.Math;
     %s
     
     public class GeneratedProgram {
@@ -528,9 +547,10 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     compiler.visit(tree);
     File generatedFile = new File("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\GeneratedProgram.java");
     if (generatedFile.exists()) {
-      FileHandler.deleteFile(generatedFile.getAbsolutePath());
+      FileHandler.deleteFile(new MarsikString(generatedFile.getAbsolutePath()));
     }
-    FileHandler.createNewFile(generatedFile.getAbsolutePath());
-    FileHandler.writeToFile(generatedFile.getAbsolutePath(), compiler.generateJava());
+    FileHandler.createNewFile(new MarsikString(generatedFile.getAbsolutePath()));
+    FileHandler.writeToFile(new MarsikString(generatedFile.getAbsolutePath()),
+            new MarsikString(compiler.generateJava()));
   }
 }

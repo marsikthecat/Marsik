@@ -37,29 +37,32 @@ import java.util.Set;
  * SuperHashMap getValues() average: 0.00010 ms
  */
 
-public class MarsikHashMap {
+public class MarsikHashMap<E> {
 
   private final Set<Object> keySet = new HashSet<>();
-  private Object[] values;
+  private E[] values;
   private int growFactor = 1;
   private final int initialSize;
 
+  @SuppressWarnings("unchecked")
   public MarsikHashMap(int size) {
     initialSize = size;
-    values = new Object[size];
+    values = (E[]) new Object[size];
   }
 
+  @SuppressWarnings("unchecked")
   public MarsikHashMap() {
     initialSize = 20;
-    values = new Object[initialSize];
+    values = (E[]) new Object[initialSize];
   }
 
+  @SuppressWarnings("unchecked")
   public void defineKeys(String... keys) {
     boolean mapperResult;
     do {
       mapperResult = hash(keys);
       growFactor++;
-      values = new Object[initialSize*growFactor];
+      values = (E[]) new Object[initialSize*growFactor];
       System.out.print("Trying growFactor " + growFactor);
       if (growFactor > 64) {
         throw new UnsupportedOperationException("Cannot make perfect hashing out of these keys");
@@ -73,7 +76,7 @@ public class MarsikHashMap {
     return values[hash(key)];
   }
 
-  public void set(String key, Object value) {
+  public void set(String key, E value) {
     values[hash(key)] = value;
   }
 

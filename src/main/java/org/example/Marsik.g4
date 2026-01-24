@@ -17,7 +17,7 @@ stmt: (var_decl | const_decl | assign_stmt | if_stmt | while_stmt | return_stmt 
 method_call: NAME '.' NAME '(' arguments? ')';
 
 // initializing Objects
-object_stmt: NAME NAME EQUAL NEW NAME '(' parameters? ')';
+object_stmt: NAME ('<' type_label '>')? NAME EQUAL NEW NAME '(' arguments? ')';
 
 // build in functions
 build_in_stmt: type_label NAME EQUAL (scan_stmt | time_stmt | other_stmt | method_call);
@@ -84,9 +84,9 @@ method_decl: ('internal')? 'Method' (':' type)? NAME '(' parameters? ')' block;
 
 // They offer static methods
 STANDARDLIBS     : 'Sys' | 'Math' | 'FileHandler' | 'Crypto' | 'Validator' | 'Threads' | 'DateTime'
-                   | 'RequestSender';
+                   | 'RequestSender' | 'TypeCaster';
 
-// TODO: Thread support
+// TODO: Thread support (maybe)
 
 PLUSPLUS         : '++';
 MINUSMINUS       : '--';

@@ -22,15 +22,7 @@ public class RequestSender {
    * @return the response from the server as a String or null if an error happened.
    * Example for method usage:
    * <pre>
-   * sendRpcRequest(<a href="https://playground.oresat.org/json-rpc">...</a>,
-   * """
-   *     {
-   *       "jsonrpc": "2.0",
-   *       "method": "subtract",
-   *       "params": [42, 23],
-   *       "id": 1
-   *     }
-   * """)
+   * sendRpcRequest("<a href="https://playground.oresat.org/json-rpc">...</a>", "1", "subtract", "42", "23")
    */
 
   public static String sendRPCRequest(String url,  String id, String method, String... params) {
@@ -59,8 +51,13 @@ public class RequestSender {
       conn.setDoOutput(true);
       conn.setRequestMethod("POST");
       conn.setRequestProperty("Content-Type", "application/json");
+      conn.setRequestProperty("Accept", "application/json");
       try (OutputStream os = conn.getOutputStream()) {
-        os.write(jsonCall.getBytes());
+        os.write(jsonCall.getBytes(StandardCharsets.UTF_8));
+      }
+      int status = conn.getResponseCode();
+      if (status < 200 || status >= 300) {
+        Sys.printError("An HTTP Error occurred: " + status);
       }
       return getResult(conn);
     } catch (IOException e) {
@@ -96,7 +93,8 @@ public class RequestSender {
   /**
    * You can use this method to send a Rest request to a given URL.
    * Make sure the URL exists and is reachable
-   * @param url url of the JSON_RPC server
+   * @param url url of the JSON_RPC server.
+   * @param httpMethod Rest method that you want to use.
    * @param params the params that are required, in json format please.
    * @return the response from the server as a String or null if an error happened.
    * example for method usage:
@@ -110,21 +108,27 @@ public class RequestSender {
    *         }
    *         """)
    */
-  public static String sendRestRequest(String url, String endPoint, String params) {
+  public static String sendRestRequest(String url, String httpMethod, String params) {
     try {
       HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-      if (endPoint.equals("GET")) {
+      // GET request with no params
+      if (params == null && httpMethod.equals("GET")) {
         con.setRequestMethod("GET");
       } else {
-        if (isValidJson(params)) {
-          throw new IllegalArgumentException("Your JSON is not valid, buddy");
+        if (!isValidJson(params)) {
+          throw new JsonSyntaxException("Invalid JSON parameters: " + params);
         }
-        con.setRequestMethod(endPoint);
-        con.setRequestProperty("Content-Type", "application/json; utf-8");
-        con.setDoOutput(true);
-        try (OutputStream os = con.getOutputStream()) {
+      }
+      con.setRequestMethod(httpMethod);
+      con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+      con.setRequestProperty("Accept", "application/json");
+      con.setDoOutput(true);
+      try (OutputStream os = con.getOutputStream()) {
+        if (params != null) {
           byte[] input = params.getBytes(StandardCharsets.UTF_8);
           os.write(input, 0, input.length);
+        } else {
+          os.write("{}".getBytes(StandardCharsets.UTF_8));
         }
       }
       return getResult(con);
@@ -133,6 +137,7 @@ public class RequestSender {
     }
     return null;
   }
+
   private static String getResult(HttpURLConnection con) throws IOException {
     StringBuilder responseBuilder = new StringBuilder();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
@@ -147,9 +152,9 @@ public class RequestSender {
   public static boolean isValidJson(String json) {
     try {
       JsonParser.parseString(json);
-      return false;
-    } catch (JsonSyntaxException ex) {
       return true;
+    } catch (JsonSyntaxException ex) {
+      return false;
     }
   }
 }

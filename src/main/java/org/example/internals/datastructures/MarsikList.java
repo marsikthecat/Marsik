@@ -1,4 +1,4 @@
-package org.example.internals.datastructures.trees;
+package org.example.internals.datastructures;
 
 import java.util.*;
 

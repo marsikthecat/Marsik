@@ -1,5 +1,6 @@
 package org.example.internals;
 
+import org.example.internals.datastructures.MarsikString;
 import oshi.SystemInfo;
 import oshi.hardware.HWDiskStore;
 import oshi.hardware.HardwareAbstractionLayer;
@@ -42,24 +43,24 @@ public class Sys {
     clipBoardContent = string;
   }
 
-  public static String getClipBoardContent() {
-    return clipBoardContent;
+  public static MarsikString getClipBoardContent() {
+    return new MarsikString(clipBoardContent);
   }
 
-  public static String getOs() {
-    return java.lang.System.getProperty("os.name").toLowerCase();
+  public static MarsikString getOs() {
+    return new MarsikString(System.getProperty("os.name").toLowerCase());
   }
 
-  public static String getOsVersion() {
-    return java.lang.System.getProperty("os.version").toLowerCase();
+  public static MarsikString getOsVersion() {
+    return new MarsikString(System.getProperty("os.version").toLowerCase());
   }
 
-  public static String getUserName() {
-    return java.lang.System.getProperty("user.name").toLowerCase();
+  public static MarsikString getUserName() {
+    return new MarsikString(System.getProperty("user.name").toLowerCase());
   }
 
-  public static String getNumberOfCores() {
-    return String.valueOf(hal.getProcessor().getPhysicalProcessorCount());
+  public static MarsikString getNumberOfCores() {
+    return new MarsikString(String.valueOf(hal.getProcessor().getPhysicalProcessorCount()));
   }
 
   public static long getTotalRamInGB() {
@@ -70,31 +71,29 @@ public class Sys {
     return hal.getMemory().getAvailable() / 1_000_000_000;
   }
 
-  public static String getCpuTemperature() {
-    return hal.getSensors().getCpuTemperature() + " °C";
+  public static MarsikString getCpuTemperature() {
+    return new MarsikString(hal.getSensors().getCpuTemperature() + " °C");
   }
 
-  public static String getCpuVoltage() {
-    return hal.getSensors().getCpuVoltage() + " V";
+  public static MarsikString getCpuVoltage() {
+    return new MarsikString(hal.getSensors().getCpuVoltage() + " V");
   }
 
-  public static String[] getPowerSourcesInfo() {
-    String[] powerSources = new String[hal.getPowerSources().size()];
-    List<PowerSource> powerSourceList = hal.getPowerSources();
-    for (int i = 0; i < powerSourceList.size(); i++) {
-      powerSources[i] = "Battery: " + powerSourceList.get(i).getName()
-              + ", Remaining: " + (powerSourceList.get(i).getCurrentCapacity() * 100)
-              + "%";
+  public static MarsikString getPowerSourcesInfo() {
+    MarsikString powerSources = new MarsikString("");
+    for (PowerSource powerSource : hal.getPowerSources()) {
+      powerSources.append("Battery: " + powerSource.getName()
+              + ", Remaining: " + (powerSource.getCurrentCapacity() * 100) + "% \n");
     }
     return powerSources;
   }
 
-  public static String[] getDisksInfo() {
-    String[] disksInfos = new String[hal.getDiskStores().size()];
+  public static MarsikString getDisksInfo() {
+    MarsikString disksInfos = new MarsikString("");
     List<HWDiskStore> disks = hal.getDiskStores();
-    for (int i = 0; i < disks.size(); i++) {
-      disksInfos[i] = "Model: " + disks.get(i).getName()
-              + ", Size: " + (disks.get(i).getSize() / 1_000_000_000 + " GB");
+    for (HWDiskStore disk : disks) {
+      disksInfos.append("Model: " + disk.getName()
+              + ", Size: " + (disk.getSize() / 1_000_000_000 + " GB"));
     }
     return disksInfos;
   }
@@ -110,21 +109,21 @@ public class Sys {
     }
   }
 
-  private static void showSystemNotification(String title, String message, String iconPath, TrayIcon.MessageType messageType) {
+  private static void showSystemNotification(MarsikString title, MarsikString message, MarsikString iconPath, TrayIcon.MessageType messageType) {
     try {
       TrayIcon trayIcon = setTrayIcon(iconPath);
-      trayIcon.displayMessage(title, message, messageType);
+      trayIcon.displayMessage(title.toJavaString(), message.toJavaString(), messageType);
     } catch (AWTException e) {
       Sys.printError("An Error occurred while setting up Notification: " + e.getMessage());
     }
   }
 
-  private static TrayIcon setTrayIcon(String iconPath) throws AWTException {
+  private static TrayIcon setTrayIcon(MarsikString iconPath) throws AWTException {
     if (!SystemTray.isSupported()) {
       throw new UnsupportedOperationException("System notification are not supported on your OS");
     }
     SystemTray tray = SystemTray.getSystemTray();
-    Image image = Toolkit.getDefaultToolkit().createImage(iconPath);
+    Image image = Toolkit.getDefaultToolkit().createImage(iconPath.toJavaString());
     TrayIcon trayIcon = new TrayIcon(image, "Notification");
     trayIcon.setImageAutoSize(true);
     trayIcon.setToolTip("Tooltip-text");

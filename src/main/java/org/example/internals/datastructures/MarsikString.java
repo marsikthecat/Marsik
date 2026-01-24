@@ -4,6 +4,7 @@ public class MarsikString {
 
   private char[] data;
   private int size;
+
   public MarsikString(String string) {
     if (string == null) {
       throw new IllegalArgumentException("String cannot be null, my friend!");
@@ -17,6 +18,7 @@ public class MarsikString {
       throw new IllegalArgumentException("Character array cannot be null, my friend!");
     }
     this.data = data.clone();
+    this.size = data.length;
   }
 
   public MarsikString(MarsikString string) {
@@ -28,14 +30,14 @@ public class MarsikString {
   }
 
   public void setCharAt(int index, char c) {
-    if (index < 0 || index >= data.length) {
+    if (index < 0 || index >= size) {
       throw new IndexOutOfBoundsException("Index out of bounds: " + index + " my friend!");
     }
     data[index] = c;
   }
 
   public char getCharAt(int index) {
-    if (index < 0 || index >= data.length) {
+    if (index < 0 || index >= size) {
       throw new IndexOutOfBoundsException("Index out of bounds: " + index + " my friend!");
     }
     return data[index];
@@ -55,7 +57,7 @@ public class MarsikString {
 
   public int indexOf(char c) {
     int index = -1;
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < size; i++) {
       if (data[i] == c) {
         index = i;
         break;
@@ -64,26 +66,21 @@ public class MarsikString {
     return index;
   }
 
-  public int[] allIndexOf(char c) {
-    int counter = 0;
-    for (char datum : data) {
-      if (datum == c) {
-        counter++;
-      }
-    }
-    int[] indices = new int[counter];
-    for (int i = 0, j = 0; i < data.length; i++) {
+  public MarsikArray<Integer> allIndexOf(char c) {
+    MarsikArray<Integer> indexes = new MarsikArray<>(count(c));
+    int j = 0;
+    for (int i = 0; i < size; i++) {
       if (data[i] == c) {
-        indices[j] = i;
+        indexes.set(j, i);
         j++;
       }
     }
-    return indices;
+    return indexes;
   }
 
   public int firstIndexOf(char c) {
     int index = -1;
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < size; i++) {
       if (data[i] == c) {
         index = i;
         break;
@@ -94,7 +91,7 @@ public class MarsikString {
 
   public int lastIndexOf(char c) {
     int index = -1;
-    for (int i = data.length - 1; i >= 0; i--) {
+    for (int i = size - 1; i >= 0; i--) {
       if (data[i] == c) {
         index = i;
         break;
@@ -125,7 +122,7 @@ public class MarsikString {
   }
 
   public void replaceAll(char oldChar, char newChar) {
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < size; i++) {
       if (data[i] == oldChar) {
         data[i] = newChar;
       }
@@ -133,10 +130,10 @@ public class MarsikString {
   }
 
   public void reverse() {
-    for (int i = 0; i < data.length / 2; i++) {
+    for (int i = 0; i < size / 2; i++) {
       char tmp = data[i];
-      data[i] = data[data.length - 1 - i];
-      data[data.length - 1 - i] = tmp;
+      data[i] = data[size - 1 - i];
+      data[size - 1 - i] = tmp;
     }
   }
 
@@ -153,14 +150,18 @@ public class MarsikString {
     if (str == null) {
       throw new IllegalArgumentException("String cannot be null, my friend!");
     }
-    char[] strArray = str.toCharArray();
-    for (char c : strArray) {
-      append(c);
+    for (int i = 0; i < str.length(); i++) {
+      if (size == data.length) {
+        char[] newData = new char[Math.max(1, data.length * 2)];
+        System.arraycopy(data, 0, newData, 0, size);
+        data = newData;
+      }
+      data[size++] = str.charAt(i);
     }
   }
 
   public MarsikString subString(int start, int end) {
-    if (start < 0 || end > data.length || start > end) {
+    if (start < 0 || end > size || start > end) {
       throw new IndexOutOfBoundsException("start and end are not valid, my friend!");
     }
     char[] newData = new char[end - start];
@@ -169,26 +170,24 @@ public class MarsikString {
   }
 
   public String toJavaString() {
-    return new String(data);
+    return new String(data, 0, size);
   }
 
-  public MarsikString replacePart(int start, int end, MarsikString replacement) {
-    if (start < 0 || end > data.length || start > end) {
+  public void replacePart(int start, int end, MarsikString replacement) {
+    if (start < 0 || end > size || start > end) {
       throw new IndexOutOfBoundsException("start and end are not valid, my friend!");
     }
     if (replacement.isEmpty() || replacement.length() != end - start) {
       throw new IllegalArgumentException("replacement-string must have same length as the " +
               "size of the part you want to replace, my friend!");
     }
-    char[] newData = data;
     for (int i = start; i < end; i++) {
-      newData[i] = replacement.getCharAt(i - start);
+      data[i] = replacement.getCharAt(i - start);
     }
-    return new MarsikString(newData);
   }
 
   public void toUpperCase() {
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < size; i++) {
       if (data[i] >= 'a' && data[i] <= 'z') {
         data[i] = (char) (data[i] - 32);
       }
@@ -196,7 +195,7 @@ public class MarsikString {
   }
 
   public void toLowerCase() {
-    for (int i = 0; i < data.length; i++) {
+    for (int i = 0; i < size; i++) {
       if (data[i] >= 'A' && data[i] <= 'Z') {
         data[i] = (char) (data[i] + 32);
       }
@@ -204,7 +203,7 @@ public class MarsikString {
   }
 
   public boolean startsWith(char[] c) {
-    if (c == null || c.length > data.length) {
+    if (c == null || c.length > size) {
       throw new IllegalArgumentException("Character array is invalid");
     }
     for (int i = 0; i < c.length; i++) {
@@ -216,11 +215,11 @@ public class MarsikString {
   }
 
   public boolean endsWith(char[] c) {
-    if (c == null || c.length > data.length) {
+    if (c == null || c.length > size) {
       throw new IllegalArgumentException("Character array is invalid");
     }
     for (int i = 0; i < c.length; i++) {
-      if (data[data.length - c.length + i] != c[i]) {
+      if (data[size - c.length + i] != c[i]) {
         return false;
       }
     }
@@ -228,24 +227,23 @@ public class MarsikString {
   }
 
   public boolean isPalindrome() {
-    for (int i = 0; i < data.length / 2; i++) {
-      if (data[i] != data[data.length - 1 - i]) {
+    for (int i = 0; i < size / 2; i++) {
+      if (data[i] != data[size - 1 - i]) {
         return false;
       }
     }
     return true;
   }
 
-  public int[] alphabetIndex() {
+  public MarsikArray<Integer> alphabetIndexes() {
     if (!hasOnlyLetters()) {
       throw new IllegalStateException("String has non-alphabetic characters, my friend!");
     }
-    int[] indexes = new int[data.length];
-    for (int i = 0; i < data.length; i++) {
-      char c = data[i];
-      indexes[i] = Character.toUpperCase(c) - 'A';
+    MarsikArray<Integer> alphabetIndexes = new MarsikArray<>(size);
+    for (int i = 0; i < size; i++) {
+      alphabetIndexes.set(i, Character.toUpperCase(data[i]) - 'A');
     }
-    return indexes;
+    return alphabetIndexes;
   }
 
   public boolean hasOnlyDigits() {
@@ -294,30 +292,101 @@ public class MarsikString {
   }
 
   public void capitalize() {
+    if (size == 0) return;
     char firstChar = data[0];
     if (firstChar >= 'a' && firstChar <= 'z') {
       data[0] = (char) (firstChar - 32);
     }
-    for (int i = 1; i < data.length; i++) {
+    for (int i = 1; i < size; i++) {
       if (data[i] >= 'A' && data[i] <= 'Z') {
         data[i] = (char) (data[i] + 32);
       }
     }
   }
 
-  public MarsikString removeWhiteSpaces(MarsikString string) {
-    return new MarsikString(string.data);
+  public boolean isOnlyLowercase() {
+    for (char c : data) {
+      if (Character.isUpperCase(c)) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  public MarsikString abbreviation(MarsikString string) {
-    return new MarsikString(string.data);
+  public boolean isOnlyUppercase() {
+    for (char c : data) {
+      if (Character.isLowerCase(c)) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  public int numberOfVowels(MarsikString string) {
-    return 0;
+  public boolean isOnlyWhiteSpace() {
+    for (char c : data) {
+      if (!Character.isWhitespace(c)) {
+        return false;
+      }
+    }
+    return true;
   }
 
-  public int numberOfConsonants(MarsikString string) {
-    return 0;
+  public int toInteger() {
+    if (hasOnlyDigits()) {
+      return Integer.parseInt(this.toJavaString());
+    }
+    return -1;
+  }
+
+  public int hashCode() {
+    return toJavaString().hashCode();
+  }
+
+  public boolean equals(MarsikString other) {
+    return toJavaString().equals(other.toJavaString());
+  }
+
+  public void withoutWhiteSpaces() {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < size; i++) {
+      if (!Character.isWhitespace(data[i])) {
+        sb.append(data[i]);
+      }
+    }
+    this.data = sb.toString().toCharArray();
+  }
+
+  public int numberOfWhiteSpaces() {
+    int count = 0;
+    for (int i = 0; i < size; i++) {
+      if (Character.isWhitespace(data[i])) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  public int numberOfVowels() {
+    int count = 0;
+    for (char c : data) {
+      if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u') {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  private boolean isVowel(char c) {
+    return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+  }
+
+  public int numberOfConsonants() {
+    int count = 0;
+    for (char c : data) {
+      if (!isVowel(c) && Character.isLetter(c)) {
+        count++;
+      }
+    }
+    return count;
   }
 }
