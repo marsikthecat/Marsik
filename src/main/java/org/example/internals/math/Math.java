@@ -193,6 +193,19 @@ public class Math {
     return sum(nums) / nums.length;
   }
 
+  public static double median(double... nums) {
+    if (nums.length == 0) {
+      throw new IllegalArgumentException("Cannot find median out of nothing.");
+    }
+    java.util.Arrays.sort(nums);
+    int length = nums.length;
+    if (length % 2 == 0) {
+      return (nums[length / 2] + nums[length / 2 - 1]) / 2.0;
+    } else {
+      return nums[length / 2];
+    }
+  }
+
   public static int random(int start, int end) {
     if (start >= end) {
       throw new IllegalArgumentException("Invalid range, my friend");

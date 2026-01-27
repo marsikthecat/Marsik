@@ -1,116 +1,80 @@
 package org.example.internals.datastructures;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-/**
- * == SuperHashMap comparison with java Hashmap ==
- * Setup: Java destroys me apocalyptically (cuz I need to check if hashes for keys are unique)
- * Performance of Set and Get methods: Java gets destroyed
- * Performance of Getter for key-set and values: Java gets destroyed apocalyptically.
- * Performance of Remove: Java gets destroyed.
- * Storage for 50 keys: Java got 2.8kb data, mine got 2.1kb data,
- * even if my Object[] array can be over 10 time bigger than key size, cuz java has big overhead,
- * so Java gets destroyed.
- * Collision: Mine is collision free, java's is not, I destroy java apocalyptically.
+public class MarsikHashMap<K, V> extends HashMap<K, V> {
 
- * <p>
- * Example Benchmark results for 50 keys and 5 Runs:
- * <p>
- * Java HashMap setup : 0.0467 ms
- * SuperHashMap setup : 18.1265 ms (400 times slower :(, but only once)
- * <p>
- * Java HashMap set() average : 30.949 ms
- * SuperHashMap set() average: 27.761 ms
- * <p>
- * Java HashMap get() average: 12.087 ms
- * SuperHashMap get() average: 8.602 ms
- * <p>
- * Java HashMap remove() average: 22.133 ms
- * SuperHashMap remove() average: 11.356 ms
- * <p>
- * Java HashMap getKeySet() average: 0.00334 ms
- * SuperHashMap getKeySet() average: 0.00008 ms
- * <p>
- * Java HashMap getValues() average: 0.00390 ms
- * SuperHashMap getValues() average: 0.00010 ms
- */
+  //TODO: add some extra spice
 
-public class MarsikHashMap<E> {
-
-  private final Set<Object> keySet = new HashSet<>();
-  private E[] values;
-  private int growFactor = 1;
-  private final int initialSize;
-
-  @SuppressWarnings("unchecked")
-  public MarsikHashMap(int size) {
-    initialSize = size;
-    values = (E[]) new Object[size];
+  public MarsikHashMap(int initialCapacity, float loadFactor) {
+    super(initialCapacity, loadFactor);
   }
 
-  @SuppressWarnings("unchecked")
+  public MarsikHashMap(int initialCapacity) {
+    super(initialCapacity);
+  }
+
   public MarsikHashMap() {
-    initialSize = 20;
-    values = (E[]) new Object[initialSize];
+    super();
   }
 
-  @SuppressWarnings("unchecked")
-  public void defineKeys(String... keys) {
-    boolean mapperResult;
-    do {
-      mapperResult = hash(keys);
-      growFactor++;
-      values = (E[]) new Object[initialSize*growFactor];
-      System.out.print("Trying growFactor " + growFactor);
-      if (growFactor > 64) {
-        throw new UnsupportedOperationException("Cannot make perfect hashing out of these keys");
-      } else {
-        keySet.addAll(List.of(keys));
-      }
-    } while (!mapperResult);
+  @Override
+  public int size() {
+    return super.size();
   }
 
-  public Object get(String key) {
-    return values[hash(key)];
+  @Override
+  public boolean isEmpty() {
+    return super.isEmpty();
   }
 
-  public void set(String key, E value) {
-    values[hash(key)] = value;
+  @Override
+  public V get(Object key) {
+    return super.get(key);
   }
 
-  public Object remove(String key) {
-    keySet.remove(key);
-    int idx = hash(key);
-    Object o = values[idx];
-    values[idx] = null;
-    return o;
+  @Override
+  public boolean containsKey(Object key) {
+    return super.containsKey(key);
   }
 
-  public boolean hasValue(String key) {
-    return values[hash(key)] != null;
+  @Override
+  public V put(K key, V value) {
+    return super.put(key, value);
   }
 
-  public Set<Object> keySet() {
-    return keySet;
+  @Override
+  public void putAll(Map<? extends K, ? extends V> m) {
+    super.putAll(m);
   }
 
-  public Object[] values() {
-    return values;
+  @Override
+  public V remove(Object key) {
+    return super.remove(key);
   }
 
-  public boolean hash(String... keys) {
-    HashSet<Integer> integerHashSet = new HashSet<>();
-    for (String key : keys) {
-      int hash = key.hashCode() ^ (key.hashCode() >>> 16);
-      integerHashSet.add(hash % values.length);
-    }
-    return integerHashSet.size() == keys.length;
+  @Override
+  public void clear() {
+    super.clear();
   }
 
-  public int hash(String key) {
-    int h = key.hashCode() ^ (key.hashCode() >>> 16);
-    return Math.floorMod(h, values.length);
+  @Override
+  public boolean containsValue(Object value) {
+    return super.containsValue(value);
+  }
+
+  @Override
+  public Set<K> keySet() {
+    return super.keySet();
+  }
+
+  @Override
+  public Collection<V> values() {
+    return super.values();
+  }
+
+  @Override
+  public Set<Entry<K, V>> entrySet() {
+    return super.entrySet();
   }
 }

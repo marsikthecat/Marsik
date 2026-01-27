@@ -126,6 +126,7 @@ MINEQUAL         : '-=';
 STAREQUAL        : '*=';
 SLASHEQUAL       : '/=';
 
+// Keywords
 NEW      : 'new';
 BREAK    : 'break';
 FUNCTION : 'function';
@@ -151,11 +152,7 @@ STRING_TYPE : 'string';
 // specific non-primitive Types
 CRYPTODATA_TYPE : 'CryptoData';
 
-NAME: (LETTER) (LETTER | DIGIT)*;
-NEWLINE: '\r'? '\n';
-COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
-WS: [ \t\r\n]+ -> skip;
-
+// primitve datatypes
 INTEGER: NON_ZERO_DIGIT DIGIT* | '0';
 BABY_INTEGER: [1-9] | [1-9][0-9] | '1'[0-9][0-9]
     | '2'[0-4][0-9] | '25'[0-5];
@@ -163,6 +160,11 @@ STRING: '"' ( CHAR | ESC | ~["\\\r\n] )* '"' ;
 CHAR: '\'' (LETTER | ESC) '\'';
 DOUBLE : INT_PART '.' DIGIT+;
 BOOLEAN: 'true' | 'false';
+
+NAME: (LETTER) (LETTER | DIGIT)*;
+NEWLINE: '\r'? '\n';
+COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
+WS: [ \t\r\n]+ -> skip;
 
 fragment NON_ZERO_DIGIT : [1-9];
 fragment INT_PART       : DIGIT+;

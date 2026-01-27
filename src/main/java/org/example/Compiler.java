@@ -14,7 +14,6 @@ import java.util.*;
 public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   public final HashMap<String, ValueHolder> variables = new HashMap<>();
-
   public final HashMap<String, ValueHolder> constants = new HashMap<>();
   public final StringBuilder code = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
@@ -63,7 +62,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
     // All instantiatable objects of the marsik runtime
     List<String> buildInObjects = List.of("Stack", "SparseArray", "Set", "Queue", "List",
-            "HashMap", "BitSet", "Array", "BinaryTree", "AVLTree", "BTree", "SplayTree",
+            "HashMap", "PerfectHashMap", "BitSet", "Array", "BinaryTree", "AVLTree", "BTree", "SplayTree",
             "Graph", "WeightedGraph", "SplayArray", "CircularBuffer", "GapBuffer");
     String objectAtStart = ctx.NAME(0).getText();
     String variable = ctx.NAME(1).getText();
@@ -91,11 +90,12 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       } else {
         // Custom objects + Matrix and Pointer because I forgot to put Marsik in the filename
         translatedObject = objectAtStart;
+        // TODO: Matrix + Pointers which have no generic types
       }
-      variables.put(variable, new ValueHolder(translatedObject, variable));
+      variables.put(variable, new ValueHolder(objectAtStart, true));
       String parameters = ctx.arguments() != null ? ctx.arguments().getText() : "";
-      code.append(translatedObject).append(" ").append(variable).append(" = new ").append(translatedObject).
-              append("(").append(parameters).append(");\n");
+      code.append(translatedObject).append(" ").append(variable).append(" = new ").append("Marsik").append(objectAtEnd).
+              append("<>(").append(parameters).append(");\n");
     } else {
       throw new RuntimeException("Object " + objectAtStart + " and " + objectAtEnd + " do not match");
     }
@@ -110,7 +110,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     if (!variables.containsKey(target)) {
       throw new RuntimeException("Variable " + target + " does not exist");
     }
-    String type = variables.get(target).javaType;
+    String type = variables.get(target).getType();
     if (type.equals("String")) {
       List<String> stringMethods = List.of("setCharAt", "getCharAt", "length", "isEmpty", "print", "indexOf",
               "allIndexOf", "firstIndexOf", "lastIndexOf", "contains", "count", "replaceAll",
@@ -145,20 +145,45 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
             ? ctx.type().getText() : null;
 
     if (init != null) {
+      // Initializing variable and assigning value
+      if (ctx.type() != null && checkCorrectValueForLiteral(ctx.type_label(), ctx.type())) {
+        System.out.println(ctx.type_label().getText() + " " + ctx.type().getText());
+        // Check if atomic primitive datatype matches literal
+        throw new RuntimeException("Literal " + ctx.type_label().getText() + " does not match Value " + ctx.type().getText());
+      }
       if (type.equals("MarsikString")) {
         code.append("MarsikString ").append(name).append(" = new MarsikString(").append(init).append(");\n");
       } else {
         code.append(type).append(" ").append(name).append(" = ").append(init).append(";\n");
       }
+      variables.put(name, new ValueHolder(type, true));
     } else {
+      // Initializing variable without value
       if (type.equals("MarsikString")) {
         code.append("MarsikString ").append(name).append(";\n");
       } else {
         code.append(type).append(" ").append(name).append(";\n");
       }
+      variables.put(name, new ValueHolder(type, false));
     }
-    variables.put(name, new ValueHolder(type, name));
     return null;
+  }
+
+  private boolean checkCorrectValueForLiteral(MarsikParser.Type_labelContext typeLabelContext,
+                                           MarsikParser.TypeContext type) {
+    if (typeLabelContext.STRING_TYPE() != null) {
+      return type.STRING() == null;
+    } else if (typeLabelContext.BOOL_TYPE() != null) {
+      return type.BOOLEAN() == null;
+    } else if (typeLabelContext.INT_TYPE() != null) {
+      return type.INTEGER() == null;
+    } else if (typeLabelContext.DOUBLE_TYPE() != null) {
+      return type.DOUBLE() == null;
+    } else if (typeLabelContext.CHAR_TYPE() != null) {
+      return type.CHAR() == null;
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -169,26 +194,48 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     }
     String type = ctx.type_label().getText();
     String value = ctx.type().getText();
+    if (checkCorrectValueForLiteral(ctx.type_label(), ctx.type())) {
+      throw new RuntimeException("Literal " + ctx.type_label().getText() + " does not match Value " + ctx.type().getText());
+    }
     code.append("final ").append(type).append(" ").append(name)
             .append(" = ").append(value).append(";\n");
-    constants.put(name, new ValueHolder(type, name));
+    constants.put(name, new ValueHolder(type, true));
     return null;
   }
 
   @Override
   public String visitAssign_stmt(org.example.MarsikParser.Assign_stmtContext ctx) {
     String name = ctx.NAME().getText();
-    String value = visit(ctx.type());
-    if (constants.containsKey(name))
+    String value = ctx.type() != null ? ctx.type().getText() : ctx.expr().getText();
+    if (constants.containsKey(name)) {
       throw new RuntimeException("Cannot assign to const: " + name);
-
+    }
+    String type = variables.get(name).getType();
+    // Check if value matches literal
+    // Example:
+    // int a
+    // a = 5 <- Correct
+    // a = "5" <- RuntimeException, because it's string and not int
+    if (ctx.type() != null) {
+      if (type.equals("MarsikString") && ctx.type().STRING() == null) {
+        throw new RuntimeException("Value " + ctx.type().getText() + "does not match String");
+      } else if (type.equals("int") && ctx.type().INTEGER() == null) {
+        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Integer");
+      } else if (type.equals("double") && ctx.type().DOUBLE() == null) {
+        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Double");
+      } else if (type.equals("boolean") && ctx.type().BOOLEAN() == null) {
+        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Boolean");
+      } else if (type.equals("char") && ctx.type().CHAR() == null) {
+        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Character");
+      }
+    }
     code.append(name).append(" = ").append(value).append(";\n");
     return null;
   }
 
   @Override
   public String visitArray_decl(org.example.MarsikParser.Array_declContext ctx) {
-    variables.put(ctx.NAME().getText(), new ValueHolder(ctx.type_label().getText(), ctx.NAME().getText()));
+    variables.put(ctx.NAME().getText(), new ValueHolder(ctx.type_label().getText(), true));
     String type = ctx.type_label().getText();
     String javaType = switch (type) {
       case "int" -> "Integer";
@@ -305,7 +352,6 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitPrint_stmt(org.example.MarsikParser.Print_stmtContext ctx) {
-
     String val = ctx.expr() != null ? visit(ctx.expr()) : ctx.STRING().getText();
     return "System.out.print(" + val + ");\n";
   }
@@ -318,17 +364,15 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitScan_stmt(org.example.MarsikParser.Scan_stmtContext ctx) {
-    // TODO: print scan message
+    String msg = ctx.STRING().getText();
+    code.append("System.out.println(").append(msg).append(");\n");
     return "new MarsikString(new java.util.Scanner(System.in).nextLine())";
   }
 
   @Override
   public String visitExit_stmt(org.example.MarsikParser.Exit_stmtContext ctx) {
-    if (ctx.INTEGER() != null) {
-      return "System.exit(" + ctx.INTEGER().getText() + ")\n";
-    } else {
-      return "System.exit(0);\n";
-    }
+    String exitCode = ctx.INTEGER() != null ? ctx.INTEGER().getText() : "0";
+    return "System.exit(" + exitCode + ");\n";
   }
 
   @Override
@@ -534,6 +578,10 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
         }
     }
     """.formatted(importsAsString, code.toString());
+  }
+
+  public String generateHalfJava() {
+    return code.toString();
   }
 
   static void main() throws IOException {

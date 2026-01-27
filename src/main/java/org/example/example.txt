@@ -4,7 +4,6 @@ const double pi = 3.141529
 string b = "aa"
 boolean c = false
 double d = 5.67
-print("hey")
 printLine("hey, bro")
 
 string age = scan("Your age")
@@ -51,7 +50,7 @@ if (secret == decrypted) {
   exit()
 }
 
-HashMap<char> hashMap = new HashMap( )
+PerfectHashMap<char> hashMap = new PerfectHashMap( )
 hashMap.defineKeys("Letter")
 hashMap.set("Letter", e)
 
@@ -59,3 +58,7 @@ string today = DateTime.now( )
 if (DateTime.isLeapYear(today)) {
   print("this year is a leap year")
 }
+
+int zz
+zz = 3333
+zz = 32
