@@ -3,6 +3,14 @@ package org.example.internals;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Utility class for validating strings and common data formats.
+ * This class allows setting various validation rules such as length,
+ * required characters (letters, digits, symbols), forbidden symbols,
+ * and whitespace restrictions.
+ * Contains static methods for common format validations (email, phone, URL, IP, MAC, ISO8601 date).
+ */
+
 public class Validator {
 
   private int minSize = 0;
@@ -20,10 +28,18 @@ public class Validator {
   private int minLowerCase = 0;
   private int minUpperCase = 0;
 
-  private Validator() {
-    // No instantiation, bro.
-  }
+  /**
+   * Utility class: No instantiation, bro.
+   */
+  private Validator() {}
 
+  /**
+   * Sets the minimum and maximum allowed length for the input string.
+   *
+   * @param minSize minimum length (must be >= 0)
+   * @param maxSize maximum length (must be >= minSize)
+   * @throws IllegalArgumentException if minSize < 0 or minSize > maxSize
+   */
   public void requireLength(int minSize, int maxSize) {
     if (minSize > maxSize) {
       throw new IllegalArgumentException("Min-size cannot be bigger than maxsize, bro!");
@@ -35,16 +51,32 @@ public class Validator {
     this.maxSize = maxSize;
   }
 
+  /**
+   * Marks specific characters as forbidden in the input string.
+   *
+   * @param chars characters to forbid
+   */
   public void forbiddenSymbols(char... chars) {
     for (char c : chars) {
       forbiddenSymbols.add(c);
     }
   }
 
-  public void forbidWhiteSpace(boolean bool) {
-    this.whiteSpaceForbidden = bool;
+  /**
+   * Configures whether whitespace is forbidden in the input string.
+   *
+   * @param forbid true to forbid whitespace, false otherwise
+   */
+  public void forbidWhiteSpace(boolean forbid) {
+    this.whiteSpaceForbidden = forbid;
   }
 
+  /**
+   * Sets the minimum required number of letters.
+   *
+   * @param n number of letters (must be >= 0)
+   * @throws IllegalArgumentException if n < 0
+   */
   public void atLeastLetters(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
@@ -52,6 +84,12 @@ public class Validator {
     this.minLetters = n;
   }
 
+  /**
+   * Sets the minimum required number of digits.
+   *
+   * @param n number of digits (must be >= 0)
+   * @throws IllegalArgumentException if n < 0
+   */
   public void atLeastDigits(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
@@ -59,6 +97,12 @@ public class Validator {
     this.minDigits = n;
   }
 
+  /**
+   * Sets the minimum required number of symbols (from predefined SYMBOLS set).
+   *
+   * @param n number of symbols (must be >= 0)
+   * @throws IllegalArgumentException if n < 0
+   */
   public void atLeastSymbols(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
@@ -66,6 +110,12 @@ public class Validator {
     this.minSymbols = n;
   }
 
+  /**
+   * Sets the minimum required number of lowercase letters.
+   *
+   * @param n number of lowercase letters (must be >= 0)
+   * @throws IllegalArgumentException if n < 0
+   */
   public void atLeastLowerCase(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
@@ -73,6 +123,12 @@ public class Validator {
     this.minLowerCase = n;
   }
 
+  /**
+   * Sets the minimum required number of uppercase letters.
+   *
+   * @param n number of uppercase letters (must be >= 0)
+   * @throws IllegalArgumentException if n < 0
+   */
   public void atLeastUpperCase(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
@@ -80,39 +136,88 @@ public class Validator {
     this.minUpperCase = n;
   }
 
+  /**
+   * Validates whether the given string is a valid email.
+   *
+   * @param email string to validate
+   * @return true if valid, false otherwise
+   */
   public static boolean isValidEmail(String email) {
     return email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
   }
 
+  /**
+   * Validates whether the given string is a valid phone number.
+   *
+   * @param phoneNumber string to validate
+   * @return true if valid, false otherwise
+   */
   public static boolean isValidPhoneNumber(String phoneNumber) {
-    return phoneNumber.matches("\\+?(\\d{1,3})?[\\s.-]?\\(?\\d{1,4}\\)?[\\s.-]?\\d{1,4}[\\s.-]?\\d{1,9}([\\s.-]?\\d{1,9})?");
+    return phoneNumber.matches("\\+?(\\d{1,3})?[\\s.-]?\\(?\\d{1,4}\\)?[\\s.-]?\\d"
+            + "{1,4}[\\s.-]?\\d{1,9}([\\s.-]?\\d{1,9})?");
   }
 
-  public static boolean isValidURL(String url) {
-    return url.matches("\\b[a-zA-Z][a-zA-Z0-9+\\-.]*://[^\\s/?#]+(:\\d+)?(/[^\\s?#]*)?(\\?[^\\s#]*)?(#\\S*)?");
+  /**
+   * Validates whether the given string is a valid URL.
+   *
+   * @param url string to validate
+   * @return true if valid, false otherwise
+   */
+  public static boolean isValidUrl(String url) {
+    return url.matches("\\b[a-zA-Z][a-zA-Z0-9+\\-.]*://[^\\s/?#]+"
+            + "(:\\d+)?(/[^\\s?#]*)?(\\?[^\\s#]*)?(#\\S*)?");
   }
 
-  public static boolean isValidIPAddress(String ip) {
-    return ip.matches("\\b((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d))" +
-            "{3})\\b|((([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]{1,4}|:))|(([0-9a-fA-F]{1,4}:){1,7}:)|(([0-9a-fA-F]{1,4}:)" +
-            "{1,6}:[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2})|(([0-9a-fA-F]{1,4}:){1,4}" +
-            "(:[0-9a-fA-F]{1,4}){1,3})|(([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4})|(([0-9a-fA-F]{1,4}:){1,2}" +
-            "(:[0-9a-fA-F]{1,4}){1,5})|(([0-9a-fA-F]{1,4}:)(:[0-9a-fA-F]{1,4}){1,6})|(:((:[0-9a-fA-F]{1,4}){1,7}|:)))(%.+)?\\b");
+  /**
+   * Validates whether the given string is a valid IPv4 or IPv6 address.
+   *
+   * @param ip string to validate
+   * @return true if valid, false otherwise
+   */
+  public static boolean isValidIpAddress(String ip) {
+    return ip.matches("\\b((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)(\\"
+            + ".(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d))"
+            + "{3})\\b|((([0-9a-fA-F]{1,4}:){7}([0-9a-fA-F]"
+            + "{1,4}|:))|(([0-9a-fA-F]{1,4}:){1,7}:)|(([0-9a-fA-F]{1,4}:)"
+            + "{1,6}:[0-9a-fA-F]{1,4})|(([0-9a-fA-F]{1,4}:){1,5}"
+            + "(:[0-9a-fA-F]{1,4}){1,2})|(([0-9a-fA-F]{1,4}:){1,4}"
+            + "(:[0-9a-fA-F]{1,4}){1,3})|(([0-9a-fA-F]{1,4}:)"
+            + "{1,3}(:[0-9a-fA-F]{1,4}){1,4})|(([0-9a-fA-F]{1,4}:){1,2}"
+            + "(:[0-9a-fA-F]{1,4}){1,5})|(([0-9a-fA-F]{1,4}:)"
+            + "(:[0-9a-fA-F]{1,4}){1,6})|(:((:[0-9a-fA-F]{1,4})"
+            + "{1,7}|:)))(%.+)?\\b");
   }
 
+  /**
+   * Validates whether the given string is a valid MAC address.
+   *
+   * @param macAddress string to validate
+   * @return true if valid, false otherwise
+   */
   public static boolean isValidMacAddress(String macAddress) {
     return macAddress.matches("\\b([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})\\b");
   }
 
-  public static boolean isValidISO860Date(String date) {
+  /**
+   * Validates whether the given string matches ISO 8601 date format (YYYY-MM-DD).
+   *
+   * @param date string to validate
+   * @return true if valid, false otherwise
+   */
+  public static boolean isValidIso860Date(String date) {
     return date.matches("\\b\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])\\b");
   }
 
-
+  /**
+   * Validates the input string against all configured rules.
+   *
+   * @param input string to validate
+   * @return true if input passes all validation rules, false otherwise
+   */
   public boolean validate(String input) {
     if (input.length() < minSize || input.length() > maxSize) {
-      Sys.printError("Length of String doesn't fit: " + input.length() +
-              ". Required: " + "At least " + minSize + " at most " + maxSize);
+      Sys.printError("Length of String doesn't fit: " + input.length()
+              + ". Required: " + "At least " + minSize + " at most " + maxSize);
       return false;
     }
 
@@ -170,29 +275,4 @@ public class Validator {
     }
     return true;
   }
-
-  /*
-  // Wrapper Example Usage //
-
-  static void main(String[] args) {
-    validator.forbiddenSymbols('<', '>');  <- define the conditions the input should have
-    validator.atLeastDigits(3);
-    validator.atLeastLetters(5);
-    validator.atLeastSymbols(1);
-    validator.requireLength(5, 20);
-    validator.forbidWhiteSpace(true);
-    System.out.print(String.valueOf(validator.validate("Password"))); // false (at least 3 digits, only 0) <- test input based on conditions
-    System.out.print(String.valueOf(validator.validate("t1234k567"))); // false (at least 5 letters, only 2)
-    System.out.print(String.valueOf(validator.validate("t1234password567"))); // false (at least 1 symbol, only 0)
-    System.out.print(String.valueOf(validator.validate("Pass"))); // false (length too small)
-    System.out.print(String.valueOf(validator.validate("Pass word"))); // false (whitespace)
-    System.out.print(String.valueOf(validator.validate("Pass>word"))); // false (forbidden symbol >)
-    System.out.print(String.valueOf(validator.validate("Password123!"))); // true
-    validator.atLeastLowerCase(5);
-    validator.atLeastUpperCase(2);
-    System.out.print(String.valueOf(validator.validate("abc45,5aa"))); // false (at least 2 uppercase, only 0)
-    System.out.print(String.valueOf(validator.validate("ABC45,5dead"))); // false (at least 5 lowerCase, only 4)
-    System.out.print(String.valueOf(validator.validate("ABC45!5banana"))); // true
-    System.out.print(validator.isValidEmail(fakemail@@.com) <- static validator methods
-  }*/
 }

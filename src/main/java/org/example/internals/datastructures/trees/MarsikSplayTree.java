@@ -1,10 +1,24 @@
 package org.example.internals.datastructures.trees;
 
+/**
+ * Implementation of a Splay Tree data structure.
+ * A splay tree is a self-adjusting binary search tree with the additional property
+ * that recently accessed elements are quick to access again.
+ * It performs rotations to move accessed nodes closer to the root.
+ *
+ * @param <T> the type of elements stored in the tree; must implement {@link Comparable}
+ */
 public class MarsikSplayTree<T extends Comparable<T>> {
 
   private SplayNode<T> root;
 
-  private void leftRotate(SplayNode<T> node){
+  /**
+   * Performs a left rotation on the specified node.
+   * Used internally by the splay operation.
+   *
+   * @param node the node to rotate
+   */
+  private void leftRotate(SplayNode<T> node) {
     SplayNode<T> parent = node.getParent();
     SplayNode<T> left = node.getLeft();
     if (left != null) {
@@ -24,6 +38,12 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     }
   }
 
+  /**
+   * Performs a right rotation on the specified node.
+   * Used internally by the splay operation.
+   *
+   * @param node the node to rotate
+   */
   private void rightRotate(SplayNode<T> node) {
     SplayNode<T> parent = node.getParent();
     SplayNode<T> right = node.getRight();
@@ -47,6 +67,12 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     }
   }
 
+  /**
+   * Splays the given node to the root of the tree.
+   * This method performs zig, zig-zig, and zig-zag rotations as needed.
+   *
+   * @param node the node to splay
+   */
   private void splay(SplayNode<T> node) {
     if (node.getParent() == null) {
       root = node;
@@ -91,18 +117,23 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     }
   }
 
-
+  /**
+   * Inserts a new element into the splay tree.
+   * After insertion, the inserted node is splayed to the root.
+   *
+   * @param data the value to insert
+   */
   public void add(T data) {
     SplayNode<T> node = new SplayNode<>(data);
-    if (root == null){
+    if (root == null) {
       root = node;
       return;
     }
 
     SplayNode<T> temp = root;
-    while(true){
+    while (true) {
       if (temp.getData().compareTo(data) > 0) {
-        if (temp.getLeft() == null){
+        if (temp.getLeft() == null) {
           temp.setLeft(node);
           node.setParent(temp);
           splay(node);
@@ -122,6 +153,13 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     }
   }
 
+  /**
+   * Searches for the given value in the tree.
+   * If found, the node is splayed to the root.
+   *
+   * @param data the value to search for
+   * @return the node containing the value, or null if not found
+   */
   public SplayNode<T> find(T data) {
     if (root == null) {
       return null;
@@ -141,21 +179,34 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     return null;
   }
 
-  public SplayNode<T> findMin(SplayNode<T> node){
-    if (node==null) {
+  /**
+   * Finds the minimum node starting from a given node.
+   * The minimum node is splayed to the root after finding.
+   *
+   * @param node the node to start the search from
+   * @return the minimum node in the subtree, or null if subtree is empty
+   */
+  public SplayNode<T> findMin(SplayNode<T> node) {
+    if (node == null) {
       return null;
     }
     SplayNode<T> min = node;
-    while(min.getLeft() != null){
+    while (min.getLeft() != null) {
       min = min.getLeft();
     }
     splay(min);
     return min;
   }
 
-  public void delete(T data){
+  /**
+   * Deletes a node with the specified value from the tree.
+   * After deletion, the tree remains a valid splay tree.
+   *
+   * @param data the value to delete
+   */
+  public void delete(T data) {
     SplayNode<T> node = find(data);
-    if (node==null) {
+    if (node == null) {
       return;
     }
     SplayNode<T> min = findMin(node.getRight());
@@ -170,7 +221,13 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     }
   }
 
-  private void preOrder(SplayNode<T> node){
+  /**
+   * Performs a pre-order traversal starting from the given node.
+   * Used internally by the display method.
+   *
+   * @param node the node to start traversal from
+   */
+  private void preOrder(SplayNode<T> node) {
     if (node == null) {
       return;
     }
@@ -178,6 +235,9 @@ public class MarsikSplayTree<T extends Comparable<T>> {
     preOrder(node.getRight());
   }
 
+  /**
+   * Displays the contents of the splay tree using pre-order traversal.
+   */
   public void display() {
     preOrder(root);
   }

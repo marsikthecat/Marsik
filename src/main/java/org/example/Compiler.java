@@ -1,16 +1,27 @@
 package org.example;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.internals.FileHandler;
-import org.example.internals.compiler.*;
-import org.example.internals.datastructures.MarsikString;
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
+import org.example.internals.compiler.ClassHolder;
+import org.example.internals.compiler.ConstructorHolder;
+import org.example.internals.compiler.FieldHolder;
+import org.example.internals.compiler.MethodHolder;
+import org.example.internals.compiler.ParamHolder;
+import org.example.internals.compiler.ValueHolder;
 
+/**
+ * Transforms marsik-code into java code and inserts it in a file.
+ */
 public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   public final HashMap<String, ValueHolder> variables = new HashMap<>();
@@ -42,17 +53,20 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitBuild_in_stmt(org.example.MarsikParser.Build_in_stmtContext ctx) {
     String type = ctx.type_label().getText();
     if (ctx.type_label().STRING_TYPE() != null) {
-      type = "MarsikString";
+      type = "String";
     }
     String name = ctx.NAME().getText();
     String value;
     if (ctx.method_call() != null) {
-      value = ctx.method_call().getText();
+      value = visitMethod_call(ctx.method_call());
     } else {
       value = visit(ctx.getChild(3)); // all build-in
     }
     if (constants.containsKey(name)) {
       throw new RuntimeException("Constant " + name + " already exists");
+    }
+    if (variables.containsKey(name)) {
+      throw new RuntimeException("Variable " + name + " already exists");
     }
     code.append(type).append(" ").append(name).append(" = ").append(value).append(";\n");
     return null;
@@ -62,8 +76,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
     // All instantiatable objects of the marsik runtime
     List<String> buildInObjects = List.of("Stack", "SparseArray", "Set", "Queue", "List",
-            "HashMap", "PerfectHashMap", "BitSet", "Array", "BinaryTree", "AVLTree", "BTree", "SplayTree",
-            "Graph", "WeightedGraph", "SplayArray", "CircularBuffer", "GapBuffer");
+            "HashMap", "PerfectHashMap", "BitSet", "Array", "BinaryTree", "AvlTree", "Btree",
+            "SplayTree", "Graph", "WeightedGraph", "SplayArray", "CircularBuffer", "GapBuffer");
     String objectAtStart = ctx.NAME(0).getText();
     String variable = ctx.NAME(1).getText();
     String objectAtEnd = ctx.NAME(2).getText();
@@ -71,11 +85,12 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     if (objectAtStart.equals(objectAtEnd)) {
       // Here we translate the build-in objects into the Marsik objects of the runtime
       if (buildInObjects.contains(objectAtStart)) {
-        if (ctx.type_label() != null && !objectAtStart.equals("BitSet")) { // Bitset has no datatype to store
+        // Bitset has no datatype to store
+        if (ctx.type_label() != null && !objectAtStart.equals("BitSet")) {
           String type = ctx.type_label().getText();
           // Creating Types for generic: list<int> => MarsikList<Integer>
           String genericType = switch (type) {
-            case "string" -> "MarsikString";
+            case "string" -> "String";
             case "int" -> "Integer";
             case "boolean" -> "Boolean";
             case "double" -> "Double";
@@ -88,16 +103,17 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
           throw new RuntimeException("Unknown Type of Elements detected");
         }
       } else {
-        // Custom objects + Matrix and Pointer because I forgot to put Marsik in the filename
+        // Custom objects + BitSet, Matrix and Pointer because I forgot to put Marsik in the filename
         translatedObject = objectAtStart;
-        // TODO: Matrix + Pointers which have no generic types
+        // TODO: Matrix + Points which have no generic types
       }
       variables.put(variable, new ValueHolder(objectAtStart, true));
       String parameters = ctx.arguments() != null ? ctx.arguments().getText() : "";
-      code.append(translatedObject).append(" ").append(variable).append(" = new ").append("Marsik").append(objectAtEnd).
-              append("<>(").append(parameters).append(");\n");
+      code.append(translatedObject).append(" ").append(variable).append(" = new ").append("Marsik")
+              .append(objectAtEnd).append("<>(").append(parameters).append(");\n");
     } else {
-      throw new RuntimeException("Object " + objectAtStart + " and " + objectAtEnd + " do not match");
+      throw new RuntimeException("Object " + objectAtStart + " and " + objectAtEnd
+              + " do not match");
     }
     return null;
   }
@@ -111,23 +127,50 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       throw new RuntimeException("Variable " + target + " does not exist");
     }
     String type = variables.get(target).getType();
-    if (type.equals("String")) {
-      List<String> stringMethods = List.of("setCharAt", "getCharAt", "length", "isEmpty", "print", "indexOf",
-              "allIndexOf", "firstIndexOf", "lastIndexOf", "contains", "count", "replaceAll",
-              "reverse", "append", "subString", "toUpperCase", "toLowerCase", "startsWith", "endsWith",
-              "isPalindrome", "alphabetIndex", "hasOnlyDigits", "hasDigits", "hasOnlyLetters", "hasLetters",
-              "isAlphaNumeric", "capitalize", "removeWhiteSpaces", "abbreviation", "numberOfVowels", "numberOfConsonants");
-      if (!stringMethods.contains(method)) {
-        throw new RuntimeException("Method " + method + " does not exist for strings");
+    if (type.equals("array")) {
+      List<MarsikParser.ExprContext> args = ctx.arguments().expr();
+      if (method.equals("get")) {
+        // arr.get(1) gets transformed to arr[1]
+        return target + "[" + args.getFirst().getText() + "]";
+      } else if (method.equals("set")) {
+        // arr.set(5, 6) gets transformed to arr[5] = 6
+        return target + "[" + args.getFirst().getText() + "] = "
+                + args.getFirst().getText() + ";\n";
+      } else {
+        List<String> argList = new ArrayList<>();
+        for (MarsikParser.ExprContext exprContext : args) {
+          argList.add(exprContext.getText());
+        }
+        return "ArrayUtils." + method + "(" + target + ", "
+                + String.join(",", argList) + ")";
       }
-    }
-    List<String> args = new ArrayList<>();
-    if (ctx.arguments() != null) {
-      for (var e : ctx.arguments().expr()) {
-        args.add(visit(e));
+    } else {
+      List<String> extendedStringMethods = List.of("setCharAt", "allIndexOf",
+              "firstIndexOf", "lastIndexOf", "count", "reverse", "appendChar", "capitalize",
+              "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart",
+              "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric", "capitalize",
+              "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "inOnlyUpperCase",
+              "isOnlyWhiteSpace", "numberOfWhiteSpaces");
+      if (type.equals("String") && extendedStringMethods.contains(method)) {
+        List<String> args = new ArrayList<>();
+        if (ctx.arguments() != null) {
+          for (var e : ctx.arguments().expr()) {
+            args.add(visit(e));
+          }
+        }
+        code.append("StringUtils.").append(method).append("(").append(target).append(",")
+                .append(String.join(", ", args)).append(");\n");
+        return null;
       }
+      List<String> args = new ArrayList<>();
+      if (ctx.arguments() != null) {
+        for (var e : ctx.arguments().expr()) {
+          args.add(visit(e));
+        }
+      }
+      code.append(target).append(".").append(method).append("(").append(
+              String.join(", ", args)).append(");\n");
     }
-    code.append(target).append(".").append(method).append("(").append(String.join(", ", args)).append(");\n");
     return null;
   }
 
@@ -138,32 +181,24 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       throw new RuntimeException("Variable " + name + " already exists");
     }
     String type = ctx.type_label().getText();
-    if (ctx.type_label().STRING_TYPE() != null) {
-      type = "MarsikString";
-    }
     String init = ctx.expr() != null ? visit(ctx.expr()) : ctx.type() != null
             ? ctx.type().getText() : null;
 
+    if (type.equals("string")) {
+      type = "String";
+    }
     if (init != null) {
       // Initializing variable and assigning value
       if (ctx.type() != null && checkCorrectValueForLiteral(ctx.type_label(), ctx.type())) {
-        System.out.println(ctx.type_label().getText() + " " + ctx.type().getText());
         // Check if atomic primitive datatype matches literal
-        throw new RuntimeException("Literal " + ctx.type_label().getText() + " does not match Value " + ctx.type().getText());
+        throw new RuntimeException("Literal " + ctx.type_label().getText()
+                + " does not match Value " + ctx.type().getText());
       }
-      if (type.equals("MarsikString")) {
-        code.append("MarsikString ").append(name).append(" = new MarsikString(").append(init).append(");\n");
-      } else {
-        code.append(type).append(" ").append(name).append(" = ").append(init).append(";\n");
-      }
+      code.append(type).append(" ").append(name).append(" = ").append(init).append(";\n");
       variables.put(name, new ValueHolder(type, true));
     } else {
       // Initializing variable without value
-      if (type.equals("MarsikString")) {
-        code.append("MarsikString ").append(name).append(";\n");
-      } else {
-        code.append(type).append(" ").append(name).append(";\n");
-      }
+      code.append(type).append(" ").append(name).append(";\n");
       variables.put(name, new ValueHolder(type, false));
     }
     return null;
@@ -195,7 +230,11 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     String type = ctx.type_label().getText();
     String value = ctx.type().getText();
     if (checkCorrectValueForLiteral(ctx.type_label(), ctx.type())) {
-      throw new RuntimeException("Literal " + ctx.type_label().getText() + " does not match Value " + ctx.type().getText());
+      throw new RuntimeException("Literal " + ctx.type_label().getText()
+              + " does not match Value " + ctx.type().getText());
+    }
+    if (type.equals("string")) {
+      type = "String";
     }
     code.append("final ").append(type).append(" ").append(name)
             .append(" = ").append(value).append(";\n");
@@ -217,7 +256,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     // a = 5 <- Correct
     // a = "5" <- RuntimeException, because it's string and not int
     if (ctx.type() != null) {
-      if (type.equals("MarsikString") && ctx.type().STRING() == null) {
+      if (type.equals("string") && ctx.type().STRING() == null) {
         throw new RuntimeException("Value " + ctx.type().getText() + "does not match String");
       } else if (type.equals("int") && ctx.type().INTEGER() == null) {
         throw new RuntimeException("Value " + ctx.type().getText() + "does not match Integer");
@@ -235,24 +274,50 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitArray_decl(org.example.MarsikParser.Array_declContext ctx) {
-    variables.put(ctx.NAME().getText(), new ValueHolder(ctx.type_label().getText(), true));
-    String type = ctx.type_label().getText();
-    String javaType = switch (type) {
-      case "int" -> "Integer";
-      case "char" -> "Character";
-      case "boolean" -> "Boolean";
-      case "double" -> "Double";
-      case "string" -> "MarsikString";
-      default -> throw new RuntimeException("Unknown type " + type);
-    };
-    code.append("MarsikArray<").append(javaType).append("> ").append(ctx.NAME().getText()).append(" = new MarsikArray<>(");
+    MarsikParser.Type_labelContext context = ctx.type_label();
+    String type = context.INT_TYPE() != null ? context.INT_TYPE().getText()
+            : context.STRING_TYPE() != null ? context.STRING_TYPE().getText()
+            : context.BOOL_TYPE() != null ? context.BOOL_TYPE().getText()
+            : context.DOUBLE_TYPE() != null ? context.DOUBLE_TYPE().getText()
+            : context.CHAR_TYPE() != null ? context.CHAR_TYPE().getText() : "";
+    if (type.equals("string")) {
+      type = "String";
+    }
+    int size = Integer.parseInt(ctx.INTEGER().getText());
+    if (ctx.type().size() > size) {
+      throw new RuntimeException("Array size " + size + " does not match elements");
+    }
+    String name = ctx.NAME().getText();
+    variables.put(name, new ValueHolder("array", true));
     for (int i = 0; i < ctx.type().size(); i++) {
-      code.append(ctx.type().get(i).getText());
-      if (i < ctx.type().size() - 1) {
-        code.append(",");
+      if (context.INT_TYPE() != null) {
+        if (ctx.type().get(i).INTEGER() == null) {
+          throw new RuntimeException("Value " + ctx.type().get(i) + " does not match Integer");
+        }
+      } else if (context.DOUBLE_TYPE() != null) {
+        if (ctx.type().get(i).DOUBLE() == null) {
+          throw new RuntimeException("Value " + ctx.type().get(i) + " does not match Double");
+        }
+      } else if (context.CHAR_TYPE() != null) {
+        if (ctx.type().get(i).CHAR() == null) {
+          throw new RuntimeException("Value " + ctx.type().get(i) + " does not match Character");
+        }
+      } else if (context.BOOL_TYPE() != null) {
+        if (ctx.type().get(i).BOOLEAN() == null) {
+          throw new RuntimeException("Value " + ctx.type().get(i) + " does not match Boolean");
+        }
+      } else if (context.STRING_TYPE() != null) {
+        if (ctx.type().get(i).STRING() == null) {
+          throw new RuntimeException("Value " + ctx.type().get(i) + " does not match String");
+        }
       }
     }
-    code.append(");\n");
+    code.append(type).append("[] ").append(name).append(" = new ").append(type).append("[")
+            .append(size).append("];\n");
+    for (int i = 0; i < ctx.type().size(); i++) {
+      code.append(name).append("[").append(i).append("] = ")
+              .append(ctx.type().get(i).getText()).append(";\n");
+    }
     return null;
   }
 
@@ -314,9 +379,15 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   @Override
   public String visitFor_stmt(org.example.MarsikParser.For_stmtContext ctx) {
     code.append("for (");
-    if (ctx.for_init() != null) visit(ctx.for_init());
-    if (ctx.expr() != null) code.append(visit(ctx.expr()));
-    if (ctx.for_update() != null) ctx.for_update();
+    if (ctx.for_init() != null) {
+      visit(ctx.for_init());
+    }
+    if (ctx.expr() != null) {
+      code.append(visit(ctx.expr()));
+    }
+    if (ctx.for_update() != null) {
+      ctx.for_update();
+    }
     code.append("; ").append(ctx.for_update().getText());
     code.append(") ");
     visit(ctx.block());
@@ -366,7 +437,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitScan_stmt(org.example.MarsikParser.Scan_stmtContext ctx) {
     String msg = ctx.STRING().getText();
     code.append("System.out.println(").append(msg).append(");\n");
-    return "new MarsikString(new java.util.Scanner(System.in).nextLine())";
+    return "new java.util.Scanner(System.in).nextLine()";
   }
 
   @Override
@@ -377,13 +448,14 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitTime_stmt(org.example.MarsikParser.Time_stmtContext ctx) {
-    return "new MarsikString(String.valueOf(System.currentTimeMillis()))";
+    return "String.valueOf(System.currentTimeMillis())";
   }
 
   @Override
   public String visitOther_stmt(org.example.MarsikParser.Other_stmtContext ctx) {
     String libraryObject = ctx.STANDARDLIBS().getText();
-    // TODO: find out why the hell it doesn't include math import despite being recognized as a Standard library
+    // TODO: find out why the hell it doesn't include math import
+    //  despite being recognized as a Standard library
     switch (libraryObject) {
       case "Sys" -> imports.add("import org.example.internals.Sys;\n");
       case "Math" -> imports.add("import org.example.internals.math.Math;\n");
@@ -391,8 +463,10 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       case "Crypto" -> imports.add("import org.example.internals.crypto.*;\n");
       case "Validator" -> imports.add("import org.example.internals.Validator;\n");
       case "DateTime" -> imports.add("import org.example.internals.time.DateTime;\n");
-      case "RequestSender" -> imports.add("import org.example.internals.internet.MarsikRequestSender;\n");
+      case "RequestSender" ->
+          imports.add("import org.example.internals.internet.MarsikRequestSender;\n");
       case "TypeCaster" -> imports.add("import org.example.internals.TypeCaster;\n");
+      default -> imports.add("");
     }
     String function = ctx.NAME().getText();
     List<String> params = new ArrayList<>();
@@ -496,7 +570,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitEquality_expr(org.example.MarsikParser.Equality_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.relational_expr(0)));
     for (int i = 1; i < ctx.relational_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ").append(visit(ctx.relational_expr(i)));
+      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
+              .append(visit(ctx.relational_expr(i)));
     }
     return result.toString();
   }
@@ -505,7 +580,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitRelational_expr(org.example.MarsikParser.Relational_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.additive_expr(0)));
     for (int i = 1; i < ctx.additive_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ").append(visit(ctx.additive_expr(i)));
+      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
+              .append(visit(ctx.additive_expr(i)));
     }
     return result.toString();
   }
@@ -514,7 +590,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitAdditive_expr(org.example.MarsikParser.Additive_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.multiplicative_expr(0)));
     for (int i = 1; i < ctx.multiplicative_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ").append(visit(ctx.multiplicative_expr(i)));
+      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
+              .append(visit(ctx.multiplicative_expr(i)));
     }
     return result.toString();
   }
@@ -523,7 +600,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   public String visitMultiplicative_expr(org.example.MarsikParser.Multiplicative_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.unary_expr(0)));
     for (int i = 1; i < ctx.unary_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ").append(visit(ctx.unary_expr(i)));
+      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
+              .append(visit(ctx.unary_expr(i)));
     }
     return result.toString();
   }
@@ -548,24 +626,48 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   @Override
   public String visitAtom_expr(org.example.MarsikParser.Atom_exprContext ctx) {
-    if (ctx.other_stmt() != null) return visitOther_stmt(ctx.other_stmt());
-    if (ctx.NAME() != null) return ctx.NAME().getText();
-    if (ctx.INTEGER() != null) return ctx.INTEGER().getText();
-    if (ctx.BABY_INTEGER() != null) return ctx.BABY_INTEGER().getText();
-    if (ctx.DOUBLE() != null) return ctx.DOUBLE().getText();
-    if (ctx.STRING() != null) return ctx.STRING().getText();
-    if (ctx.CHAR() != null) return ctx.CHAR().getText();
-    if (ctx.BOOLEAN() != null) return ctx.BOOLEAN().getText();
-    if (ctx.expr() != null) return visit(ctx.expr());
+    if (ctx.other_stmt() != null) {
+      return visitOther_stmt(ctx.other_stmt());
+    }
+    if (ctx.NAME() != null) {
+      return ctx.NAME().getText();
+    }
+    if (ctx.INTEGER() != null) {
+      return ctx.INTEGER().getText();
+    }
+    if (ctx.BABY_INTEGER() != null) {
+      return ctx.BABY_INTEGER().getText();
+    }
+    if (ctx.DOUBLE() != null) {
+      return ctx.DOUBLE().getText();
+    }
+    if (ctx.STRING() != null) {
+      return ctx.STRING().getText();
+    }
+    if (ctx.CHAR() != null) {
+      return ctx.CHAR().getText();
+    }
+    if (ctx.BOOLEAN() != null) {
+      return ctx.BOOLEAN().getText();
+    }
+    if (ctx.expr() != null) {
+      return visit(ctx.expr());
+    }
     return "";
   }
 
+  /**
+   * Generates full java code in a main method and class.
+   *
+   * @return full java code
+   */
   public String generateJava() {
     StringBuilder importsAsString = new StringBuilder();
     for (String anImport : imports) {
       importsAsString.append(anImport);
     }
-    return """
+    return
+    """
     
     package org.example;
     
@@ -580,6 +682,11 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     """.formatted(importsAsString, code.toString());
   }
 
+  /**
+   * Generates code lines without wrapping them in a java main method (for tests).
+   *
+   * @return code lines
+   */
   public String generateHalfJava() {
     return code.toString();
   }
@@ -593,12 +700,13 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     ParseTree tree = parser.program();
     Compiler compiler = new Compiler();
     compiler.visit(tree);
-    File generatedFile = new File("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\GeneratedProgram.java");
+    File generatedFile = new File(
+            "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\GeneratedProgram.java");
     if (generatedFile.exists()) {
-      FileHandler.deleteFile(new MarsikString(generatedFile.getAbsolutePath()));
+      FileHandler.deleteFile(generatedFile.getAbsolutePath());
     }
-    FileHandler.createNewFile(new MarsikString(generatedFile.getAbsolutePath()));
-    FileHandler.writeToFile(new MarsikString(generatedFile.getAbsolutePath()),
-            new MarsikString(compiler.generateJava()));
+    FileHandler.createNewFile(generatedFile.getAbsolutePath());
+    FileHandler.writeToFile(generatedFile.getAbsolutePath(),
+            compiler.generateJava());
   }
 }

@@ -2,6 +2,8 @@ grammar Marsik;
 
 program: (stmt* | class_def) EOF;
 
+// TODO for later: merge var_decl with build_in_stmt, Other_stmt
+
 // All data types
 type: INTEGER | BABY_INTEGER | CHAR | BOOLEAN | STRING | DOUBLE;
 
@@ -38,7 +40,7 @@ inc_stmt: NAME PLUSPLUS INTEGER?;
 dec_stmt: NAME MINUSMINUS INTEGER?;
 
 // Static Array
-array_decl: AR_TYPE '<' type_label '>' NAME EQUAL'[' (type | ((type COMMA)* type))?  ']' ;
+array_decl: type_label '[' INTEGER ']' NAME EQUAL '[' (type (',' type)*)? ']';
 
 // Functions
 funcdef: FUNCTION NAME LPAR parameters? RPAR NEWLINE* block;

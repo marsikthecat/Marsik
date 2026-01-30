@@ -11,21 +11,23 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import org.example.internals.Sys;
 
-public class RequestSender {
-  /**
-   * You can use this method to send a JSON-RPC request to a given URL.
-   * Make sure the URL exists and is reachable
-   * @param url url of the JSON_RPC server
-   * @param id id of the request
-   * @param method method to be called on the server
-   * @param params required params for the method
-   * @return the response from the server as a String or null if an error happened.
-   * Example for method usage:
-   * <pre>
-   * sendRpcRequest("<a href="https://playground.oresat.org/json-rpc">...</a>", "1", "subtract", "42", "23")
-   */
+/**
+ * A utility class for sending HTTP and JSON-RPC requests to remote servers.
+ * Supports GET, POST, PUT, DELETE, PATCH requests as well as JSON-RPC 2.0 requests.
+ */
 
-  public static String sendRPCRequest(String url,  String id, String method, String... params) {
+public class RequestSender {
+
+  /**
+   * Sends a JSON-RPC 2.0 request to the specified URL.
+   *
+   * @param url    The endpoint URL of the JSON-RPC server.
+   * @param id     The request identifier.
+   * @param method The method to call on the server.
+   * @param params The parameters for the method in order.
+   * @return The server's response as a String, or null if an error occurred.
+   */
+  public static String sendRpcRequest(String url,  String id, String method, String... params) {
     StringBuilder paramsArray = new StringBuilder();
     paramsArray.append("[");
     for (int i = 0; i < params.length; i++) {
@@ -36,18 +38,19 @@ public class RequestSender {
     }
     paramsArray.append("]");
 
-    String jsonCall = """
+    String jsonCall =
+        """
         {
           "jsonrpc" : "2.0",
           "method"  : "%s",
           "params"  :  %s,
           "id"      : "%s"
         }
-    """.formatted(method, paramsArray, id);
+        """.formatted(method, paramsArray, id);
 
     try {
-      URL url_internal = new URL(url);
-      HttpURLConnection conn = (HttpURLConnection) url_internal.openConnection();
+      URL urlInternal = new URL(url);
+      HttpURLConnection conn = (HttpURLConnection) urlInternal.openConnection();
       conn.setDoOutput(true);
       conn.setRequestMethod("POST");
       conn.setRequestProperty("Content-Type", "application/json");
@@ -66,47 +69,78 @@ public class RequestSender {
     return null;
   }
 
+  /**
+   * Sends a GET request to the specified URL.
+   *
+   * @param url The URL to send the request to.
+   * @return The server's response as a String, or null if an error occurred.
+   */
   public static String sendHttpGetRequest(String url) {
     return sendRestRequest(url, "GET", null);
   }
 
+  /**
+   * Sends a GET request to the specified URL with JSON parameters.
+   *
+   * @param url  The URL to send the request to.
+   * @param json JSON-formatted parameters.
+   * @return The server's response as a String, or null if an error occurred.
+   */
   public static String sendHttpGetRequest(String url, String json) {
     return sendRestRequest(url, "GET", json);
   }
 
+  /**
+   * Sends a POST request to the specified URL with JSON payload.
+   *
+   * @param url  The URL to send the request to.
+   * @param json JSON-formatted payload.
+   * @return The server's response as a String, or null if an error occurred.
+   */
   public static String sendHttpPostRequest(String url, String json) {
     return sendRestRequest(url, "POST", json);
   }
 
+  /**
+   * Sends a PUT request to the specified URL with JSON payload.
+   *
+   * @param url  The URL to send the request to.
+   * @param json JSON-formatted payload.
+   * @return The server's response as a String, or null if an error occurred.
+   */
   public static String sendHttpPutRequest(String url, String json) {
     return sendRestRequest(url, "PUT", json);
   }
 
+  /**
+   * Sends a DELETE request to the specified URL with JSON payload.
+   *
+   * @param url  The URL to send the request to.
+   * @param json JSON-formatted payload.
+   * @return The server's response as a String, or null if an error occurred.
+   */
   public static String sendHttpDeleteRequest(String url, String json) {
     return sendRestRequest(url, "DELETE", json);
   }
 
+  /**
+   * Sends a PATCH request to the specified URL with JSON payload.
+   *
+   * @param url  The URL to send the request to.
+   * @param json JSON-formatted payload.
+   * @return The server's response as a String, or null if an error occurred.
+   */
   public static String sendHttpPatchRequest(String url, String json) {
     return sendRestRequest(url, "PATCH", json);
   }
 
   /**
-   * You can use this method to send a Rest request to a given URL.
-   * Make sure the URL exists and is reachable
-   * @param url url of the JSON_RPC server.
-   * @param httpMethod Rest method that you want to use.
-   * @param params the params that are required, in json format please.
-   * @return the response from the server as a String or null if an error happened.
-   * example for method usage:
-   * <pre>
-   * sendRpcRequest(<a href="https://playground.oresat.org/json-rpc">...</a>,
-   * "POST", """
-   *         {
-   *           "title": "foo",
-   *           "body": "bar",
-   *           "userId": 1
-   *         }
-   *         """)
+   * Sends a REST request to the given URL using the specified HTTP method.
+   *
+   * @param url        The endpoint URL.
+   * @param httpMethod The HTTP method (GET, POST, PUT, DELETE, PATCH).
+   * @param params     The request payload in JSON format (can be null for GET without parameters).
+   * @return The server's response as a String, or null if an error occurred.
    */
   public static String sendRestRequest(String url, String httpMethod, String params) {
     try {
@@ -138,6 +172,13 @@ public class RequestSender {
     return null;
   }
 
+  /**
+   * Reads the response from the HttpURLConnection.
+   *
+   * @param con The HttpURLConnection object.
+   * @return The response body as a String.
+   * @throws IOException If an error occurs while reading the response.
+   */
   private static String getResult(HttpURLConnection con) throws IOException {
     StringBuilder responseBuilder = new StringBuilder();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()))) {
@@ -149,6 +190,12 @@ public class RequestSender {
     return responseBuilder.toString();
   }
 
+  /**
+   * Checks whether a given string is valid JSON.
+   *
+   * @param json The string to check.
+   * @return True if valid JSON, false otherwise.
+   */
   public static boolean isValidJson(String json) {
     try {
       JsonParser.parseString(json);

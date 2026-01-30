@@ -1,32 +1,79 @@
 package org.example.internals.math;
 
+/**
+ * Represents a two-dimensional integer matrix and provides basic
+ * linear algebra operations.
+ * This matrix implementation supports addition, multiplication,
+ * transposition, inversion (via Gaussian elimination),
+ * and determinant calculation.
+ * All values are stored as integers. Some operations (e.g. inversion)
+ * may lose precision due to integer division.
+ */
 public class Matrix {
 
   private final int[][] numbers;
   private final int rows;
   private final int columns;
+
+  /**
+   * Creates a new matrix with the given dimensions.
+   *
+   * @param rows    number of rows
+   * @param columns number of columns
+   */
   public Matrix(int rows, int columns) {
     this.rows = rows;
     this.columns = columns;
     this.numbers = new int[rows][columns];
   }
 
+  /**
+   * Returns the number of columns.
+   *
+   * @return column count
+   */
   public int getColumns() {
     return columns;
   }
 
+  /**
+   * Returns the number of rows.
+   *
+   * @return row count
+   */
   public int getRows() {
     return rows;
   }
 
+  /**
+   * Sets the value at the given matrix position.
+   *
+   * @param i     row index
+   * @param j     column index
+   * @param value value to set
+   */
   public void setNumber(int i, int j, int value) {
     numbers[i][j] = value;
   }
 
+  /**
+   * Returns the value at the given matrix position.
+   *
+   * @param i row index
+   * @param j column index
+   * @return value at the specified position
+   */
   public int getNumber(int i, int j) {
     return numbers[i][j];
   }
 
+  /**
+   * Adds this matrix to another matrix.
+   *
+   * @param other matrix to add
+   * @return resulting matrix
+   * @throws IllegalArgumentException if matrix dimensions do not match
+   */
   public Matrix add(Matrix other) {
     if (this.rows == other.rows && this.columns == other.columns) {
       Matrix ret = new Matrix(rows, columns);
@@ -40,6 +87,13 @@ public class Matrix {
     throw new IllegalArgumentException("Unable to perform add");
   }
 
+  /**
+   * Multiplies this matrix with another matrix.
+   *
+   * @param other matrix to multiply with
+   * @return resulting matrix
+   * @throws IllegalArgumentException if matrix dimensions are incompatible
+   */
   public Matrix multiply(Matrix other) {
     if (this.rows == other.columns) {
       Matrix ret = new Matrix(this.rows, other.columns);
@@ -57,6 +111,12 @@ public class Matrix {
     throw new IllegalArgumentException("Unable to perform add");
   }
 
+  /**
+   * Returns the transposed matrix.
+   * Rows become columns and columns become rows.
+   *
+   * @return transposed matrix
+   */
   public Matrix transposed() {
     Matrix ret = new Matrix(this.rows, this.columns);
     for (int i = 0; i < ret.rows; i++) {
@@ -69,9 +129,16 @@ public class Matrix {
     return ret;
   }
 
+  /**
+   * Returns the inverse of this matrix using Gaussian elimination.
+   * This method assumes the matrix is square and invertible.
+   * <b>Precision loss may occur</b> due to integer arithmetic.
+   *
+   * @return inverted matrix
+   * @throws IllegalArgumentException if the matrix is not square
+   */
   public Matrix inverted() {
     int n = rows;
-    int[][] x = new int[rows][rows];
     int[][] b = new int[rows][rows];
     int[] index = new int[n];
     for (int i = 0; i < n; ++i) {
@@ -85,6 +152,7 @@ public class Matrix {
         }
       }
     }
+    int[][] x = new int[rows][rows];
     for (int i = 0; i < n; ++i) {
       x[n - 1][i] = b[index[n - 1]][i] / numbers[index[n - 1]][n - 1];
       for (int j = n - 2; j >= 0; --j) {
@@ -104,6 +172,12 @@ public class Matrix {
     return matrix;
   }
 
+  /**
+   * Performs Gaussian elimination with partial pivoting.
+   *
+   * @param a     matrix to transform
+   * @param index pivot index tracking array
+   */
   private static void gaussian(int[][] a, int[] index) {
     int n = index.length;
     double[] c = new double[n];
@@ -143,17 +217,21 @@ public class Matrix {
     }
   }
 
+  /**
+   * Computes the determinant of this matrix.
+   *
+   * @return determinant value
+   * @throws IllegalArgumentException if the matrix is not square
+   */
   public double determinant() {
     if (rows != columns) {
       throw new IllegalArgumentException("Matrix must be square to compute determinant");
     }
     if (rows == 1) {
       return numbers[0][0];
-    }
-    else if (rows == 2) {
+    } else if (rows == 2) {
       return numbers[0][0] * numbers[1][1] - numbers[0][1] * numbers[1][0];
-    }
-    else if (rows == 3) {
+    } else if (rows == 3) {
       int x = numbers[0][0] * (numbers[1][1] * numbers[2][2] - numbers[1][2] * numbers[2][1]);
       int y = numbers[0][1] * (numbers[1][0] * numbers[2][2] - numbers[1][2] * numbers[2][0]);
       int z = numbers[0][2] * (numbers[1][0] * numbers[2][1] - numbers[1][1] * numbers[2][0]);

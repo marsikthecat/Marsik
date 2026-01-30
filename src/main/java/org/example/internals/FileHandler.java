@@ -1,78 +1,117 @@
 package org.example.internals;
 
-import org.example.internals.datastructures.MarsikString;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.System;
 import java.util.Scanner;
 
+/**
+ * Utility class for basic file operations.
+ * Provides methods for creating, writing, reading, deleting
+ * and checking the existence of files using String paths.
+ */
 public class FileHandler {
 
-  private FileHandler() {
-    // No instantiation or your toilet will be clogged.
-  }
+  /**
+   * Utility class: No instantiation or your toilet will be clogged.
+   */
+  private FileHandler() {}
 
-  public static boolean createNewFile(MarsikString pathWithFileName) {
+  /**
+   * Creates a new file at the given path.
+   *
+   * @param pathWithFileName full path including file name
+   * @return true if the file was created successfully,
+   *         false if the file already exists or an error occurred
+   */
+  public static boolean createNewFile(String pathWithFileName) {
     try {
-      File file = new File(pathWithFileName.toJavaString());
+      File file = new File(pathWithFileName);
       if (file.createNewFile()) {
-        java.lang.System.out.println("File successfully created: " +  file.getName());
+        System.out.println("File successfully created: " + file.getName());
         return true;
       } else {
-        java.lang.System.out.println("File already exists: " + file.getName());
+        System.out.println("File already exists: " + file.getName());
         return false;
       }
     } catch (IOException e) {
-      java.lang.System.err.println("An error occurred while creating file " + pathWithFileName.toJavaString()
+      Sys.printError("An error occurred while creating file " + pathWithFileName
               + " : " + e.getMessage());
       return false;
     }
   }
 
-  public static boolean writeToFile(MarsikString pathWithFileName, MarsikString content) {
+  /**
+   * Writes content to a file.
+   * If the file already exists, its content will be overwritten.
+   *
+   * @param pathWithFileName full path including file name
+   * @param content          content to write into the file
+   * @return true if writing was successful, false otherwise
+   */
+  public static boolean writeToFile(String pathWithFileName, String content) {
     try {
-      FileWriter myWriter = new FileWriter(pathWithFileName.toJavaString());
-      myWriter.write(content.toJavaString());
+      FileWriter myWriter = new FileWriter(pathWithFileName);
+      myWriter.write(content);
       myWriter.close();
-      java.lang.System.out.println("Successfully wrote to file: " + pathWithFileName.toJavaString());
+      System.out.println("Successfully wrote to file: " + pathWithFileName);
       return true;
     } catch (IOException e) {
-      java.lang.System.err.println("An error occurred while writing to file " + pathWithFileName.toJavaString()
+      Sys.printError("An error occurred while writing to file " + pathWithFileName
               + " : " + e.getMessage());
       return false;
     }
   }
 
-  public static MarsikString readFile(MarsikString pathWithFileName) {
+  /**
+   * Reads the content of a file.
+   *
+   * @param pathWithFileName full path including file name
+   * @return file content as a MarsikString (empty if file could not be read)
+   */
+  public static String readFile(String pathWithFileName) {
     StringBuilder builder = new StringBuilder();
     try {
-      File myObj = new File(pathWithFileName.toJavaString());
+      File myObj = new File(pathWithFileName);
       Scanner myReader = new Scanner(myObj);
       while (myReader.hasNextLine()) {
         builder.append(myReader.nextLine()).append("\n");
       }
       myReader.close();
-      java.lang.System.out.println("Successfully read file: " + pathWithFileName.toJavaString());
+      System.out.println("Successfully read file: " + pathWithFileName);
     } catch (FileNotFoundException e) {
-      java.lang.System.err.println("An error occurred while reading file " + pathWithFileName.toJavaString()
+      Sys.printError("An error occurred while reading file " + pathWithFileName
               + " : " + e.getMessage());
     }
-    return new MarsikString(builder.toString());
+    return builder.toString();
   }
 
-  public static boolean deleteFile(MarsikString pathWithFileName) {
-    File myObj = new File(pathWithFileName.toJavaString());
+  /**
+   * Deletes a file at the given path.
+   *
+   * @param pathWithFileName full path including file name
+   * @return true if the file was deleted successfully, false otherwise
+   */
+  public static boolean deleteFile(String pathWithFileName) {
+    File myObj = new File(pathWithFileName);
     if (myObj.delete()) {
-      java.lang.System.out.println("Successfully deleted the file: " + myObj.getName());
+      System.out.println("Successfully deleted the file: " + myObj.getName());
       return true;
     } else {
-      System.err.println("Not able to delete File: " + myObj.getName());
+      Sys.printError("Not able to delete File: " + myObj.getName());
       return false;
     }
   }
 
-  public static boolean doesFileExist(MarsikString pathWithFileName) {
-    File myObj = new File(pathWithFileName.toJavaString());
-    return myObj.exists();
+  /**
+   * Checks whether a file exists at the given path.
+   *
+   * @param pathWithFileName full path including file name
+   * @return true if the file exists, false otherwise
+   */
+  public static boolean doesFileExist(String pathWithFileName) {
+    return new File(pathWithFileName).exists();
   }
 }
