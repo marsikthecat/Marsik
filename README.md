@@ -1,32 +1,61 @@
-# Marsik
+# Marsik 🐾
 
-An experimental Programming language 
+An experimental programming language.
 
 ## Philosophy
 
-- No complicated syntax like c++
-- No out of control overhead like python
-- Simple and powerful like python
-- Intuitive as possible
+- No complicated syntax like C++
+- No out-of-control overhead like Python
+- Simple and powerful like Python
+- As intuitive as possible
 
 ## Features
-- Primitives Types: int, double, char, boolean, string (pretends to be)
-- Static standard libraries like Math, Sys, Crypto, FileHandler, DateTime, Validator
-- Variables, Constans, Operators, Control Flows, Primitive Arrays and build-in Datastructures
-- Compiles from .marsik to .java
 
-## What is does not have
+- Primitive types: `int`, `double`, `char`, `boolean`, `string` (pretends to be)
+- Static standard libraries: `Math`, `Sys`, `Crypto`, `FileHandler`, `DateTime`, `Validator`
+- Variables, constants, operators, control flow, primitive arrays, and built-in data structures
+- Compiles from `.marsik` to `.java`
+
+## Example source code
+
+<p align="center">
+  <img src="assets/SourceCodeExample.png" width="350">
+  <img src="assets/SourceCodeExample (2).png" width="350">
+</p>
+
+## What Marsik does NOT have
+
 - Threads
 - Try/Catch
-- OOP support, methods (in progress)
-- Compiling to multiple java-files
-- Low level programming (Pointers, Adresses like C/C++)
+- Full OOP support (methods are work in progress)
+- Compilation into multiple Java files
+- Low-level programming (pointers, addresses like C/C++)
 - ...
 
 ## How to get started
-- pull this repo
-- In the main method of the Compiler, define the path of the .marsik File and the output .java file
-- Run the compiler and see the result (Spoiler: the java file looks like salad)
-  
 
+1. Make sure you have **Java JDK 25** installed  
+2. Clone this repository  
+3. In the `main` method of the compiler, define:
+   - the path to the `.marsik` file
+   - the output `.java` file  
 
+   <br>
+   <img src="assets/CustomPaths.png" width="600">
+
+4. Run the compiler and inspect the result  
+   *(Spoiler: the generated Java file looks like a salad 🥗)*
+
+## What comes next
+
+- Finished OOP support
+- Grammar optimizations
+- Concurrency
+- Fixing more errors
+
+## Who is Marsik?
+
+You can find the answer in the picture below:
+
+<br>
+<img src="assets/Marsik.png" width="600">
