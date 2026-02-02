@@ -40,7 +40,7 @@ public class MarsikAvlTree<T extends Comparable<T>>  {
   public void updateHeight(AvlNode<T> avlNode) {
     int heightOfLeft = getHeightOfNode(avlNode.getLeft());
     int heightOfRight = getHeightOfNode(avlNode.getRight());
-    avlNode.setHeight(Math.max(heightOfLeft, heightOfRight));
+    avlNode.setHeight(Math.max(heightOfLeft, heightOfRight) + 1);
   }
 
   /**
@@ -144,7 +144,7 @@ public class MarsikAvlTree<T extends Comparable<T>>  {
    */
   public AvlNode<T> remove(AvlNode<T> root, T key) {
     if (root == null) {
-      return root;
+      return null;
     } else if (key.compareTo(root.getValue()) < 0) {
       root.setLeft(remove(root.getLeft(), key));
     } else if (key.compareTo(root.getValue()) > 0) {
@@ -161,7 +161,7 @@ public class MarsikAvlTree<T extends Comparable<T>>  {
       }
     }
     if (root == null) {
-      return root;
+      return null;
     } else {
       return bringTreeToBalance(root);
     }
@@ -204,7 +204,7 @@ public class MarsikAvlTree<T extends Comparable<T>>  {
    * @return true if the key exists, false otherwise
    */
   public boolean contains(T key) {
-    return findNode(root, key) == null;
+    return findNode(root, key) != null;
   }
 
   /**
@@ -277,5 +277,12 @@ public class MarsikAvlTree<T extends Comparable<T>>  {
       printPostOrder(root.getRight());
     }
     System.out.println(root.getValue() + " ");
+  }
+
+  /**
+   * For tests
+   */
+  public AvlNode<T> getRoot() {
+    return root;
   }
 }

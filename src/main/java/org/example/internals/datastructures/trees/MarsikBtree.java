@@ -126,4 +126,11 @@ public class MarsikBtree<T extends Comparable<T>> {
       display(node.getChildren()[i], level + 1);
     }
   }
+
+  /**
+   * for tests.
+   */
+  public Bnode<T> getRoot() {
+    return root;
+  }
 }

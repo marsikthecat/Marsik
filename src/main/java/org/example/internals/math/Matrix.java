@@ -27,6 +27,15 @@ public class Matrix {
     this.numbers = new int[rows][columns];
   }
 
+  private Matrix(int[][] numbers) {
+    this.numbers = numbers;
+    this.rows = numbers.length;
+    this.columns = numbers[0].length;
+    for (int i = 0; i < rows; i++) {
+      System.arraycopy(numbers[i], 0, this.numbers[i], 0, columns);
+    }
+  }
+
   /**
    * Returns the number of columns.
    *
@@ -95,7 +104,7 @@ public class Matrix {
    * @throws IllegalArgumentException if matrix dimensions are incompatible
    */
   public Matrix multiply(Matrix other) {
-    if (this.rows == other.columns) {
+    if (this.rows == other.columns && this.columns == other.rows) {
       Matrix ret = new Matrix(this.rows, other.columns);
       for (int i = 0; i < ret.rows; i++) {
         for (int j = 0; j < ret.columns; j++) {
@@ -118,15 +127,13 @@ public class Matrix {
    * @return transposed matrix
    */
   public Matrix transposed() {
-    Matrix ret = new Matrix(this.rows, this.columns);
-    for (int i = 0; i < ret.rows; i++) {
-      for (int j = i + 1; j < ret.columns; j++) {
-        int temp = this.getNumber(i, j);
-        ret.setNumber(i, j, temp);
-        ret.setNumber(j, i, temp);
+    int[][] transposedNumbers = new int[rows][columns];
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < columns; j++) {
+        transposedNumbers[j][i] = numbers[i][j];
       }
     }
-    return ret;
+    return new Matrix(transposedNumbers);
   }
 
   /**
@@ -138,38 +145,36 @@ public class Matrix {
    * @throws IllegalArgumentException if the matrix is not square
    */
   public Matrix inverted() {
-    int n = rows;
-    int[][] b = new int[rows][rows];
+    if (this.rows != this.columns) {
+      throw new IllegalArgumentException("Rows and columns must match");
+    }
+    int[][] a = numbers;
+    int n = a.length;
+    int[][] x = new int[n][n];
+    int[][] b = new int[n][n];
     int[] index = new int[n];
     for (int i = 0; i < n; ++i) {
       b[i][i] = 1;
     }
-    gaussian(numbers, index);
+    gaussian(a, index);
     for (int i = 0; i < n - 1; ++i) {
       for (int j = i + 1; j < n; ++j) {
         for (int k = 0; k < n; ++k) {
-          b[index[j]][k] -= numbers[index[j]][i] * b[index[i]][k];
+          b[index[j]][k] -= a[index[j]][i] * b[index[i]][k];
         }
       }
     }
-    int[][] x = new int[rows][rows];
     for (int i = 0; i < n; ++i) {
-      x[n - 1][i] = b[index[n - 1]][i] / numbers[index[n - 1]][n - 1];
+      x[n - 1][i] = b[index[n - 1]][i] / a[index[n - 1]][n - 1];
       for (int j = n - 2; j >= 0; --j) {
         x[j][i] = b[index[j]][i];
         for (int k = j + 1; k < n; ++k) {
-          x[j][i] -= numbers[index[j]][k] * x[k][i];
+          x[j][i] -= a[index[j]][k] * x[k][i];
         }
-        x[j][i] /= numbers[index[j]][j];
+        x[j][i] /= a[index[j]][j];
       }
     }
-    Matrix matrix = new Matrix(n, n);
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        matrix.setNumber(i, j, (int) x[j][i]);
-      }
-    }
-    return matrix;
+    return new Matrix(x);
   }
 
   /**
@@ -180,25 +185,26 @@ public class Matrix {
    */
   private static void gaussian(int[][] a, int[] index) {
     int n = index.length;
-    double[] c = new double[n];
+    int[] c = new int[n];
     for (int i = 0; i < n; ++i) {
       index[i] = i;
     }
     for (int i = 0; i < n; ++i) {
-      double c1 = 0;
+      int c1 = 0;
       for (int j = 0; j < n; ++j) {
-        double c0 = java.lang.Math.abs(a[i][j]);
+        int c0 = java.lang.Math.abs(a[i][j]);
         if (c0 > c1) {
           c1 = c0;
         }
       }
       c[i] = c1;
     }
+    int k = 0;
     for (int j = 0; j < n - 1; ++j) {
-      double pi1 = 0;
-      int k = j;
+      int pi1 = 0;
       for (int i = j; i < n; ++i) {
-        double pi0 = java.lang.Math.abs(a[index[i]][j]) / c[index[i]];
+        int pi0 = java.lang.Math.abs(a[index[i]][j]) / c[index[i]];
+        pi0 /= c[index[i]];
         if (pi0 > pi1) {
           pi1 = pi0;
           k = i;
@@ -271,6 +277,15 @@ public class Matrix {
         }
       }
       return det;
+    }
+  }
+
+  public void print() {
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < columns; j++) {
+        System.out.print(numbers[i][j] + " ");
+      }
+      System.out.println();
     }
   }
 }

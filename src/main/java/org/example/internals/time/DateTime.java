@@ -209,7 +209,7 @@ public class DateTime {
    * @throws StringIndexOutOfBoundsException if the string is too short
    */
   public static int millisecond(String string) {
-    return Integer.parseInt(string.substring(20, 24));
+    return Integer.parseInt(string.substring(20, 23));
   }
 
   /**
@@ -377,7 +377,10 @@ public class DateTime {
    * @return modified date-time as a String
    */
   public static String setMilliseconds(String date, int milliseconds) {
-    return replacePartOfString(date, 20, 24, String.valueOf(milliseconds));
+    if (date.length() == 19) {
+      return replacePartOfString(date.concat(".000"), 20, 23, String.valueOf(milliseconds));
+    }
+    return replacePartOfString(date, 20, 23, String.valueOf(milliseconds));
   }
 
   /**

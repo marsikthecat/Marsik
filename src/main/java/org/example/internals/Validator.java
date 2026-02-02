@@ -13,20 +13,20 @@ import java.util.Set;
 
 public class Validator {
 
-  private int minSize = 0;
-  private int maxSize = Integer.MAX_VALUE;
-  private final Set<Character> forbiddenSymbols = new HashSet<>();
+  private static int minSize = 0;
+  private static int maxSize = Integer.MAX_VALUE;
+  private static final Set<Character> forbiddenSymbols = new HashSet<>();
   private static final Set<Character> SYMBOLS = Set.of(
           '!', '@', '#', '$', '%', '^', '&', '*', '(', ')',
           '-', '_', '=', '+', '[', ']', '{', '}', ';', ':',
           '\'', ',', '.', '<', '>', '?', '/', '|'
   );
-  private boolean whiteSpaceForbidden = false;
-  private int minLetters = 0;
-  private int minDigits = 0;
-  private int minSymbols = 0;
-  private int minLowerCase = 0;
-  private int minUpperCase = 0;
+  private static boolean whiteSpaceForbidden = false;
+  private static int minLetters = 0;
+  private static int minDigits = 0;
+  private static int minSymbols = 0;
+  private static int minLowerCase = 0;
+  private static int minUpperCase = 0;
 
   /**
    * Utility class: No instantiation, bro.
@@ -40,15 +40,15 @@ public class Validator {
    * @param maxSize maximum length (must be >= minSize)
    * @throws IllegalArgumentException if minSize < 0 or minSize > maxSize
    */
-  public void requireLength(int minSize, int maxSize) {
+  public static void requireLength(int minSize, int maxSize) {
     if (minSize > maxSize) {
       throw new IllegalArgumentException("Min-size cannot be bigger than maxsize, bro!");
     }
     if (minSize < 0) {
       throw new IllegalArgumentException("Sizes must be positive, bro!");
     }
-    this.minSize = minSize;
-    this.maxSize = maxSize;
+    Validator.minSize = minSize;
+    Validator.maxSize = maxSize;
   }
 
   /**
@@ -56,7 +56,7 @@ public class Validator {
    *
    * @param chars characters to forbid
    */
-  public void forbiddenSymbols(char... chars) {
+  public static void forbiddenSymbols(char... chars) {
     for (char c : chars) {
       forbiddenSymbols.add(c);
     }
@@ -67,8 +67,8 @@ public class Validator {
    *
    * @param forbid true to forbid whitespace, false otherwise
    */
-  public void forbidWhiteSpace(boolean forbid) {
-    this.whiteSpaceForbidden = forbid;
+  public static void forbidWhiteSpace(boolean forbid) {
+    whiteSpaceForbidden = forbid;
   }
 
   /**
@@ -77,11 +77,11 @@ public class Validator {
    * @param n number of letters (must be >= 0)
    * @throws IllegalArgumentException if n < 0
    */
-  public void atLeastLetters(int n) {
+  public static void atLeastLetters(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
     }
-    this.minLetters = n;
+    minLetters = n;
   }
 
   /**
@@ -90,11 +90,11 @@ public class Validator {
    * @param n number of digits (must be >= 0)
    * @throws IllegalArgumentException if n < 0
    */
-  public void atLeastDigits(int n) {
+  public static void atLeastDigits(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
     }
-    this.minDigits = n;
+    minDigits = n;
   }
 
   /**
@@ -103,11 +103,11 @@ public class Validator {
    * @param n number of symbols (must be >= 0)
    * @throws IllegalArgumentException if n < 0
    */
-  public void atLeastSymbols(int n) {
+  public static void atLeastSymbols(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
     }
-    this.minSymbols = n;
+    minSymbols = n;
   }
 
   /**
@@ -116,11 +116,11 @@ public class Validator {
    * @param n number of lowercase letters (must be >= 0)
    * @throws IllegalArgumentException if n < 0
    */
-  public void atLeastLowerCase(int n) {
+  public static void atLeastLowerCase(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
     }
-    this.minLowerCase = n;
+    minLowerCase = n;
   }
 
   /**
@@ -129,11 +129,11 @@ public class Validator {
    * @param n number of uppercase letters (must be >= 0)
    * @throws IllegalArgumentException if n < 0
    */
-  public void atLeastUpperCase(int n) {
+  public static void atLeastUpperCase(int n) {
     if (n < 0) {
       throw new IllegalArgumentException("Number must be positive or Zero");
     }
-    this.minUpperCase = n;
+    minUpperCase = n;
   }
 
   /**
@@ -214,7 +214,8 @@ public class Validator {
    * @param input string to validate
    * @return true if input passes all validation rules, false otherwise
    */
-  public boolean validate(String input) {
+  public static boolean validate(String input) {
+    System.out.println(input.length());
     if (input.length() < minSize || input.length() > maxSize) {
       Sys.printError("Length of String doesn't fit: " + input.length()
               + ". Required: " + "At least " + minSize + " at most " + maxSize);
@@ -274,5 +275,21 @@ public class Validator {
       return false;
     }
     return true;
+  }
+
+  /**
+   * Resets the Validator to the default state, so multiple tests can be
+   * performed without interference between different configurations.
+   */
+  public static void reset() {
+    minSize = 0;
+    maxSize = Integer.MAX_VALUE;
+    whiteSpaceForbidden = false;
+    forbiddenSymbols.clear();
+    minLetters = 0;
+    minDigits = 0;
+    minSymbols = 0;
+    minLowerCase = 0;
+    minUpperCase = 0;
   }
 }

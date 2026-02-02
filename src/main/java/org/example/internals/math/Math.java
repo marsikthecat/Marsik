@@ -1,5 +1,7 @@
 package org.example.internals.math;
 
+import org.example.internals.datastructures.ArrayUtils;
+
 /**
  * Utility class providing common mathematical constants and functions.
  * This class contains trigonometric, algebraic, statistical, number-theoretic,
@@ -239,7 +241,7 @@ public class Math {
     if (n == 2 || n == 3) {
       return true;
     }
-    if (n == 1 || n % 2 == 0) {
+    if (n == 1 || n % 2 == 0 | n < 0) {
       return false;
     }
     for (int i = 3; i * i <= n; i += 2) {
@@ -348,6 +350,9 @@ public class Math {
    * @return linear equation as string
    */
   public static String findLinearEquation(Point... points) {
+    if (points.length < 2) {
+      throw new IllegalArgumentException("At least two points must be provided.");
+    }
     double sumX = 0;
     double sumY = 0;
     double sumxY = 0;
@@ -361,6 +366,10 @@ public class Math {
     double denom = points.length * sumxX - sumX * sumX;
     double a = (points.length * sumxY - sumX * sumY) / denom;
     double b = (sumY - a * sumX) / points.length;
+    String equation = "y = " + a + " * x + " + b;
+    if (equation.contains("NaN")) {
+      throw new ArithmeticException("Failed to calculate equation: NaN");
+    }
     return "y = " + a + " * x + " + b;
   }
 
@@ -393,13 +402,7 @@ public class Math {
     if (nums.length == 0) {
       throw new IllegalArgumentException("Cannot find minimum out of nothing.");
     }
-    double min = nums[0];
-    for (double anInt : nums) {
-      if (anInt < min) {
-        min = anInt;
-      }
-    }
-    return min;
+    return ArrayUtils.min(nums);
   }
 
   /**
@@ -416,10 +419,7 @@ public class Math {
     if (nums.length == 1) {
       return sum;
     }
-    for (double anInt : nums) {
-      sum += anInt;
-    }
-    return sum;
+    return ArrayUtils.sum(nums);
   }
 
   /**

@@ -1,12 +1,8 @@
 package org.example.internals.datastructures;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Set;
+import org.example.internals.Sys;
+
+import java.util.*;
 
 /**
  * A sparse array implementation that allows elements to be "removed" by setting them to null,
@@ -18,11 +14,11 @@ import java.util.Set;
 public class MarsikSparseArray<E> {
   private E[] elements;
   private int top = -1;
-  private int holeCount = 0;
+  private Set<Integer> holeIndexes = new HashSet<>();
 
   /**
    * Constructs a sparse array and initializes it with the given elements.
-   * The internal array is twice the size of the initial elements to allow for holes.
+   * The internal array is twice the size of the initial elements so the array is full and has no holes.
    *
    * @param elem initial elements to store
    */
@@ -32,6 +28,9 @@ public class MarsikSparseArray<E> {
     elements = (E[]) new Object[elem.length * 2];
     System.arraycopy(elem, 0, elements, 0, elem.length);
     top += elem.length;
+    for (int i = elem.length; i < elements.length; i++) {
+      holeIndexes.add(i);
+    }
   }
 
   /**
@@ -40,6 +39,9 @@ public class MarsikSparseArray<E> {
   @SuppressWarnings("unchecked")
   public MarsikSparseArray() {
     elements = (E[]) new Object[20];
+    for (int i = 0; i < 20; i++) {
+      holeIndexes.add(i);
+    }
   }
 
   /**
@@ -50,6 +52,9 @@ public class MarsikSparseArray<E> {
   @SuppressWarnings("unchecked")
   public MarsikSparseArray(int size) {
     elements = (E[]) new Object[size];
+    for (int i = 0; i < size; i++) {
+      holeIndexes.add(i);
+    }
   }
 
   /**
@@ -73,7 +78,7 @@ public class MarsikSparseArray<E> {
   public void remove(int index) {
     checkIndex(index);
     elements[index] = null;
-    holeCount++;
+    holeIndexes.add(index);
   }
 
   /**
@@ -85,7 +90,7 @@ public class MarsikSparseArray<E> {
     int idx = indexOf(value);
     if (idx != -1) {
       elements[idx] = null;
-      holeCount++;
+      holeIndexes.add(idx);
     }
   }
 
@@ -99,7 +104,7 @@ public class MarsikSparseArray<E> {
   public E removeAndRetrieve(int index) {
     E element = get(index);
     elements[index] = null;
-    holeCount++;
+    holeIndexes.add(index);
     return element;
   }
 
@@ -109,16 +114,16 @@ public class MarsikSparseArray<E> {
    * @param value the element to remove
    */
   public void removeAll(E value) {
-    for (int i = 0; i < elements.length; i++) {
+    for (int i = 0; i < length(); i++) {
       if (Objects.equals(elements[i], value)) {
         elements[i] = null;
-        holeCount++;
+        holeIndexes.add(i);
       }
     }
   }
 
   private void checkIndex(int index) {
-    if (index < 0 || index > top) {
+    if (index < 0 || index >= length()) {
       throw new IllegalArgumentException("Index is out of the Array");
     }
   }
@@ -131,28 +136,43 @@ public class MarsikSparseArray<E> {
    */
   public void set(int index, E value) {
     checkIndex(index);
+    if (elements[index] == null) {
+      holeIndexes.remove(index);
+    }
     elements[index] = value;
   }
 
   /**
-   * Returns the number of elements stored (top + 1).
+   * Returns the index of the first free spot in the array
    *
-   * @return length of the sparse array
+   * @return first spot where value is null
    */
-  public int length() {
-    return top + 1;
+  public int nextFreeSpot() {
+    return holeIndexes.stream().sorted().mapToInt(Integer::intValue).toArray()[0];
   }
 
   /**
-   * Appends new elements to the end of the sparse array, expanding the internal array if needed.
+   * Returns the length of the array (including nulls)
+   *
+   * @return length of array
+   */
+  public int length() {
+    return elements.length;
+  }
+
+  /**
+   * Appends new elements to the end of the sparse array.
    *
    * @param elem elements to append
    */
   @SafeVarargs
   public final void append(E... elem) {
+    int[] holes = holeIndexes.stream().sorted().mapToInt(Integer::intValue).toArray();
+    if (holes.length > elem.length) {
+      throw new IllegalArgumentException("Not enough space in the array to append");
+    }
     int oldTop = top;
     top += elem.length;
-    elements = Arrays.copyOf(elements, Math.max(elements.length, top + elem.length + 1));
     System.arraycopy(elem, 0, elements, oldTop + 1, elem.length);
   }
 
@@ -172,7 +192,7 @@ public class MarsikSparseArray<E> {
    * @return last free index or -1 if none
    */
   public int lastFreeIndex() {
-    for (int i = top; i >= 0; i--) {
+    for (int i = length() - 1; i >= 0; i--) {
       if (elements[i] == null) {
         return i;
       }
@@ -200,7 +220,7 @@ public class MarsikSparseArray<E> {
    * @return first free index or -1 if none
    */
   public int firstFreeIndex() {
-    for (int i = 0; i <= top; i++) {
+    for (int i = 0; i < elements.length; i++) {
       if (elements[i] == null) {
         return i;
       }
@@ -229,7 +249,7 @@ public class MarsikSparseArray<E> {
    * @return index or -1 if not found
    */
   public int indexOf(E value) {
-    for (int i = 0; i <= top; i++) {
+    for (int i = 0; i < elements.length; i++) {
       if (Objects.equals(elements[i], value)) {
         return i;
       }
@@ -267,7 +287,7 @@ public class MarsikSparseArray<E> {
    * @return true if there are holes
    */
   public boolean hasHoles() {
-    return holeCount > 0;
+    return !holeIndexes.isEmpty();
   }
 
   /**
@@ -276,7 +296,7 @@ public class MarsikSparseArray<E> {
    * @return number of null elements
    */
   public int numberOfHoles() {
-    return holeCount;
+    return holeIndexes.size();
   }
 
   /**
@@ -287,7 +307,7 @@ public class MarsikSparseArray<E> {
    * @return new MarsikArray containing elements in the specified range
    */
   public Object[] slice(int start, int end) {
-    if (start > end || start < 0 || end > top) {
+    if (start > end || start < 0 || end >= elements.length) {
       throw new IllegalArgumentException("Invalid parameters");
     }
     return Arrays.copyOfRange(elements, start, end);
@@ -299,18 +319,23 @@ public class MarsikSparseArray<E> {
    * @param elem element to deduplicate
    */
   public void removeDuplicateOf(E elem) {
-    int idx = 0;
     boolean found = false;
-    for (int j = 0; j < top + 1; j++) {
-      E e = elements[j];
-      if (!e.equals(elem) || (e.equals(elem) && !found)) {
-        elements[idx++] = e;
-        if (e.equals(elem)) {
-          found = true;
-        }
+    int removingDuplicatesFromThere = 0;
+    for (int i = 0; i < elements.length; i++) {
+      if (elements[i] == elem) {
+        found = true;
+        removingDuplicatesFromThere = i;
+        break;
       }
     }
-    Arrays.fill(elements, idx, length(), null);
+    if (!found) {
+      return;
+    }
+    for (int j = removingDuplicatesFromThere + 1; j < length(); j++) {
+      if (elements[j] != null && elements[j].equals(elem)) {
+        elements[j] = null;
+      }
+    }
   }
 
   /**
@@ -319,15 +344,13 @@ public class MarsikSparseArray<E> {
    */
   public void removeAllDuplicates() {
     HashSet<E> s = new HashSet<>();
-    int idx = 0;
-    for (int i = 0; i < top + 1; i++) {
-      if (!s.contains(elements[i])) {
+    for (int i = 0; i < length(); i++) {
+      if (s.contains(elements[i])) {
+        elements[i] = null;
+      } else {
         s.add(elements[i]);
-        elements[idx++] = elements[i];
       }
     }
-    top = idx - 1;
-    Arrays.fill(elements, idx, length(), null);
   }
 
   /**
@@ -336,7 +359,10 @@ public class MarsikSparseArray<E> {
    * @return a new MarsikArray containing all elements
    */
   public MarsikSparseArray<E> duplicate() {
-    return new MarsikSparseArray<>(elements);
+    E[] elems = elements;
+    MarsikSparseArray<E> marsikSparseArray = new MarsikSparseArray<>(elems.length);
+    marsikSparseArray.append(elems);
+    return marsikSparseArray;
   }
 
   /**
@@ -345,11 +371,15 @@ public class MarsikSparseArray<E> {
    * @param other another MarsikSparseArray
    * @return a Set containing all unique elements from both arrays
    */
-  @SuppressWarnings("unchecked")
   public MarsikSparseArray<E> unionWith(MarsikSparseArray<E> other) {
-    HashSet<E> hashSet = new HashSet<>(Arrays.asList(elements).subList(0, length()));
-    hashSet.addAll(Arrays.asList(elements).subList(0, length()));
-    return new MarsikSparseArray<>((E) hashSet.toArray());
+    HashSet<E> union = new HashSet<>();
+    Collections.addAll(union, elements);
+    Collections.addAll(union, other.elements);
+    MarsikSparseArray<E> marsikSparseArray = new MarsikSparseArray<>(union.size());
+    for (E elem : union) {
+      marsikSparseArray.append(elem);
+    }
+    return marsikSparseArray;
   }
 
   /**
@@ -376,12 +406,6 @@ public class MarsikSparseArray<E> {
    * @throws IllegalStateException if elements are not Comparable
    */
   public void sort() {
-    for (int i = 0; i < length(); i++) {
-      if (!(elements[i] instanceof Comparable)) {
-        throw new IllegalStateException("Elements are not comparable, my friend!");
-      }
-    }
-    defragmentation();
     Arrays.sort(elements, 0, length());
   }
 
@@ -391,16 +415,21 @@ public class MarsikSparseArray<E> {
    * @return the maximum Number in the array
    * @throws IllegalArgumentException if not all elements are numbers
    */
-  @SuppressWarnings("unchecked")
   public Number max() {
     if (!allNumbers()) {
       throw new IllegalArgumentException("Elements should be all numbers");
     }
     Number i = (Number) elements[0];
-    for (int j = 0; j < length(); j++) {
+    for (int j = 1; j < length(); j++) {
       Number n = (Number) elements[j];
-      if (((Comparable<Number>) n).compareTo(j) > 0) {
-        i = n;
+      if (n instanceof Integer) {
+        if (n.intValue() > i.intValue()) {
+          i = n;
+        }
+      }  else if (n instanceof Double) {
+        if (n.doubleValue() > i.doubleValue()) {
+          i = n;
+        }
       }
     }
     return i;
@@ -412,16 +441,21 @@ public class MarsikSparseArray<E> {
    * @return the minimum Number in the array
    * @throws IllegalArgumentException if not all elements are numbers
    */
-  @SuppressWarnings("unchecked")
   public Number min() {
     if (!allNumbers()) {
       throw new IllegalArgumentException("Elements should be all numbers");
     }
     Number i = (Number) elements[0];
-    for (int j = 0; j < length(); j++) {
+    for (int j = 1; j < length(); j++) {
       Number n = (Number) elements[j];
-      if (((Comparable<Number>) n).compareTo(j) < 0) {
-        i = n;
+      if (n instanceof Integer) {
+        if (n.intValue() < i.intValue()) {
+          i = n;
+        }
+      }  else if (n instanceof Double) {
+        if (n.doubleValue() < i.doubleValue()) {
+          i = n;
+        }
       }
     }
     return i;
@@ -433,8 +467,10 @@ public class MarsikSparseArray<E> {
    * @return true if all elements are instances of Number
    */
   public boolean allNumbers() {
-    defragmentation();
     for (int i = 0; i <= top; i++) {
+      if (elements[i] == null) {
+        continue;
+      }
       if (!(elements[i] instanceof Number)) {
         return false;
       }
@@ -449,12 +485,12 @@ public class MarsikSparseArray<E> {
    * @throws NoSuchElementException if no elements are numbers
    */
   public double sum() {
-    if (holeCount > 0) {
-      defragmentation();
-    }
     if (allNumbers()) {
       double sum = 0;
       for (int i = 0; i < length(); i++) {
+        if (elements[i] == null) {
+          continue;
+        }
         sum += ((Number) elements[i]).doubleValue();
       }
       return sum;
@@ -468,7 +504,7 @@ public class MarsikSparseArray<E> {
    * @return average value
    */
   public double avg() {
-    return sum() / length();
+    return sum() / (length() - holeIndexes.size());
   }
 
   /**
@@ -479,10 +515,12 @@ public class MarsikSparseArray<E> {
    * @throws NoSuchElementException if elements are not numbers
    */
   public E percentile(double percentile) {
+    MarsikSparseArray<E> array = duplicate();
+    array.defragmentationAndTrim();
+    array.print();
     if (allNumbers()) {
-      MarsikSparseArray<E> array = duplicate();
       array.sort();
-      return array.get((int) Math.round(percentile * (length() - 1)));
+      return array.get((int) Math.round(percentile * (array.length() - 1)));
     }
     throw new NoSuchElementException("Percentile is only supported for numbers in the Array!");
   }
@@ -556,7 +594,7 @@ public class MarsikSparseArray<E> {
    */
   public void defragmentation() {
     int nextFree = 0;
-    for (int i = 0; i <= top; i++) {
+    for (int i = 0; i <= length(); i++) {
       E el = elements[i];
       if (el != null) {
         if (nextFree != i) {
@@ -566,9 +604,26 @@ public class MarsikSparseArray<E> {
       }
     }
     Arrays.fill(elements, nextFree, top + 1, null);
-    top = nextFree - 1;
-    holeCount = 0;
-    elements = Arrays.copyOf(elements, nextFree);
+  }
+
+  /**
+   * Defragments the array by removing holes (null elements) and shifting elements, before
+   * trimming the array so that all nulls gets erased.
+   */
+  @SuppressWarnings("unchecked")
+  public void defragmentationAndTrim() {
+    Object[] elements = new Object[length() - holeIndexes.size()];
+    int nextFree = 0;
+    for (int i = 0; i <= length(); i++) {
+      E el = (E) elements[i];
+      if (el != null) {
+        if (nextFree != i) {
+          elements[nextFree] = el;
+        }
+        nextFree++;
+      }
+    }
+    this.elements = (E[]) elements;
   }
 
   /**
@@ -577,7 +632,7 @@ public class MarsikSparseArray<E> {
   public void clear() {
     Arrays.fill(elements, null);
     top = -1;
-    holeCount = 0;
+    holeIndexes.clear();
   }
 
   /**
@@ -586,14 +641,14 @@ public class MarsikSparseArray<E> {
   public void destroy() {
     elements = null;
     top = -1;
-    holeCount = 0;
+    holeIndexes = null;
   }
 
   /**
    * Prints the sparse array to the console with indices.
    */
   public void print() {
-    for (int i = 0; i < top + 1; i++) {
+    for (int i = 0; i < length(); i++) {
       System.out.println("Array[" + i + "]" + " : " + elements[i]);
     }
   }

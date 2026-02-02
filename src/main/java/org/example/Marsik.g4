@@ -2,7 +2,10 @@ grammar Marsik;
 
 program: (stmt* | class_def) EOF;
 
-// TODO for later: merge var_decl with build_in_stmt, Other_stmt
+// TODO Now: Implement Runtimetests for all features
+// TODO soon: introduce long type and baby_int for only small integers (0-255)
+// TODO later: implement methods and classes with multiple files support
+// TODO far in the future (optional): merge var_decl with build_in_stmt, Other_stmt
 
 // All data types
 type: INTEGER | BABY_INTEGER | CHAR | BOOLEAN | STRING | DOUBLE;

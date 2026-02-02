@@ -1,12 +1,10 @@
-package org.example.internals.datastructures.extendedarrays;
+package org.example.internals.datastructures;
 
 import java.util.Arrays;
-import org.example.internals.datastructures.ArrayUtils;
-import org.example.internals.datastructures.MarsikList;
 
 /**
  * A Splay-like array that moves frequently accessed elements toward the front.
- * This class extends {@link ArrayUtils} and tracks how often each element
+ * This class extends {@link MarsikList} and tracks how often each element
  * is accessed (via {@link #get}, {@link #set}, or {@link #indexOf}).
  * When the total access count reaches a threshold, the array is partially
  * rearranged so that more frequently accessed elements are closer to the front,
@@ -94,7 +92,8 @@ public class MarsikSplayArray<E extends Comparable<E>> extends MarsikList<E> {
       int visitedCount = visited[idxOfElem];
       visited[idxOfElem] = ++visitedCount;
     }
-    if (Arrays.stream(visited).sum() % (size() / 2) == 0) {
+    int maxVisited = ArrayUtils.max(visited);
+    if (maxVisited % (size()) == 0) {
       rearrange();
     }
   }
@@ -108,12 +107,12 @@ public class MarsikSplayArray<E extends Comparable<E>> extends MarsikList<E> {
   private void rearrange() {
     Object[][] pairs = new Object[size()][2];
     for (int i = 0; i < size(); i++) {
-      pairs[i][0] = get(i);
+      pairs[i][0] = super.get(i);
       pairs[i][1] = visited[i];
     }
     Arrays.sort(pairs, (a, b) -> Integer.compare((int) b[1], (int) a[1]));
     for (int i = 0; i < pairs.length; i++) {
-      set(i, (E) pairs[i][0]);
+      super.set(i, (E) pairs[i][0]);
       visited[i] = (int) pairs[i][1];
     }
   }

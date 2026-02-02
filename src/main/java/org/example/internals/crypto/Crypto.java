@@ -45,9 +45,9 @@ public class Crypto {
 
   private static final int GCM_NONCE_LENGTH = 12;
   private static final int GCM_TAG_LENGTH = 128;
-  private static int SALT_LENGTH;
+  private static int SALT_LENGTH = 32;
   private static final int KEY_SIZE = 64;
-  private static SecureRandom secureRandom;
+  private static SecureRandom secureRandom = new SecureRandom();
   private static CryptoMode cryptoMode = CryptoMode.NORMAL;
 
   /**
@@ -91,12 +91,8 @@ public class Crypto {
    * Uses PBKDF2 for NORMAL mode or Argon2 for HARDCORE/EXTREME.
    *
    * @return a CryptoData object containing the key and salt
-   * @throws IllegalStateException if mode was not set
    */
   public static CryptoData generateKey() {
-    if (cryptoMode == null) {
-      throw new IllegalStateException("You need to set the Mode before using it");
-    }
     byte[] salt = new byte[SALT_LENGTH];
     secureRandom.nextBytes(salt);
     if (cryptoMode == CryptoMode.NORMAL) {

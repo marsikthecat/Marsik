@@ -143,11 +143,10 @@ public class MarsikPerfectHashMap<E> {
    *
    * @return a list of values
    */
-  @SuppressWarnings("unchecked")
   public MarsikList<E> values() {
     MarsikList<E> list = new MarsikList<>();
-    for (Object key : keySet) {
-      list.add((E) key);
+    for (E value : values) {
+      list.add(value);
     }
     return list;
   }

@@ -1,4 +1,4 @@
-package org.example.internals.datastructures.extendedarrays;
+package org.example.internals.datastructures;
 
 /**
  * A fixed-size circular (ring) buffer implementation.

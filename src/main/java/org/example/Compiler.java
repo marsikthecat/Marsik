@@ -692,6 +692,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   static void main() throws IOException {
+    // Path of the marsik file
     String marsikFile = "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\example.txt";
     CharStream input = CharStreams.fromFileName(marsikFile);
     MarsikLexer lexer = new MarsikLexer(input);
@@ -700,6 +701,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     ParseTree tree = parser.program();
     Compiler compiler = new Compiler();
     compiler.visit(tree);
+    // location of java file
     File generatedFile = new File(
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\GeneratedProgram.java");
     if (generatedFile.exists()) {

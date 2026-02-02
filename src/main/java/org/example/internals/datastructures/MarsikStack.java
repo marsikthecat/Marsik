@@ -89,7 +89,7 @@ public class MarsikStack<E> {
    * @throws IllegalStateException if the stack is empty
    */
   public E peek() {
-    if (isFull()) {
+    if (isEmpty()) {
       throw new IllegalStateException("Stack is empty!");
     }
     return data[top];

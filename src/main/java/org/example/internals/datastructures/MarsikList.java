@@ -209,22 +209,23 @@ public class MarsikList<E> {
    *
    * @param elem the element for which duplicates should be removed
    */
+  @SuppressWarnings("unchecked")
   public void removeDuplicateOf(E elem) {
     boolean found = false;
-    int idx = 0;
+    E[] newElements = (E[]) new Object[elements.length];
+    int newSize = 0;
     for (int i = 0; i < size; i++) {
-      E e = elements[i];
-      if (!Objects.equals(e, elem) || (Objects.equals(e, elem) && !found)) {
-        elements[idx++] = e;
-        if (Objects.equals(e, elem)) {
+      if (Objects.equals(elements[i], elem)) {
+        if (!found) {
+          newElements[newSize++] = elements[i];
           found = true;
         }
+      } else {
+        newElements[newSize++] = elements[i];
       }
     }
-    for (int i = idx; i < size; i++) {
-      elements[i] = null;
-    }
-    size = idx;
+    elements = newElements;
+    size = newSize;
   }
 
   /**
@@ -253,7 +254,7 @@ public class MarsikList<E> {
    * @throws IllegalStateException if the elements are not comparable
    */
   public void sort() {
-    if (size > 0 && !(elements[0] instanceof Comparable)) {
+    if (!(elements[0] instanceof Comparable)) {
       throw new IllegalStateException("Elements are not comparable!");
     }
     Arrays.sort(elements, 0, size);
@@ -266,7 +267,8 @@ public class MarsikList<E> {
    */
   public boolean allNumbers() {
     for (int i = 0; i < size; i++) {
-      if (!(elements[i] instanceof Number)) {
+      E element = elements[i];
+      if (!(element instanceof Integer)) {
         return false;
       }
     }
@@ -280,8 +282,8 @@ public class MarsikList<E> {
    * @throws NoSuchElementException if there are no numeric elements
    */
   public double sum() {
-    if (allNumbers()) {
-      throw new NoSuchElementException("No numbers!");
+    if (!allNumbers()) {
+      throw new NoSuchElementException("Sum only possible if all elements are numbers!");
     }
     double sum = 0;
     for (int i = 0; i < size; i++) {
@@ -307,7 +309,7 @@ public class MarsikList<E> {
    * @throws NoSuchElementException if the list has no numeric elements
    */
   public E percentile(double percentile) {
-    if (allNumbers()) {
+    if (!allNumbers()) {
       throw new NoSuchElementException("Percentile only for numbers!");
     }
     MarsikList<E> copy = duplicate();

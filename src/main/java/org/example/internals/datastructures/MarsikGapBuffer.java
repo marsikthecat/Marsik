@@ -1,4 +1,4 @@
-package org.example.internals.datastructures.extendedarrays;
+package org.example.internals.datastructures;
 
 /**
  * A simple implementation of a gap buffer for efficient text editing.

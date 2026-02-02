@@ -39,8 +39,9 @@ int i = 0
 while(i < 5)
 {
   if (Math.isEven(i)) {
-    i++
+    print(i + " is even")
 }
+i++
 }
 
 string secret = "banana"

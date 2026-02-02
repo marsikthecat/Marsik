@@ -16,15 +16,16 @@ public class StringUtils {
    * @param s     String to be handled.
    * @param index The position of the character to set.
    * @param c     The character to set.
+   * @return      new String.
    * @throws IndexOutOfBoundsException if the index is out of range.
    */
-  public static void setCharAt(String s, int index, char c) {
+  public static String setCharAt(String s, int index, char c) {
     if (index < 0 || index >= s.length()) {
       throw new IndexOutOfBoundsException("Index out of bounds: " + index + " my friend!");
     }
     char[] chars = s.toCharArray();
     chars[index] = c;
-    s = String.valueOf(chars);
+    return new String(chars);
   }
 
   /**
@@ -94,8 +95,9 @@ public class StringUtils {
    * Reverses the string in-place.
    *
    * @param s String to be handled.
+   * @return reversed string.
    */
-  public static void reverse(String s) {
+  public static String reverse(String s) {
     char[] data = s.toCharArray();
     int size = data.length;
     for (int i = 0; i < size / 2; i++) {
@@ -103,7 +105,7 @@ public class StringUtils {
       data[i] = data[size - 1 - i];
       data[size - 1 - i] = tmp;
     }
-    s = new String(data);
+    return new String(data);
   }
 
   /**
@@ -111,11 +113,15 @@ public class StringUtils {
    *
    * @param s     String to be handled.
    * @param c The character to append.
+   * @return new String.
    */
-  public static void appendChar(String s, char c) {
+  public static String appendChar(String s, char c) {
     char[] data = new char[s.length() + 1];
+    for (int i = 0; i < s.length(); i++) {
+      data[i] = s.charAt(i);
+    }
     data[s.length()] = c;
-    s = new String(data);
+    return new String(data);
   }
 
   /**
@@ -126,10 +132,11 @@ public class StringUtils {
    * @param start       the starting index of the part to replace
    * @param end         the ending index (exclusive) of the part to replace
    * @param replacement the replacement string
+   * @return new String
    * @throws IndexOutOfBoundsException if start or end are invalid
    * @throws IllegalArgumentException  if the replacement length does not match the replaced section
    */
-  public static void replacePart(String s, int start, int end, String replacement) {
+  public static String replacePart(String s, int start, int end, String replacement) {
     if (start < 0 || end > s.length() || start > end) {
       throw new IndexOutOfBoundsException("start and end are not valid, my friend!");
     }
@@ -137,11 +144,11 @@ public class StringUtils {
       throw new IllegalArgumentException("replacement-string must have same length as the "
               + "size of the part you want to replace, my friend!");
     }
-    char[] data = new char[s.length()];
+    char[] data = s.toCharArray();
     for (int i = start; i < end; i++) {
-      data[i - start] = s.charAt(i);
+      data[i] = replacement.charAt(i - start);
     }
-    s = new String(data);
+    return new String(data);
   }
 
   /**
@@ -259,10 +266,10 @@ public class StringUtils {
    *
    * @param s the String to be handled
    */
-  public static void capitalize(String s) {
+  public static String capitalize(String s) {
     int size = s.length();
     if (size == 0) {
-      return;
+      return "";
     }
     char[] chars = s.toCharArray();
     if (chars[0] >= 'a' && chars[0] <= 'z') {
@@ -273,7 +280,7 @@ public class StringUtils {
         chars[i] = (char) (chars[i] + 32);
       }
     }
-    s = new String(chars);
+    return new String(chars);
   }
 
   /**
@@ -366,7 +373,7 @@ public class StringUtils {
   public static int numberOfConsonants(String s) {
     int count = 0;
     for (char c : s.toCharArray()) {
-      if (!isVowel(c) && Character.isLetter(c)) {
+      if (Character.isLetter(c) && !isVowel(Character.toLowerCase(c))) {
         count++;
       }
     }
