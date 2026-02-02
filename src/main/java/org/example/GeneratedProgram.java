@@ -22,6 +22,7 @@ System.out.println("Your age");
 String age = new java.util.Scanner(System.in).nextLine();
 int ageCasted = TypeCaster.stringToInt(age);
 String time = String.valueOf(System.currentTimeMillis());
+int timeInInt = TypeCaster.stringToInt(time);
 int[] intArr = new int[5];
 intArr[0] = 4;
 intArr[1] = 3;
@@ -36,6 +37,7 @@ boolean bb = ArrayUtils.contains(arr, 'c');
 MarsikList<Integer> list1 = new MarsikList<>(4,3,5,4,6,4,3,5,4,6,6);
 list1.add(2);
 list1.removeDuplicateOf(6);
+String fileContent = FileHandler.readFile(b);
 if (e>Math.gcd(5,12)) {
 e++;
 }
@@ -46,14 +48,19 @@ for (int x = 0;
 x < 5; x++) {
 System.out.print(x);
 }
+int i = 0;
+while (i < 5) {
+if (Math.isEven(i)) {
+System.out.print(i + " is even");
+}
+i++;
+}
 String secret = "banana";
-System.out.println("secret");
 StringUtils.appendChar(secret,'a');
 CryptoData cryptoData = Crypto.generateKey();
 CryptoData encrypted = Crypto.encrypt(secret, cryptoData);
 String decrypted = Crypto.decrypt(encrypted);
-System.out.println(decrypted);
-if (secret.equals(decrypted)) {
+if (secret==decrypted) {
 System.exit(0);
 }
 MarsikPerfectHashMap<Character> hashMap = new MarsikPerfectHashMap<>();
@@ -66,6 +73,6 @@ System.out.print("this year is a leap year");
 int zz;
 zz = 3333;
 zz = 32;
-System.exit(0);
+
     }
 }

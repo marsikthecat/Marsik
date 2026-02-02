@@ -693,7 +693,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
   static void main() throws IOException {
     // Path of the marsik file
-    String marsikFile = "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\example.txt";
+    String marsikFile = "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\example.marsik";
     CharStream input = CharStreams.fromFileName(marsikFile);
     MarsikLexer lexer = new MarsikLexer(input);
     CommonTokenStream tokens = new CommonTokenStream(lexer);
