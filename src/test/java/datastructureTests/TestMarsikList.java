@@ -1,6 +1,5 @@
 package datastructureTests;
 
-import org.example.internals.datastructures.MarsikList;
 import org.junit.jupiter.api.Test;
 
 import java.util.NoSuchElementException;

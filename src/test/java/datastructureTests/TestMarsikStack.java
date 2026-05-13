@@ -2,7 +2,6 @@ package datastructureTests;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.example.internals.datastructures.MarsikStack;
 import org.junit.jupiter.api.Test;
 
 class TestMarsikStack {

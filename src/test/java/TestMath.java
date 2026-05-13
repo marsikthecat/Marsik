@@ -1,6 +1,4 @@
-import org.example.internals.math.Math;
 import org.example.internals.math.Matrix;
-import org.example.internals.math.Point;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

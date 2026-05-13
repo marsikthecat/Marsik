@@ -2,9 +2,6 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.example.Compiler;
-import org.example.MarsikLexer;
-import org.example.MarsikParser;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

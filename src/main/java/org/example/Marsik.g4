@@ -2,38 +2,31 @@ grammar Marsik;
 
 program: (stmt* | class_def) EOF;
 
-// TODO soon: introduce long type and baby_int for only small integers (0-255)
-// TODO later: implement methods and classes with multiple files support
-// TODO far in the future (optional): merge var_decl with build_in_stmt, Other_stmt
-
 // All data types
-type: INTEGER | BABY_INTEGER | CHAR | BOOLEAN | STRING | DOUBLE;
+type: BABY_INTEGER | INTEGER | CHAR | BOOLEAN | STRING | DOUBLE;
 
 // Data-Type declaration
-type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | AR_TYPE | CRYPTODATA_TYPE;
+type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY_INT_TYPE;
 
 // statements
-stmt: (var_decl | const_decl | assign_stmt | if_stmt | while_stmt | return_stmt | expr
-    | funcdef | for_stmt | array_decl | build_in_stmt | inc_stmt | dec_stmt
-    | object_stmt | method_call | print_stmt | printLn_stmt | exit_stmt) NEWLINE*;
+stmt: (var_decl | const_decl | assign_stmt | method_call | if_stmt | while_stmt | return_stmt
+    | funcdef | for_stmt | array_decl | inc_stmt | dec_stmt
+    | object_stmt | print_stmt | exit_stmt | expr) NEWLINE*;
 
 // For Strings and Objects: Calling methods
-method_call: NAME '.' NAME '(' arguments? ')';
+method_call: NAME '.' NAME ('(' arguments? ')' | '()');
 
 // initializing Objects
-object_stmt: NAME ('<' type_label '>')? NAME EQUAL NEW NAME '(' arguments? ')';
-
-// build in functions
-build_in_stmt: type_label NAME EQUAL (scan_stmt | time_stmt | other_stmt | method_call);
+object_stmt: NAME ('<' type_label '>')? NAME EQUAL NEW NAME ('(' arguments? ')' | '()');
 
 // Declare Variables
-var_decl: type_label NAME (EQUAL (type | expr))? NEWLINE?;
+var_decl: type_label NAME (EQUAL (type | scan_stmt | method_call | expr))? NEWLINE?;
 
 // Constants (only one time asignable)
 const_decl: CONST type_label NAME EQUAL type NEWLINE;
 
 // Asign a Value to the Varible
-assign_stmt: NAME EQUAL (type | expr);
+assign_stmt: NAME EQUAL (type | method_call | expr) NEWLINE?;
 
 // Increment value by 1 or more
 inc_stmt: NAME PLUSPLUS INTEGER?;
@@ -47,7 +40,7 @@ array_decl: type_label '[' INTEGER ']' NAME EQUAL '[' (type (',' type)*)? ']';
 // Functions
 funcdef: FUNCTION NAME LPAR parameters? RPAR NEWLINE* block;
 parameters: parameter (COMMA parameter)*;
-parameter: type NAME;
+parameter: type_label NAME;
 
 // Control Flows
 if_stmt: IF '(' expr ')' block (ELSE block)?;
@@ -56,16 +49,13 @@ block: '{' stmt* NEWLINE '}';
 for_stmt: FOR '(' for_init? ';' expr? ';' for_update? ')' block;
 for_init: var_decl | assign_stmt;
 for_update: inc_stmt | dec_stmt;
+return_stmt: RETURN expr?;
 
 // build in:
 print_stmt: PRINT '(' (STRING | expr) ')';
-printLn_stmt: PRINTLN '(' (STRING | expr) ')';
 exit_stmt: EXIT ( '(' INTEGER? ')' | '()' );
 scan_stmt: SCAN '(' STRING ')';
-time_stmt: TIME_MILLIS '()';
-other_stmt: STANDARDLIBS DOT NAME '(' arguments? ')';
 arguments: expr (',' expr)*;
-return_stmt: RETURN expr?;
 
 // Arithmetic stuff and operations
 expr: or_expr;
@@ -77,20 +67,13 @@ additive_expr : multiplicative_expr (('+'|'-') multiplicative_expr)* ;
 multiplicative_expr : unary_expr (('*'|'/'|'%') unary_expr)* ;
 unary_expr : ('+'|'-'|'not') unary_expr | power_expr ;
 power_expr : atom_expr ('**' unary_expr)? ;
-atom_expr : other_stmt | NAME | INTEGER | BABY_INTEGER | CHAR
+atom_expr : method_call | NAME | INTEGER | BABY_INTEGER | CHAR
           | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
 
 class_def: 'class' NAME '{' class_member* '}';
-class_member: field_decl | constructor_decl | method_decl;
-field_decl: ('public')? 'const'? type NAME;
-constructor_decl: '_constructor' '(' parameters? ')' block;
-method_decl: ('internal')? 'Method' (':' type)? NAME '(' parameters? ')' block;
-
-// They offer static methods
-STANDARDLIBS     : 'Sys' | 'Math' | 'FileHandler' | 'Crypto' | 'Validator' | 'Threads' | 'DateTime'
-                   | 'RequestSender' | 'TypeCaster';
-
-// TODO: Thread support (maybe)
+class_member: (field_decl | method_decl) NEWLINE*;
+field_decl: ('public')? 'const'? type_label NAME;
+method_decl: ('internal')? 'Method:' (type_label)? NAME '(' parameters? ')' block;
 
 PLUSPLUS         : '++';
 MINUSMINUS       : '--';
@@ -140,21 +123,17 @@ IF       : 'if';
 PRINT    : 'print';
 PRINTLN  : 'printLine';
 RETURN   : 'return';
-TRY      : 'try';
 WHILE    : 'while';
 EXIT     : 'exit';
 CONST    : 'const';
 SCAN     : 'scan';
-TIME_MILLIS : 'getTime';
 AR_TYPE     : 'array';
 INT_TYPE    : 'int';
 DOUBLE_TYPE : 'double';
 CHAR_TYPE   : 'char';
 BOOL_TYPE   : 'boolean';
 STRING_TYPE : 'string';
-
-// specific non-primitive Types
-CRYPTODATA_TYPE : 'CryptoData';
+BABY_INT_TYPE : 'baby_int';
 
 // primitve datatypes
 INTEGER: NON_ZERO_DIGIT DIGIT* | '0';

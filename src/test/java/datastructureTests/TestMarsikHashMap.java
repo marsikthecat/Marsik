@@ -1,8 +1,5 @@
 package datastructureTests;
 
-import org.example.internals.datastructures.MarsikHashMap;
-import org.example.internals.datastructures.MarsikList;
-import org.example.internals.datastructures.MarsikSet;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

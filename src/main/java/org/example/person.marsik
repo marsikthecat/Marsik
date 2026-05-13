@@ -1,0 +1,29 @@
+class Person {
+  public string name
+  public int age
+  public string address
+
+  Method: int getAge( ) {
+    return age
+}
+
+  Method: increaseAge( ) {
+    age++
+}
+
+  Method: setAddress(string newAddress) {
+    address = newAddress
+}
+
+  Method: printInfo( ) {
+    print("Name: " + name + ", Age: " + age)
+}
+
+  Method: boolean isAdult( ) {
+    return age >= 18
+}
+
+  Method: string reverseName( ) {
+    return name.reverse()
+}
+}
