@@ -777,8 +777,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       Compiler compiler = new Compiler();
       compiler.visit(tree);
       
-      // Ensure out folder exists
-      File outFolder = new File("C:\\Users\\dani_\\Desktop\\MarsikLang2\\src\\main\\java\\org\\example\\out");
+      // This is where the output files (.c, .h and soon .exe) will be
+      File outFolder = new File("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
       if (!outFolder.exists()) {
         outFolder.mkdirs();
       }
@@ -829,6 +829,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
 
     System.out.println("Found " + cFiles.length + " .c files to compile\n");
     List<String> command = new ArrayList<>();
+
+    // Path to your gcc file //
     command.add("C:\\Program Files\\gcc\\bin\\gcc.exe");
     command.add("-Wall");
     command.add("-I" + outFolder);
@@ -872,10 +874,13 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   static void main(String[] args) throws IOException, InterruptedException {
-    String outFolder = "C:\\Users\\dani_\\Desktop\\MarsikLang2\\src\\main\\java\\org\\example\\out";
 
-    compile("C:\\Users\\dani_\\Desktop\\MarsikLang2\\src\\main\\java\\org\\example\\example.marsik");
-    // compile("C:\\Users\\dani_\\Desktop\\MarsikLang2\\src\\main\\java\\org\\example\\person.marsik");
+    // Edit the path for your setup //
+
+    String outFolder = "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out";
+
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\example.marsik");
+    // compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\person.marsik");
     compileWithGCC(outFolder);
 
     // Optional: Uncomment to delete the "out" folder after compilation
