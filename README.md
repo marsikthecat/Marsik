@@ -1,44 +1,35 @@
-# Marsik 🐾
+# Marsik
 
-An experimental programming language.
+An experimental Programming language 
 
 ## Philosophy
 
-- No complicated syntax like C++
-- No out-of-control overhead like Python
-- Simple and powerful like Python
-- As intuitive as possible
+- No complicated syntax like c++
+- No out of control overhead like python
+- Simple and powerful like python
+- Intuitive as possible
 
 ## Features
+- Primitives Types: int, double, char, boolean, string (pretends to be)
+- Static standard libraries like Math, Sys, Crypto, FileHandler, DateTime, Validator
+- Variables, Constans, Operators, Control Flows, Primitive Arrays and build-in Datastructures
+- Compiles from .marsik to .java
 
-- Primitive types: `int`, `double`, `char`, `boolean`, `string` (pretends to be)
-- Static standard libraries: `Math`, `Sys`, `Crypto`, `FileHandler`, `DateTime`, `Validator`
-- Variables, constants, operators, control flow, primitive arrays, and built-in data structures
-- Compiles from `.marsik` to `.java`
-
-## Example source code
-
-<p align="center">
-  <img src="assets/SourceCodeExample.png" width="350">
-  <img src="assets/SourceCodeExample (2).png" width="350">
-</p>
-
-## What Marsik does NOT have
-
+## What is does not have
 - Threads
 - Try/Catch
-- Full OOP support (methods are work in progress)
-- Compilation into multiple Java files
-- Low-level programming (pointers, addresses like C/C++)
+- OOP support, methods (in progress)
+- Compiling to multiple java-files
+- Low level programming (Pointers, Adresses like C/C++)
 - ...
 
 ## How to get started
 
-1. Make sure you have **Java JDK 25** installed
-2. Clone this repository
+1. Make sure you have **Java JDK 25** installed  
+2. Clone this repository  
 3. In the `main` method of the compiler, define:
-    - the path to the `.marsik` file
-    - the output `.java` file
+   - the path to the `.marsik` file
+   - the output `.java` file  
 
    <br>
    <img src="assets/CustomPaths.png" width="600">
