@@ -1,9 +1,6 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,34 +11,32 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.compiler.*;
-import org.example.utils.FileHandler;
-import org.example.compiler.CustomObjectGenerator;
+import org.example.org.example.MarsikBaseVisitor;
+import org.example.org.example.MarsikLexer;
+import org.example.org.example.MarsikParser;
 
 /**
  * Transforms marsik-code into java code and inserts it in a file.
  */
-public class Compiler extends org.example.MarsikBaseVisitor<String> {
+public class Compiler extends MarsikBaseVisitor<String> {
 
   public final HashMap<String, ValueHolder> variables = new HashMap<>();
   public final HashMap<String, ValueHolder> constants = new HashMap<>();
   public final StringBuilder code = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, CustomObjectHolder> customObjects = new HashMap<>();
-  private ClassHolder currentClass;
-  private CustomObjectHolder currentCustomObject; // Track current custom object for 'this' access
 
   @Override
-  public String visitProgram(org.example.MarsikParser.ProgramContext ctx) {
+  public String visitProgram(MarsikParser.ProgramContext ctx) {
     // First pass: collect all custom object definitions
     for (var child : ctx.children) {
-      if (child instanceof org.example.MarsikParser.Class_defContext) {
-        visitClass_def((org.example.MarsikParser.Class_defContext) child);
+      if (child instanceof MarsikParser.Class_defContext) {
+        visitClass_def((MarsikParser.Class_defContext) child);
       }
     }
-
     // Second pass: process statements
     for (var child : ctx.children) {
-      if (!(child instanceof org.example.MarsikParser.Class_defContext)) {
+      if (!(child instanceof MarsikParser.Class_defContext)) {
         this.visit(child);
       }
     }
@@ -49,12 +44,12 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitType_label(org.example.MarsikParser.Type_labelContext ctx) {
+  public String visitType_label(MarsikParser.Type_labelContext ctx) {
     return super.visitType_label(ctx);
   }
 
   @Override
-  public String visitStmt(org.example.MarsikParser.StmtContext ctx) {
+  public String visitStmt(MarsikParser.StmtContext ctx) {
     if (ctx.print_stmt() != null) {
       code.append(visit(ctx.print_stmt()));
     }
@@ -68,7 +63,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitObject_stmt(org.example.MarsikParser.Object_stmtContext ctx) {
+  public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
     String objectType = ctx.NAME(0).getText();
     String variable = ctx.NAME(1).getText();
     String newObjectName = ctx.NAME(2).getText();
@@ -91,8 +86,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
                 .append(objectType.toLowerCase()).append("(").append(parameters).append(");\n");
       } else if (Utils.buildInObjectsDatastructures.contains(objectType)) {
         // Handle built-in objects
-        if (ctx.type_label() != null && !objectType.equals("BitSet")) {
-          imports.add("#include \"../runtime/datastructures/" + objectType.toLowerCase() + ".h\"\n");
+        if (ctx.type_label() != null && !objectType.equals("BitSet") && !objectType.equals("GenericList")) {
+          imports.add("#include \"../runtime/datastructures/" + objectType.toLowerCase() + ".hpp\"\n");
         }  else if (objectType.equals("Alert")) {
           imports.add("#include \"../runtime/dialogs/alert.h\"\n");
         }  else if (objectType.equals("Dialog")) {
@@ -110,8 +105,9 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
         }
         String parameters = String.join(", ", args);
 
-        code.append("struct ").append(objectType).append(" ").append(variable).append(" = init_")
-                .append(objectType.toLowerCase()).append("(").append(parameters).append(");\n");
+        code.append("struct ").append(objectType).append("<").append(ctx.type_label().getText()).append("> ")
+                .append(variable).append(" = init_").append(objectType.toLowerCase()).append("<").
+                append(ctx.type_label().getText()).append(">(").append(parameters).append(");\n");
       } else {
         throw new RuntimeException("Unknown object type: " + objectType);
       }
@@ -122,14 +118,14 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitMethod_call(org.example.MarsikParser.Method_callContext ctx) {
+  public String visitMethod_call(MarsikParser.Method_callContext ctx) {
     String target = ctx.NAME(0).getText();
     String method = ctx.NAME(1).getText();
 
     if (isBuiltInLibraryMethod(target, method)) {
       return visitBuiltInLibraryMethodCall(ctx, target, method);
     }
-    if (currentClass != null) {
+ /*   if (currentClass != null) {
       boolean methodFound = false;
       for (MethodHolder m : currentClass.methods) {
         if (m.name.equals(method)) {
@@ -140,7 +136,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       if (!methodFound) {
         throw new RuntimeException("Method " + method + " not found in class " + currentClass.name);
       }
-    } else {
+    } */else {
       if (!variables.containsKey(target)) {
         throw new RuntimeException("Variable " + target + " does not exist");
       } else {
@@ -168,6 +164,9 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
       if (Utils.buildInObjectsDatastructures.contains(type) || type.equals("array")) {
         methodPrefix = type.toLowerCase() + "_";
       }
+      if (Utils.stringMethods.contains(type) || type.equals("string")) {
+        methodPrefix =  "str_";
+      }
     }
 
     String joinedArgs = String.join(", ", args);
@@ -180,13 +179,13 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
             && Utils.libraryMethodsLookup.get(target).contains(method);
   }
 
-  private String visitBuiltInLibraryMethodCall(org.example.MarsikParser.Method_callContext ctx,
+  private String visitBuiltInLibraryMethodCall(MarsikParser.Method_callContext ctx,
                                                String target, String method) {
     switch (target) {
-      case "Math" -> imports.add("#include \"../runtime/math.h\"\n");
-      case "FileHandler" -> imports.add("#include \"../runtime/filehandler.h\"\n");
-      case "DateTime" -> imports.add("#include \"../runtime/datetime.h\"\n");
-      case "Crypto" -> imports.add("#include \"../runtime/crypto.h\"\n");
+      case "Math" -> imports.add("#include \"../runtime/math.hpp\"\n");
+      case "FileHandler" -> imports.add("#include \"../runtime/filehandler.hpp\"\n");
+      case "DateTime" -> imports.add("#include \"../runtime/datetime.hpp\"\n");
+      case "Crypto" -> imports.add("#include \"../runtime/crypto.hpp\"\n");
       default -> throw new RuntimeException("Unknown builtin target: " + target);
     }
 
@@ -199,7 +198,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     return method + "(" + String.join(", ", args) + ")";
   }
 
-  private String renderBuiltInArgument(String target, org.example.MarsikParser.ExprContext expr) {
+  private String renderBuiltInArgument(String target, MarsikParser.ExprContext expr) {
     String rendered = visit(expr);
     String rawText = expr.getText();
     if ((target.equals("FileHandler") || target.equals("Crypto") || target.equals("DateTime"))
@@ -211,7 +210,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitVar_decl(org.example.MarsikParser.Var_declContext ctx) {
+  public String visitVar_decl(MarsikParser.Var_declContext ctx) {
     String name = ctx.NAME().getText();
     if (variables.containsKey(name)) {
       throw new RuntimeException("Variable " + name + " already exists");
@@ -249,7 +248,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
                 + " does not match Value " + ctx.type().getText());
       }
       String strInit = shouldWrapStringInitialization(type, ctx.type(), ctx.method_call())
-              ? "init(" + init + ")" : init;
+              ? "str_init(" + init + ")" : init;
       code.append(type).append(" ").append(name).append(" = ").append(strInit).append(";\n");
       variables.put(name, new ValueHolder(type, true));
     } else {
@@ -260,8 +259,8 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     return null;
   }
 
-  private boolean checkCorrectValueForLiteral(org.example.MarsikParser.Type_labelContext typeLabelContext,
-                                              org.example.MarsikParser.TypeContext type) {
+  private boolean checkCorrectValueForLiteral(MarsikParser.Type_labelContext typeLabelContext,
+                                              MarsikParser.TypeContext type) {
     if (typeLabelContext.STRING_TYPE() != null) {
       return type.STRING() == null;
     } else if (typeLabelContext.BOOL_TYPE() != null) {
@@ -282,7 +281,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitConst_decl(org.example.MarsikParser.Const_declContext ctx) {
+  public String visitConst_decl(MarsikParser.Const_declContext ctx) {
     String name = ctx.NAME().getText();
     if (constants.containsKey(name)) {
       throw new RuntimeException("Constant " + name + " already exists");
@@ -307,7 +306,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitAssign_stmt(org.example.MarsikParser.Assign_stmtContext ctx) {
+  public String visitAssign_stmt(MarsikParser.Assign_stmtContext ctx) {
     String name = ctx.NAME().getText();
     String value = ctx.type() != null ? ctx.type().getText()
             : ctx.expr() != null ? visit(ctx.expr())
@@ -347,13 +346,13 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   private boolean shouldWrapStringInitialization(String type,
-                                                 org.example.MarsikParser.TypeContext literalValue,
-                                                 org.example.MarsikParser.Method_callContext methodCall) {
+                                                 MarsikParser.TypeContext literalValue,
+                                                 MarsikParser.Method_callContext methodCall) {
     return type.equals("string") && literalValue != null && literalValue.STRING() != null && methodCall == null;
   }
 
   @Override
-  public String visitArray_decl(org.example.MarsikParser.Array_declContext ctx) {
+  public String visitArray_decl(MarsikParser.Array_declContext ctx) {
     int size = Integer.parseInt(ctx.INTEGER().getText());
     if (ctx.type().size() > size) {
       throw new RuntimeException("Array size " + size + " does not match number of elements");
@@ -373,21 +372,21 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     variables.put(name, new ValueHolder("array", true));
 
     StringBuilder compoundLiteral = new StringBuilder();
-    compoundLiteral.append("(").append(typeLabel).append("[]){");
+    compoundLiteral.append("{");
     for (int i = 0; i < ctx.type().size() - 1; i++) {
       compoundLiteral.append(ctx.type().get(i).getText()).append(",");
     }
     compoundLiteral.append(ctx.type().getLast().getText()).append("}");
 
-    imports.add("#include \"../runtime/datastructures/array.h\"\n");
-    code.append("struct Array ").append(name).append(" = {")
-            .append(compoundLiteral).append(", sizeof(").append(typeLabel)
-            .append("), ").append(size).append(", ").append(typeLabel.toUpperCase()).append("};\n");
+    imports.add("#include \"../runtime/datastructures/array.hpp\"\n");
+    code.append("struct Array<").append(typeLabel).append("> ").append(name).append(" = {")
+            .append(compoundLiteral).append(", ").append(size).append(", \"")
+            .append(typeLabel).append("\"}").append(";\n");
     return null;
   }
 
   @Override
-  public String visitFuncdef(org.example.MarsikParser.FuncdefContext ctx) {
+  public String visitFuncdef(MarsikParser.FuncdefContext ctx) {
     String name = ctx.NAME().getText();
     code.append("static void ").append(name).append("(");
     if (ctx.parameters() != null) {
@@ -399,23 +398,23 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitParameters(org.example.MarsikParser.ParametersContext ctx) {
+  public String visitParameters(MarsikParser.ParametersContext ctx) {
     List<String> params = new ArrayList<>();
-    for (org.example.MarsikParser.ParameterContext p : ctx.parameter()) {
+    for (MarsikParser.ParameterContext p : ctx.parameter()) {
       params.add(visit(p));
     }
     return String.join(", ", params);
   }
 
   @Override
-  public String visitParameter(org.example.MarsikParser.ParameterContext ctx) {
+  public String visitParameter(MarsikParser.ParameterContext ctx) {
     String type = visit(ctx.type_label());
     String name = ctx.NAME().getText();
     return type + " " + name;
   }
 
   @Override
-  public String visitIf_stmt(org.example.MarsikParser.If_stmtContext ctx) {
+  public String visitIf_stmt(MarsikParser.If_stmtContext ctx) {
     code.append("if (").append(visit(ctx.expr())).append(") ");
     visit(ctx.block(0));
     if (ctx.ELSE() != null) {
@@ -426,7 +425,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitWhile_stmt(org.example.MarsikParser.While_stmtContext ctx) {
+  public String visitWhile_stmt(MarsikParser.While_stmtContext ctx) {
     String cond = visit(ctx.expr());
     code.append("while (").append(cond).append(") ");
     visit(ctx.block());
@@ -434,7 +433,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitBlock(org.example.MarsikParser.BlockContext ctx) {
+  public String visitBlock(MarsikParser.BlockContext ctx) {
     code.append("{\n");
     visitChildren(ctx);
     code.append("}\n");
@@ -442,7 +441,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitFor_stmt(org.example.MarsikParser.For_stmtContext ctx) {
+  public String visitFor_stmt(MarsikParser.For_stmtContext ctx) {
     code.append("for (");
     if (ctx.for_init() != null) {
       visit(ctx.for_init());
@@ -460,12 +459,12 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitFor_update(org.example.MarsikParser.For_updateContext ctx) {
+  public String visitFor_update(MarsikParser.For_updateContext ctx) {
     return ctx.inc_stmt() != null ? ctx.inc_stmt().getText() : ctx.dec_stmt().getText();
   }
 
   @Override
-  public String visitInc_stmt(org.example.MarsikParser.Inc_stmtContext ctx) {
+  public String visitInc_stmt(MarsikParser.Inc_stmtContext ctx) {
     String name = ctx.NAME().getText();
     if (ctx.INTEGER() != null) {
       code.append(name).append("+=").append(ctx.INTEGER().getText()).append(";\n");
@@ -476,7 +475,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitDec_stmt(org.example.MarsikParser.Dec_stmtContext ctx) {
+  public String visitDec_stmt(MarsikParser.Dec_stmtContext ctx) {
     String name = ctx.NAME().getText();
     if (ctx.INTEGER() != null) {
       code.append(name).append("-=").append(ctx.INTEGER().getText()).append(";\n");
@@ -487,51 +486,38 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitPrint_stmt(org.example.MarsikParser.Print_stmtContext ctx) {
-    if (ctx.STRING() != null) {
-      return "printf(" + ctx.STRING().getText() + ");\n";
-    } else {
-      // Must determine the type of expression and use appropriate format specifier
-      String exprText = visit(ctx.expr());
-      String exprRawText = ctx.expr().getText();
-      
-      // Check if it's a variable to determine type
-      String formatSpec = "%d"; // default to int
-      if (variables.containsKey(exprRawText)) {
-        String type = variables.get(exprRawText).type;
-        formatSpec = switch (type) {
-          case "string" -> "%s";
-          case "double" -> "%f";
-          case "char" -> "%c";
-          case "bool" -> "%i";
-          case "uint8_t" -> "%u";
-          default -> "%d";
-        };
+  public String visitPrint_stmt(MarsikParser.Print_stmtContext ctx) {
+    StringBuilder cpp = new StringBuilder("std::cout");
+    for (MarsikParser.Print_argContext arg : ctx.print_arg()) {
+      cpp.append(" << ");
+      if (arg.STRING() != null) {
+        cpp.append(arg.STRING().getText());
+      } else {
+        cpp.append(visit(arg.expr()));
       }
-      return "printf(\"" + formatSpec + "\", " + exprText + ");\n";
     }
+    cpp.append(";\n");
+    return cpp.toString();
   }
 
   @Override
-  public String visitExit_stmt(org.example.MarsikParser.Exit_stmtContext ctx) {
+  public String visitExit_stmt(MarsikParser.Exit_stmtContext ctx) {
     String exitCode = ctx.INTEGER() != null ? ctx.INTEGER().getText() : "0";
     return "exit(" + exitCode + ");\n";
   }
 
   @Override
-  public String visitReturn_stmt(org.example.MarsikParser.Return_stmtContext ctx) {
+  public String visitReturn_stmt(MarsikParser.Return_stmtContext ctx) {
     code.append("return ").append(ctx.expr() != null ? visit(ctx.expr()) : "").append(";\n");
     return null;
   }
-
+/*
   @Override
-  public String visitClass_def(org.example.MarsikParser.Class_defContext ctx) {
+  public String visitClass_def(MarsikParser.Class_defContext ctx) {
     String className = ctx.NAME().getText();
-
     // Create custom object holder
     CustomObjectHolder customObj = new CustomObjectHolder(className);
     currentCustomObject = customObj;
-
     // First pass: Process all fields to make them available in the scope
     for (var member : ctx.class_member()) {
       if (member.field_decl() != null) {
@@ -553,15 +539,13 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
         variables.put(field.name, new ValueHolder(fieldType, true));
       }
     }
-
     // Second pass: Process all methods (without appending to main code)
     StringBuilder tempCodeStorage = new StringBuilder(code.toString());
     code.setLength(0); // Clear main code temporarily
-
     for (var member : ctx.class_member()) {
       if (member.method_decl() != null) {
         MethodHolder method = new MethodHolder();
-        org.example.MarsikParser.Method_declContext methodCtx = member.method_decl();
+        MarsikParser.Method_declContext methodCtx = member.method_decl();
         method.name = methodCtx.NAME().getText();
         method.returnType = methodCtx.type_label() != null ? methodCtx.type_label().getText() : "void";
         method.isInternal = methodCtx.getText().startsWith("internal");
@@ -574,7 +558,6 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
             ));
           }
         }
-
         // Capture method body without appending to main code
         visitBlock(methodCtx.block());
         method.body = code.toString();
@@ -582,7 +565,6 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
         customObj.methods.add(method);
       }
     }
-
     code.append(tempCodeStorage); // Restore main code
 
     customObjects.put(className, customObj);
@@ -593,13 +575,12 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     for (FieldHolder field : customObj.fields) {
       variables.remove(field.name);
     }
-
     currentCustomObject = null;
     return null;
   }
 
   @Override
-  public String visitField_decl(org.example.MarsikParser.Field_declContext ctx) {
+  public String visitField_decl(MarsikParser.Field_declContext ctx) {
     FieldHolder f = new FieldHolder();
     f.type = ctx.type_label().getText();
     f.name = ctx.NAME().getText();
@@ -610,7 +591,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitMethod_decl(org.example.MarsikParser.Method_declContext ctx) {
+  public String visitMethod_decl(MarsikParser.Method_declContext ctx) {
     MethodHolder m = new MethodHolder();
     m.name = ctx.NAME().getText();
     m.isInternal = ctx.getText().startsWith("internal");
@@ -626,15 +607,15 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     m.body = visitBlock(ctx.block());
     currentClass.methods.add(m);
     return null;
-  }
+  }*/
 
   @Override
-  public String visitExpr(org.example.MarsikParser.ExprContext ctx) {
+  public String visitExpr(MarsikParser.ExprContext ctx) {
     return super.visitExpr(ctx);
   }
 
   @Override
-  public String visitOr_expr(org.example.MarsikParser.Or_exprContext ctx) {
+  public String visitOr_expr(MarsikParser.Or_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.and_expr(0)));
     for (int i = 1; i < ctx.and_expr().size(); i++) {
       result.append(" || ").append(visit(ctx.and_expr(i)));
@@ -643,7 +624,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitAnd_expr(org.example.MarsikParser.And_exprContext ctx) {
+  public String visitAnd_expr(MarsikParser.And_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.equality_expr(0)));
     for (int i = 1; i < ctx.equality_expr().size(); i++) {
       result.append(" && ").append(visit(ctx.equality_expr(i)));
@@ -652,7 +633,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitEquality_expr(org.example.MarsikParser.Equality_exprContext ctx) {
+  public String visitEquality_expr(MarsikParser.Equality_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.relational_expr(0)));
     for (int i = 1; i < ctx.relational_expr().size(); i++) {
       result.append(" ").append(ctx.getChild(1).getText()).append(" ")
@@ -662,7 +643,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitRelational_expr(org.example.MarsikParser.Relational_exprContext ctx) {
+  public String visitRelational_expr(MarsikParser.Relational_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.additive_expr(0)));
     for (int i = 1; i < ctx.additive_expr().size(); i++) {
       result.append(" ").append(ctx.getChild(1).getText()).append(" ")
@@ -672,7 +653,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitAdditive_expr(org.example.MarsikParser.Additive_exprContext ctx) {
+  public String visitAdditive_expr(MarsikParser.Additive_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.multiplicative_expr(0)));
     for (int i = 1; i < ctx.multiplicative_expr().size(); i++) {
       result.append(" ").append(ctx.getChild(1).getText()).append(" ")
@@ -682,7 +663,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitMultiplicative_expr(org.example.MarsikParser.Multiplicative_exprContext ctx) {
+  public String visitMultiplicative_expr(MarsikParser.Multiplicative_exprContext ctx) {
     StringBuilder result = new StringBuilder(visit(ctx.unary_expr(0)));
     for (int i = 1; i < ctx.unary_expr().size(); i++) {
       result.append(" ").append(ctx.getChild(1).getText()).append(" ")
@@ -692,7 +673,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitUnary_expr(org.example.MarsikParser.Unary_exprContext ctx) {
+  public String visitUnary_expr(MarsikParser.Unary_exprContext ctx) {
     if (ctx.getChildCount() == 2) {
       return ctx.getChild(0).getText() + " " + visit(ctx.unary_expr());
     } else {
@@ -701,9 +682,9 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitPower_expr(org.example.MarsikParser.Power_exprContext ctx) {
+  public String visitPower_expr(MarsikParser.Power_exprContext ctx) {
     if (ctx.getChildCount() == 3) {
-      imports.add("#include \"math.h\"\n");
+      imports.add("#include <math.h> \n");
       return "pow(" + visit(ctx.atom_expr()) + "," + visit(ctx.unary_expr()) + ")";
     } else {
       return visit(ctx.atom_expr());
@@ -711,7 +692,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitAtom_expr(org.example.MarsikParser.Atom_exprContext ctx) {
+  public String visitAtom_expr(MarsikParser.Atom_exprContext ctx) {
     if (ctx.method_call() != null) {
       return visit(ctx.method_call());
     }
@@ -743,9 +724,7 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
   }
 
   /**
-   * Generates full C code.
-   *
-   * @return full C code
+   * Generates full C/C++ code.
    */
   public String generateC() {
     StringBuilder importsAsString = new StringBuilder();
@@ -754,106 +733,75 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
     }
     return
             """
-            #include <stdio.h>
-            #include <stdlib.h>
+            #include <iostream>
             #include <stdbool.h>
-            #include "string.h"
+            #include "string.hpp"
             %s
            
             int main() {
               %s
+              std::cout << "Press ENTER to exit...";
+              std::cin.get();
               return 0;
             }
             """.formatted(importsAsString, code.toString());
   }
 
-  private static void compile(String srcFilePath) {
-    try {
-      CharStream input = CharStreams.fromFileName(srcFilePath);
-      org.example.MarsikLexer lexer = new org.example.MarsikLexer(input);
-      CommonTokenStream tokens = new CommonTokenStream(lexer);
-      org.example.MarsikParser parser = new org.example.MarsikParser(tokens);
-      ParseTree tree = parser.program();
-      Compiler compiler = new Compiler();
-      compiler.visit(tree);
-      
-      // This is where the output files (.c, .h and soon .exe) will be
-      File outFolder = new File("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
-      if (!outFolder.exists()) {
-        outFolder.mkdirs();
-      }
-      
-      // Only generate output C file if there is actual code (not just class definitions)
-      String generatedCode = compiler.code.toString().trim();
-      if (!generatedCode.isEmpty()) {
-        String outputFileName = new File(srcFilePath).getName().replace(".marsik", ".c");
-        File generatedFile = new File(outFolder, outputFileName);
-        
-        if (generatedFile.exists()) {
-          FileHandler.deleteFile(generatedFile.getAbsolutePath());
-        }
-        FileHandler.createNewFile(generatedFile.getAbsolutePath());
-        FileHandler.writeToFile(generatedFile.getAbsolutePath(), compiler.generateC());
-        
-        System.out.println("Generated: " + generatedFile.getAbsolutePath());
-      } else {
-        System.out.println("No main code generated for: " + srcFilePath + " (only class definitions)");
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  private static void compile(String srcPath, String outDir) throws IOException, InterruptedException {
+    File sourceFile = new File(srcPath);
+    File outputDir = new File(outDir);
+    if (!outputDir.exists()) {
+      outputDir.mkdirs();
     }
-  }
-
-  private static void cleanUp() {
-    org.example.compiler.GeneratedFilesTracker.cleanupGeneratedFiles();
-  }
-
-  /**
-   * Compiles all generated .c files in the out folder using GCC.
-   *
-   * @param outFolder Path to the output folder containing all .c and .h files
-   * @throws IOException If an I/O error occurs
-   * @throws InterruptedException If the process is interrupted
-   */
-  private static void compileWithGCC(String outFolder) throws IOException, InterruptedException {
-    System.out.println("\n=== Compiling with GCC ===\n");
-
-    // Find all .c files in the out folder
-    File folder = new File(outFolder);
-    File[] cFiles = folder.listFiles((dir, name) -> name.endsWith(".c"));
-
-    if (cFiles == null || cFiles.length == 0) {
-      System.out.println("❌ No .c files found in: " + outFolder);
-      return;
+    // ----------------------------
+    // 1. PARSE + C/CPP CODEGEN
+    // ----------------------------
+    CharStream input = CharStreams.fromFileName(sourceFile.getAbsolutePath());
+    MarsikLexer lexer = new MarsikLexer(input);
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    MarsikParser parser = new MarsikParser(tokens);
+    ParseTree tree = parser.program();
+    Compiler compiler = new Compiler();
+    compiler.visit(tree);
+    String cppCode = compiler.generateC();
+    File cppFile = new File(outputDir, "generated.cpp");
+    if (cppFile.exists()) {
+      cppFile.delete();
     }
+    try (FileWriter writer = new FileWriter(cppFile)) {
+      writer.write(cppCode);
+    }
+    // ----------------------------
+    // 2. BUILD CPP COMMAND
+    // ----------------------------
+    File exeFile = new File(outputDir, "app.exe");
 
-    System.out.println("Found " + cFiles.length + " .c files to compile\n");
     List<String> command = new ArrayList<>();
+    command.add("C:\\Program Files\\gcc\\bin\\g++.exe");
+    command.add(cppFile.getAbsolutePath());
 
-    // Path to your gcc file //
-    command.add("C:\\Program Files\\gcc\\bin\\gcc.exe");
-    command.add("-Wall");
-    command.add("-I" + outFolder);
-
-    // Add all .c files
-    for (File cFile : cFiles) {
-      command.add(cFile.getAbsolutePath());
-      System.out.println("  Adding: " + cFile.getName());
+    // add only used runtime sources (C files based on includes in generated code)
+    File runtimeDir = new File(outputDir.getParent(), "runtime");
+    if (runtimeDir.exists()) {
+      Set<String> usedIncludes = extractUsedIncludes(cppFile);
+      addUsedRuntimeSources(runtimeDir, usedIncludes, command);
+      command.add("-I" + runtimeDir.getAbsolutePath());
     }
-
-    String outputPath = outFolder + "\\..\\output.exe";
+    command.add("-std=gnu++17");
+    command.add("-static-libgcc");
+    command.add("-static-libstdc++");
+    command.add("-Wall");
+    command.add("-O2");
     command.add("-o");
-    command.add(outputPath);
-    command.add("-lm");
+    command.add(exeFile.getAbsolutePath());
 
-    System.out.println("\n📦 GCC Command:");
-    System.out.println(String.join(" ", command));
-    System.out.println("\n⏳ Compiling...\n");
-
+    System.out.println("Compiling using Command: \n" + String.join(" ", command));
+    // ----------------------------
+    // 3. RUN CPP COMMAND TO CREATE EXECUTABLE
+    // ----------------------------
     ProcessBuilder pb = new ProcessBuilder(command);
     pb.redirectErrorStream(true);
     Process process = pb.start();
-
     try (BufferedReader reader = new BufferedReader(
             new InputStreamReader(process.getInputStream()))) {
       String line;
@@ -861,29 +809,70 @@ public class Compiler extends org.example.MarsikBaseVisitor<String> {
         System.out.println(line);
       }
     }
-
     int exitCode = process.waitFor();
-    System.out.println();
-
     if (exitCode == 0) {
       System.out.println("✅ Compilation successful!");
-      System.out.println("📁 Executable created at: " + outputPath);
     } else {
-      System.out.println("❌ Compilation failed! (Exit Code: " + exitCode + ")");
+      System.out.println("❌ Compilation failed! Exit code: " + exitCode);
     }
   }
 
+  private static Set<String> extractUsedIncludes(File cppFile) throws IOException {
+    Set<String> includes = new HashSet<>();
+    try (BufferedReader reader = new BufferedReader(new FileReader(cppFile))) {
+      String line;
+      while ((line = reader.readLine()) != null) {
+        if (line.contains("#include")) {
+          int startQuote = line.indexOf('"');
+          int endQuote = line.lastIndexOf('"');
+          if (startQuote >= 0 && endQuote > startQuote) {
+            String include = line.substring(startQuote + 1, endQuote);
+            includes.add(include);
+          }
+        }
+      }
+    }
+    return includes;
+  }
+
+  private static void addUsedRuntimeSources(File runtimeDir, Set<String> usedIncludes, List<String> command) {
+    for (String include : usedIncludes) {
+      String headerName = include.contains("/") ? include.substring(include.lastIndexOf("/") + 1) : include;
+      String sourceFileName = headerName.replace(".hpp", ".cpp").replace(".hpp", ".cpp");
+      
+      File sourceFile = findSourceFile(runtimeDir, sourceFileName);
+      if (sourceFile != null && sourceFile.exists()) {
+        command.add(sourceFile.getAbsolutePath());
+      }
+    }
+  }
+
+  private static File findSourceFile(File dir, String fileName) {
+    if (!dir.isDirectory()) {
+      return null;
+    }
+    File[] files = dir.listFiles();
+    if (files != null) {
+      for (File file : files) {
+        if (file.isFile() && file.getName().equals(fileName)) {
+          return file;
+        } else if (file.isDirectory()) {
+          File found = findSourceFile(file, fileName);
+          if (found != null) {
+            return found;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Compiles all generated .c/c++ files in the out folder using g++;
+   */
   static void main(String[] args) throws IOException, InterruptedException {
 
-    // Edit the path for your setup //
-
-    String outFolder = "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out";
-
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\example.marsik");
-    // compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\person.marsik");
-    compileWithGCC(outFolder);
-
-    // Optional: Uncomment to delete the "out" folder after compilation
-    // cleanUp();
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\exampleFiles\\stringtanga.marsik",
+            "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }

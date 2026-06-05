@@ -1,5 +1,5 @@
-// Generated from C:/Users/dani_/Desktop/MarsikLang2/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
-package org.example;
+// Generated from C:/Marsik/MarsikLang/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
+package org.example.org.example;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**
@@ -173,6 +173,13 @@ public class MarsikBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitPrint_stmt(MarsikParser.Print_stmtContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPrint_arg(MarsikParser.Print_argContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *

@@ -1,0 +1,7 @@
+string str = "banana"
+char c = scan("Enter a letter you want to append to the word banana")
+string strAppended = str.appendChar(c)
+for (int i = 0; i < str.stringLength(); i++) {
+  char chr = str.getCharAt(i)
+  print(chr)
+}

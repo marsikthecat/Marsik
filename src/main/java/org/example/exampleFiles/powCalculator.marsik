@@ -1,0 +1,4 @@
+int base = scan("Enter the base number: ")
+int exp = scan("Enter the exponent: ")
+int result = base ** exp
+print("Result: ", result)

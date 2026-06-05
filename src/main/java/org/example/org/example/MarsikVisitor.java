@@ -1,5 +1,5 @@
-// Generated from C:/Users/dani_/Desktop/MarsikLang2/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
-package org.example;
+// Generated from C:/Marsik/MarsikLang/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
+package org.example.org.example;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
 /**
@@ -148,6 +148,12 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPrint_stmt(MarsikParser.Print_stmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MarsikParser#print_arg}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPrint_arg(MarsikParser.Print_argContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MarsikParser#exit_stmt}.
 	 * @param ctx the parse tree

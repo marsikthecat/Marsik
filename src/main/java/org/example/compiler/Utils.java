@@ -18,7 +18,7 @@ public class Utils {
           "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart",
           "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric", "capitalize",
           "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "inOnlyUpperCase",
-          "isOnlyWhiteSpace", "numberOfWhiteSpaces");
+          "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt");
 
   public static final List<String> arrayMethods = List.of(
           "set", "get", "length", "memorySize", "isEmpty",

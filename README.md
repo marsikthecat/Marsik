@@ -42,6 +42,14 @@ Spoiler: the generated C file(s) looks like salad 🥗 and it does not compile :
 <img src="assets/SourceCodeExample.png" alt="SourceCodeExample" width="781">
 <img src="assets/SourceCodeExample2.png" alt="SourceCodeExample" width="551">
 
+## Current Tasks
+- Support including variables in scan statement, same as in print statement
+- Optional: printLine
+- int cast for babyint in std::cout
+- get the char[] out of the string when using it in std::cout
+- random number generator
+- hash function
+
 ## Who is Marsik?
 
 You can find the answer in the picture below:

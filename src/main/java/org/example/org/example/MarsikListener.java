@@ -1,6 +1,7 @@
 // Generated from C:/Users/dani_/Desktop/MarsikLang2/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
 package org.example;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.example.org.example.MarsikParser;
 
 /**
  * This interface defines a complete listener for a parse tree produced by

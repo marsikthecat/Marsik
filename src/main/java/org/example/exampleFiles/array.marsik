@@ -1,0 +1,11 @@
+int[5] intArray = [1,2,3,4,5]
+print("Here I have an Array: ")
+intArray.printArray( )
+int a = scan("Type in an integer:")
+boolean b = intArray.contains(a)
+if (b) {
+  print("Array contains ", a)
+} else {
+  print("Array does not contain ", a)
+}
+char c = scan("Now type in something before I quit: ")

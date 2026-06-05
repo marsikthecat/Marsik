@@ -52,7 +52,8 @@ for_update: inc_stmt | dec_stmt;
 return_stmt: RETURN expr?;
 
 // build in:
-print_stmt: PRINT '(' (STRING | expr) ')';
+print_stmt: PRINT '(' print_arg (',' print_arg)* ')';
+print_arg: STRING | expr;
 exit_stmt: EXIT ( '(' INTEGER? ')' | '()' );
 scan_stmt: SCAN '(' STRING ')';
 arguments: expr (',' expr)*;
