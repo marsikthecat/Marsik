@@ -1,10 +1,11 @@
 ## TODO
-- Support including variables in scan statement, same as in print statement
-- Optional: printLine
+- Support including variables in scan statement, same as in print statement (DONE)
+- Optional: printLine (DONE)
 - int cast for babyint in std::cout
-- get the char[] out of the string when using it in std::cout
-- random number generator
-- hash function
+- get the char[] out of the string when using it in std::cout (DONE -> printString should be used)
+- random number generator (partly DONE)
+- hash function (partly DONE)
+- Arena allocator (DONE -> is a bump allocator)
 - fix string runtime errors and conversions
 - more runtime functions that are not replicated from the java stuff
 - make more example files with more features, compile them and test them and if they fail, fix it

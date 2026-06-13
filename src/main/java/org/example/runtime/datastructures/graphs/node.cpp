@@ -3,22 +3,15 @@
 #include <stdlib.h>
 #include "node.hpp"
 #include "edge.hpp"
+#include "../../allocator/allocator.hpp"
 
 Node init_node(string identifier) {
     Node node;
     node.identifier = identifier;
     node.numberOfEdges = 0;
     node.edgesCapacity = 5;
-    node.edges = (Edge**)malloc(sizeof(Edge*) * node.edgesCapacity);
-    if (node.edges == NULL) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    node.edges = (Edge**)allocateFromMarsik(sizeof(Edge*) * node.edgesCapacity);
     return node;
-}
-
-void node_free(Node* node) {
-    free(node->edges);
 }
 
 string node_getIdentifier(Node* node) {
@@ -32,11 +25,7 @@ int node_getNumberOfEdges(Node* node) {
 static void node_ensureCapacity(Node* node) {
     if (node->numberOfEdges >= node->edgesCapacity) {
         node->edgesCapacity *= 2;
-        Edge** resized = (Edge**)realloc(node->edges, sizeof(Edge*) * node->edgesCapacity);
-        if (resized == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        Edge** resized = (Edge**)allocateFromMarsik(sizeof(Edge*) * node->edgesCapacity);
         node->edges = resized;
     }
 }
@@ -52,7 +41,7 @@ void node_removeEdge(Node* node, Edge* edge) {
         Edge temp_edge = *node->edges[i];
         string t = temp_edge.identifier;
         string t2 = edge->identifier;
-        if (str_isEqual(&t, &t2)) {
+        if (str_stringEquals(&t, &t2)) {
             index = i;
             break;
         }
@@ -69,7 +58,7 @@ void node_removeEdge(Node* node, Edge* edge) {
 bool node_containsEdge(Node* node, string* edgeIdentifier) {
     for (int i = 0; i < node->numberOfEdges; i++) {
         Edge* edge = node->edges[i];
-        if (str_isEqual(&edge->identifier, edgeIdentifier)) {
+        if (str_stringEquals(&edge->identifier, edgeIdentifier)) {
             return true;
         }
     }

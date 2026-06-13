@@ -4,34 +4,21 @@
 #include "graph.hpp"
 #include "node.hpp"
 #include "edge.hpp"
+#include "../../allocator/allocator.hpp"
+#include "../../error/error.hpp"
 
 Graph init_graph() {
     Graph graph;
     graph.numberOfNodes = 0;
     graph.nodesCapacity = 4;
-    graph.nodes = (Node**)malloc(sizeof(Node*) * graph.nodesCapacity);
-    if (graph.nodes == NULL) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    graph.nodes = (Node**)allocateFromMarsik(sizeof(Node*) * graph.nodesCapacity);
     return graph;
-}
-
-void graph_free(Graph* graph) {
-    for (int i = 0; i < graph->numberOfNodes; i++) {
-        node_free(graph->nodes[i]);
-    }
-    free(graph->nodes);
 }
 
 static void graph_ensureCapacity(Graph* graph) {
     if (graph->numberOfNodes >= graph->nodesCapacity) {
         graph->nodesCapacity *= 2;
-        Node** resized = (Node**)realloc(graph->nodes, sizeof(Node*) * graph->nodesCapacity);
-        if (resized == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        Node** resized = (Node**)allocateFromMarsik(sizeof(Node*) * graph->nodesCapacity);
         graph->nodes = resized;
     }
 }
@@ -42,9 +29,6 @@ void graph_addNode(Graph* graph, Node* node) {
 }
 
 void graph_removeNode(Graph* graph, Node* node) {
-    if (graph == NULL || node == NULL) {
-        return;
-    }
     int index = -1;
     for (int i = 0; i < graph->numberOfNodes; i++) {
         if (graph->nodes[i] == node) {
@@ -53,9 +37,9 @@ void graph_removeNode(Graph* graph, Node* node) {
         }
     }
     if (index < 0) {
+        runtimeWarning("Node to remove not found");
         return;
     }
-    node_free(node);
     for (int i = index; i < graph->numberOfNodes - 1; i++) {
         graph->nodes[i] = graph->nodes[i + 1];
     }
@@ -65,7 +49,7 @@ void graph_removeNode(Graph* graph, Node* node) {
 bool graph_containsNode(Graph* graph, string* identifier) {
     for (int i = 0; i < graph->numberOfNodes; i++) {
         Node* node = graph->nodes[i];
-        if (str_isEqual(&node->identifier, identifier)) {
+        if (str_stringEquals(&node->identifier, identifier)) {
             return true;
         }
     }

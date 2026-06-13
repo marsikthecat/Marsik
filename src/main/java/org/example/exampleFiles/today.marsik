@@ -1,7 +1,7 @@
 print("Current Date: ", DateTime.currentDay())
 int year = DateTime.currentYear()
 if (DateTime.isLeapYear(year)) {
-  print("this year is a leap year: ", year)
+  printLine("this year is a leap year: ", year)
 } else {
-  print("this year is not a leap year: ", year)
+  printLine("this year is not a leap year: ", year)
 }

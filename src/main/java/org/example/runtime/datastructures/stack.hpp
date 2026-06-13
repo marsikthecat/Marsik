@@ -32,7 +32,7 @@ void stack_push(Stack<T>* s, const T& value) {
 template<typename T>
 T stack_peek(Stack<T>* s) {
     if (s->top == -1) {
-        fprintf(stderr, "ERROR: Stack is empty\n");
+        runtimeError("Stack is empty");
         return T{};
     }
     return s->data[s->top];
@@ -41,7 +41,7 @@ T stack_peek(Stack<T>* s) {
 template<typename T>
 T stack_pop(Stack<T>* s) {
     if (s->top == -1) {
-        fprintf(stderr, "ERROR: Stack is empty\n");
+        runtimeError("Stack is empty");
         return T{};
     }
     return s->data[s->top--];

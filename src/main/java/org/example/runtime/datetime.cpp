@@ -2,6 +2,7 @@
 #include <time.h>
 #include "string.hpp"
 #include "datetime.hpp"
+#include "error/error.hpp"
 
 string now() {
     time_t currentTime;
@@ -94,52 +95,52 @@ int getYear(datetime* dt) {
     return dt->year;
 }
 
-int setSeconds(datetime *dt, int seconds) {
+void setSeconds(datetime *dt, int seconds) {
     if (seconds < 0 || seconds > 59) {
-        return -1;
+        runtimeError("Invalid number of seconds");
+        return;
     }
     dt->second = seconds;
-    return 0;
 }
 
-int setMinutes(datetime *dt, int minutes) {
+void setMinutes(datetime *dt, int minutes) {
     if (minutes < 0 || minutes > 59) {
-        return -1;
+        runtimeError("Invalid number of minutes");
+        return;
     }
     dt->minute = minutes;
-    return 0;
 }
 
-int setHours(datetime *dt, int hours) {
+void setHours(datetime *dt, int hours) {
     if (hours < 0 || hours > 23) {
-        return -1;
+        runtimeError("Invalid number of hours");
+        return;
     }
     dt->hour = hours;
-    return 0;
 }
 
-int setDay(datetime *dt, int day) {
+void setDay(datetime *dt, int day) {
     if (day < 1 || day > 31) {
-        return -1;
+        runtimeError("Invalid number of days");
+        return;
     }
     dt->day = day;
-    return 0;
 }
 
-int setMonth(datetime *dt, int month) {
+void setMonth(datetime *dt, int month) {
     if (month < 1 || month > 12) {
-        return -1;
+        runtimeError("Invalid number of months");
+        return;
     }
     dt->month = month;
-    return 0;
 }
 
-int setYear(datetime *dt, int year) {
+void setYear(datetime *dt, int year) {
     if (year < 1900 || year > 2100) {
-        return -1;
+        runtimeError("Years out of range for Marsik the year-cat");
+        return;
     }
     dt->year = year;
-    return 0;
 }
 
 bool isBefore(datetime* dt1, datetime* dt2) {
@@ -194,7 +195,7 @@ bool isAfter(datetime* dt1, datetime* dt2) {
     return false;
 }
 
-int isLeapYear(int year) {
+bool isLeapYear(int year) {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
@@ -209,7 +210,8 @@ string monthName(int month) {
     const char *months[] = {"January", "February", "March", "April", "May", "June",
                             "July", "August", "September", "October", "November", "December"};
     if (month < 1 || month > 12) {
-        return str_init("Invalid month");
+        runtimeError("Invalid month");
+        return str_init("");
     }
     return str_init(months[month - 1]);
 }
@@ -217,7 +219,8 @@ string monthName(int month) {
 string dayName(int day) {
     const char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     if (day < 1 || day > 7) {
-        return str_init("Invalid day");
+        runtimeError("Invalid day");
+        return str_init("");
     }
     return str_init(days[day - 1]);
 }

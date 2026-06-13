@@ -2,14 +2,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include "../allocator/allocator.hpp"
+#include "../error/error.hpp"
 
 Matrix matrix_init(int rows, int columns) {
     Matrix matrix;
     matrix.rows = rows;
     matrix.colums = columns;
-    matrix.data = (int**)malloc(rows * sizeof(int*));
+    matrix.data = (int**)allocateFromMarsik(rows * sizeof(int*));
     for (int i = 0; i < rows; i++) {
-        matrix.data[i] = (int*)malloc(columns * sizeof(int));
+        matrix.data[i] = (int*)allocateFromMarsik(columns * sizeof(int));
         for (int j = 0; j < columns; j++) {
             matrix.data[i][j] = 0;
         }
@@ -19,9 +21,11 @@ Matrix matrix_init(int rows, int columns) {
 
 int matrix_get(Matrix* matrix, int row, int column) {
     if (row < 0 || row > matrix->rows) {
+        runtimeError("Row does not match matrix");
         return -1;
     }
     if (column < 0 || column > matrix->colums ) {
+        runtimeError("Column does not match matrix");
         return -1;
     }
     return matrix->data[row][column];
@@ -29,9 +33,11 @@ int matrix_get(Matrix* matrix, int row, int column) {
 
 void matrix_set(Matrix* matrix, int row, int column, int value) {
     if (row < 0 || row > matrix->rows) {
+        runtimeError("Row does not match matrix");
         return;
     }
     if (column < 0 || column > matrix->colums ) {
+        runtimeError("Column does not match matrix");
         return;
     }
     matrix->data[row][column] = value;
@@ -48,17 +54,18 @@ int matrix_numberOfColumns(Matrix* matrix) {
 Matrix matrix_add(Matrix* matrix, Matrix* other) {
     if (matrix->rows == other->rows && matrix->colums == other->colums) {
         Matrix newMatrix;
-        newMatrix.data = (int**)malloc(matrix->rows * sizeof(int*));
+        newMatrix.data = (int**)allocateFromMarsik(matrix->rows * sizeof(int*));
         newMatrix.rows = matrix->rows;
         newMatrix.colums = matrix->colums;
         for (int i = 0; i < newMatrix.rows; i++) {
-            newMatrix.data[i] = (int*)malloc(matrix->colums * sizeof(int));
+            newMatrix.data[i] = (int*)allocateFromMarsik(matrix->colums * sizeof(int));
             for (int j = 0; j < newMatrix.colums; j++) {
                matrix_set(&newMatrix, i, j, matrix_get(matrix, i, j) + matrix_get(other, i, j));
         }
       }
       return newMatrix;
     } else {
+        runtimeError("Matrix dimensions does not match for addition");
         return matrix_init(matrix->rows, matrix->colums);
     }
 }
@@ -66,11 +73,11 @@ Matrix matrix_add(Matrix* matrix, Matrix* other) {
 Matrix matrix_multiply(Matrix* matrix, Matrix* other) {
     if (matrix->rows == other->colums && matrix->colums == other->rows) {
         Matrix newMatrix;
-        newMatrix.data = (int**)malloc(matrix->rows * sizeof(int*));
+        newMatrix.data = (int**)allocateFromMarsik(matrix->rows * sizeof(int*));
         newMatrix.rows = matrix->rows;
         newMatrix.colums = matrix->colums;
         for (int i = 0; i < newMatrix.rows; i++) {
-            newMatrix.data[i] = (int*)malloc(matrix->colums * sizeof(int));
+            newMatrix.data[i] = (int*)allocateFromMarsik(matrix->colums * sizeof(int));
             for (int j = 0; j < newMatrix.colums; j++) {
                int sum = 0;
                 for (int k = 0; k < matrix->colums; k++) {
@@ -81,6 +88,7 @@ Matrix matrix_multiply(Matrix* matrix, Matrix* other) {
       }
       return newMatrix;
     } else {
+        runtimeError("Matrix dimensions does not match for multiplication");
         return matrix_init(matrix->rows, matrix->colums);
     }
 }
@@ -107,7 +115,7 @@ Matrix matrix_clone(Matrix* matrix) {
 
 double matrix_getDeterminant(Matrix* matrix) {
     if (matrix->colums != matrix->rows) {
-        fprintf(stderr, "ERROR: Matrix must be square\n");
+        runtimeError("Matrix must be square");
         return 0;
     }
     if (matrix->rows == 1) {

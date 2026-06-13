@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "../allocator/allocator.hpp"
+#include "../error/error.hpp"
 
 #define DEFAULT_HASHMAP_CAPACITY 10
 
@@ -64,11 +66,7 @@ static void _hashmap_rehash(HashMap<K, V>* map, int new_capacity) {
     HashMapEntry* old_entries = map->entries;
     int old_capacity = map->capacity;
 
-    map->entries = malloc(new_capacity * sizeof(HashMapEntry));
-    if (map->entries == nullptr) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    map->entries = allocateFromMarsik(new_capacity * sizeof(HashMapEntry));
     for (int i = 0; i < new_capacity; i++) {
         map->entries[i].key = NULL;
         map->entries[i].value = NULL;
@@ -91,11 +89,7 @@ HashMap<K, V> init_hashmap(int capacity) {
     if (capacity < 1) {
         capacity = DEFAULT_HASHMAP_CAPACITY;
     }
-    map.entries = malloc(capacity * sizeof(HashMapEntry));
-    if (map.entries == nullptr) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    map.entries = allocateFromMarsik(capacity * sizeof(HashMapEntry));
     for (int i = 0; i < capacity; i++) {
         map.entries[i].key = NULL;
         map.entries[i].value = NULL;
@@ -108,16 +102,12 @@ HashMap<K, V> init_hashmap(int capacity) {
 
 template<typename K, typename V>
 bool hashmap_put(HashMap<K, V>* map, K key, V value) {
-    if (key == NULL) {
-        fprintf(stderr, "ERROR: Key cannot be NULL\n");
-        return false;
-    }
     if (map->capacity >= map->capacity * 0.75) {
         _hashmap_rehash(map, map->capacity * 2);
     }
     int index = _hashmap_find_slot(map, key);
     if (index == -1) {
-        fprintf(stderr, "ERROR: HashMap is full\n");
+        runtimeError("HashMap is full");
         return false;
     }
     if (!map->entries[index].used) {
@@ -131,10 +121,6 @@ bool hashmap_put(HashMap<K, V>* map, K key, V value) {
 
 template<typename K, typename V>
 V hashmap_get(HashMap<K, V>* map, K key) {
-    if (key == NULL) {
-        fprintf(stderr, "ERROR: Key cannot be NULL\n");
-        return NULL;
-    }
     int index = _hashmap_find_entry(map, key);
     if (index == -1) {
         return NULL;
@@ -144,10 +130,6 @@ V hashmap_get(HashMap<K, V>* map, K key) {
 
 template<typename K, typename V>
 bool hashmap_remove(HashMap<K, V>* map, K key) {
-    if (key == NULL) {
-        fprintf(stderr, "ERROR: Key cannot be NULL\n");
-        return false;
-    }
     int index = _hashmap_find_entry(map, key);
     if (index == -1) {
         return false;
@@ -161,10 +143,6 @@ bool hashmap_remove(HashMap<K, V>* map, K key) {
 
 template<typename K, typename V>
 bool hashmap_containsKey(HashMap<K, V>* map, K key) {
-    if (key == NULL) {
-        fprintf(stderr, "ERROR: Key cannot be NULL\n");
-        return false;
-    }
     return _hashmap_find_entry(map, key) != -1;
 }
 
@@ -191,9 +169,4 @@ void hashmap_clear(HashMap<K, V>* map) {
         map->entries[i].used = false;
     }
     map->size = 0;
-}
-
-template<typename K, typename V>
-void hashmap_free(HashMap<K, V>* map) {
-    free(map->entries);
 }

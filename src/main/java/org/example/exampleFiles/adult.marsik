@@ -1,6 +1,6 @@
 int age = scan("Your age: ")
 if (age > 18) {
-  print("Your are old")
+  printLine("Your are old")
 } else {
-  print("You are too young!")
+  printLine("You are too young!")
 }

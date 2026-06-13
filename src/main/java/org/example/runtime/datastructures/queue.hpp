@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include "../error/error.hpp"
 
 #define DEFAULT_QUEUE_SIZE 100
 
@@ -35,7 +36,7 @@ void queue_enqueue(Queue<T>* q, const T& value) {
 template<typename T>
 T queue_dequeue(Queue<T>* q) {
     if (q->size == 0) {
-        fprintf(stderr, "ERROR: Queue is empty, NULL return instead\n");
+        runtimeError("Queue is empty");
         return T{};
     }
     T value = q->data[q->front];
@@ -47,7 +48,7 @@ T queue_dequeue(Queue<T>* q) {
 template<typename T>
 T queue_peek(Queue<T>* q) {
     if (q->size == 0) {
-        fprintf(stderr, "ERROR: Queue is empty, NULL return instead\n");
+        runtimeError("Queue is empty");
         return T{};
     }
     return q->data[q->front];

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstring>
+#include "allocator/allocator.cpp"
 
 bool isVowel(char c) {
     return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
@@ -13,8 +14,28 @@ string str_init(const char chars[]) {
     string s;
     strncpy(s.data, chars, DEFAULT_STRING_SIZE - 1);
     s.data[DEFAULT_STRING_SIZE - 1] = '\0';
+    s.mallocData = NULL;
     s.length = strlen(s.data);
     return s;
+}
+
+int str_hash(string* str) {
+    char* content = str->data[0] == '\0' ? str->mallocData : str->data;
+    int s = 0x811C9DC5;
+    for (int i = 0; i < str->length; i++) {
+      int c = (int)content[i];
+      s ^= c;
+      s *= 0x01000193;
+      s = (s << 5) | (s >> 27);
+    }
+}
+
+void str_printString(string* str) {
+    if (str->data[0] == '\0') {
+        printf("String (dynamic): %s \n", str->mallocData);
+    } else {
+        printf("String (static): %s \n", str->data);
+    }
 }
 
 bool str_stringEquals(string* str1, string* str2) {
@@ -89,38 +110,69 @@ void str_reverseString(string* str) {
 }
 
 void str_append(string* str, string* other) {
-    if (str->length + other->length >= DEFAULT_STRING_SIZE - 1) {
-        str->mallocData = (char*)malloc((str->length + other->length + 1) * sizeof(char));
-        if (str->mallocData == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
+    char* otherData = other->mallocData == NULL ? other->data : other->mallocData;
+    if (str->mallocData == NULL) {
+        if (str->length + other->length < str->capacity - 1) {
+            strcat(str->data, otherData);
+            str->length += other->length;
+            return;
+        } else {
+            size_t newCapacity = (str->length + other->length + 1) * 2;
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            strcpy(str->mallocData, str->data);
+            strcat(str->mallocData, otherData);
+            str->capacity = newCapacity;
+            str->length += other->length;
+            str->data[0] = '\0';
         }
-        strcpy(str->mallocData, str->data);
-        strcat(str->mallocData, other->data);
-        str->length += other->length;
-        str->data[0] = '\0';
     } else {
-        strcat(str->data, other->data);
-        str->length += other->length;
+        if (str->length + other->length < str->capacity - 1) {
+            strcat(str->mallocData, otherData);
+            str->length += other->length;
+            str->mallocData[str->length] = '\0';
+            return;
+        } else {
+            size_t newCapacity = (str->length + other->length + 1) * 2;
+            char* temp = str->mallocData;
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            strcpy(str->mallocData, temp);
+            strcat(str->mallocData, otherData);
+            str->capacity = newCapacity;
+            str->length += other->length; 
+            str->mallocData[str->length] = '\0';
+        }
     }
 }
 
 void str_appendChar(string* str, char c) {
-    if (str->length < DEFAULT_STRING_SIZE - 1) {
-        str->data[str->length] = c;
-        str->length++;
-        str->data[str->length] = '\0';
-    } else {
-        str->mallocData = (char*)malloc((str->length + 2) * sizeof(char));
-        if (str->mallocData == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
+    if (str->mallocData == NULL) {
+        if (str->length < str->capacity - 1) {
+            str->data[str->length++] = c;
+            str->data[str->length] = '\0';
+            return;
+        } else {
+            size_t newCapacity = str->length * 2;
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            str->capacity = newCapacity;
+            strcpy(str->mallocData, str->data);
+            str->mallocData[str->length++] = c;
+            str->mallocData[str->length] = '\0';
+            str->data[0] = '\0';
         }
-        strcpy(str->mallocData, str->data);
-        str->mallocData[str->length] = c;
-        str->mallocData[str->length + 1] = '\0';
-        str->length++;
-        str->data[0] = '\0';
+    } else {
+        if (str->length < str->capacity - 1) {
+            str->mallocData[str->length++] = c;
+            str->mallocData[str->length] = '\0';
+            return;
+        } else {
+            size_t newCapacity = str->length * 2;
+            char* temp = str->mallocData;
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            str->capacity = newCapacity;   
+            strcpy(str->mallocData, temp);
+            str->mallocData[str->length++] = c;
+            str->mallocData[str->length] = '\0';
+        }
     }
 }
 
@@ -134,11 +186,9 @@ void str_replacePart(string* str, int start, int finish, string* replacement) {
     if (newLen >= DEFAULT_STRING_SIZE) {
         return;
     }
-    // Shift remaining characters
     memmove(str->data + start + replacement->length,
             str->data + finish,
             str->length - finish + 1);
-    // Copy replacement
     memcpy(str->data + start, replacement->data, replacement->length);
     str->length = newLen;
 }
@@ -153,11 +203,7 @@ bool str_isPalindrome(string* str) {
 }
 
 int* str_alphabetIndexes(string* str) {
-    int* indexes = (int*)malloc(26 * sizeof(int));
-    if (indexes == NULL) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    int* indexes = (int*)allocateFromMarsik(26 * sizeof(int));
     for (int i = 0; i < 26; i++) {
         indexes[i] = -1;
     }
@@ -210,7 +256,6 @@ bool str_hasLetters(string* str) {
 }
 
 bool str_hasWhiteSpace(string* str) {
-    int count = 0;
     for (int i = 0; i < str->length; i++) {
       if (isblank(str->data[i])) {
         return true;

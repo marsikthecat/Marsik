@@ -16,7 +16,6 @@ Thread* thread_create(thread_func func, void* arg);
 void thread_start(Thread* thread);
 bool thread_is_running(Thread* thread);
 void thread_end(Thread* thread);
-void thread_free(Thread* thread);
 
 typedef struct {
     pthread_mutex_t mutex;
@@ -25,6 +24,5 @@ typedef struct {
 Mutex* mutex_create(void);
 void mutex_lock(Mutex* mutex);
 void mutex_unlock(Mutex* mutex);
-void mutex_free(Mutex* mutex);
 
 void thread_sleep_ms(int milliseconds);

@@ -14,7 +14,7 @@ char intToChar(int num) {
 
 string intToString(int num) {
     char buffer[32];
-    std::snprintf(buffer, sizeof(buffer), "%d", num);
+    snprintf(buffer, sizeof(buffer), "%d", num);
     return str_init(buffer);
 }
 
@@ -28,20 +28,20 @@ int doubleToInt(double num) {
 
 string doubleToString(double num) {
     char buffer[64];
-    std::snprintf(buffer, sizeof(buffer), "%.6f", num);
+    snprintf(buffer, sizeof(buffer), "%.6f", num);
     return str_init(buffer);
 }
 
 int stringToInt(string str) {
-    return std::atoi(str.data);
+    return atoi(str.data);
 }
 
 bool stringToBoolean(string str) {
-    return std::strcmp(str.data, "true") == 0 || std::strcmp(str.data, "1") == 0;
+    return strcmp(str.data, "true") == 0 || strcmp(str.data, "1") == 0;
 }
 
 double stringToDouble(string str) {
-    return std::atof(str.data);
+    return atof(str.data);
 }
 
 int booleanToInt(bool boolean) {

@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "string.hpp"
+#include "allocator/allocator.hpp"
+#include "error/error.hpp"
 
 bool createFile(string* filepath) {
     FILE* file = fopen(filepath->data, "r");
     if (file != NULL) {
         fclose(file);
+        runtimeError("Unable to create new file");
         return false;
     }
     file = fopen(filepath->data, "w");
@@ -21,6 +24,7 @@ bool createFile(string* filepath) {
 bool writeContentToFile(string* filepath, string* content) {
     FILE* file = fopen(filepath->data, "w");
     if (file == NULL) {
+        runtimeError("Unable to write to file");
         return false;
     }
     fprintf(file, content->data);
@@ -30,6 +34,7 @@ bool writeContentToFile(string* filepath, string* content) {
 bool appendContentToFile(string* filepath, string* content) {
     FILE* file = fopen(filepath->data, "a");
     if (file == NULL) {
+        runtimeError("Unable to append content to file");
         return false;
     }
     fprintf(file, content->data);
@@ -40,6 +45,7 @@ bool appendContentToFile(string* filepath, string* content) {
 bool clearFile(string* filepath) {
     FILE* file = fopen(filepath->data, "w");
     if (file == NULL) {
+        runtimeError("Unable to clear file");
         return false;
     }
     fprintf(file, "");
@@ -59,18 +65,13 @@ bool doesFileExist(string* filepath) {
 string readFile(string* filepath) {
     FILE* file = fopen(filepath->data, "r");
     if (file == NULL) {
+        runtimeError("Unable to read file");
         return str_init("");
     }
-
     char buffer[1024];
     size_t totalRead = 0;
     size_t bufferSize = sizeof(buffer);
-    char* content = (char*)malloc(bufferSize);
-
-    if (content == NULL) {
-        fclose(file);
-        return str_init("");
-    }
+    char* content = (char*)allocateFromMarsik(bufferSize);
 
     content[0] = '\0';
 
@@ -78,22 +79,14 @@ string readFile(string* filepath) {
         size_t len = strlen(buffer);
         if (totalRead + len >= bufferSize) {
             bufferSize *= 2;
-            char* newContent = (char*)realloc(content, bufferSize);
-            if (newContent == NULL) {
-                free(content);
-                fclose(file);
-                return str_init("");
-            }
+            char* newContent = (char*)allocateFromMarsik(bufferSize);
             content = newContent;
         }
         strcat(content, buffer);
         totalRead += len;
     }
-
     fclose(file);
-    string result = str_init(content);
-    free(content);
-    return result;
+    return str_init(content);
 }
 
 bool deleteFile(string* filepath) {

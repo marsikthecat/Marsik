@@ -25,6 +25,52 @@ int roundDown(double num) {
     return floor(num);
 }
 
+double posDifference(double a, double b) {
+  int c = abs(a);
+  int d = abs(b);
+  return c >= d ? c - d : d - c;
+}
+
+double toRadians(double degrees) {
+    return degrees * (PI / 180.0);
+}
+
+double toDegrees(double radians) {
+    return radians * (180.0 / PI);
+}
+
+double sine(double num) {
+  return sin(num);
+}
+
+double cosine(double num) {
+  return cos(num);
+}
+
+double tangent(double num) {
+  return tan(num);
+}
+
+double asine(double num) {
+  return asin(num);
+}
+
+double acosine(double num) {
+  return acos(num);
+}
+
+double atangent(double num) {
+  return atan(num);
+}
+
+double squareRoot(double num) {
+  return sqrt(num);
+}
+
+double cubeRoot(double num) {
+  return cbrt(num);
+}
+
 double ln(double num) {
     return log(num);
 }
@@ -114,6 +160,54 @@ double increasingSum(int start, int end) {
     return (double) (end * (end + 1)) / 2 - (double) ((start - 1) * start) / 2;
 }
 
+int max(int a, int b) {
+  return a > b ? a : b;
+}
+int max(int a, int b, int c) {
+  if (a > b) {
+    return b > c ? a : c;
+  }
+  if (a > c) {
+    return a > b ? a : b;
+  }
+}
+
+double max(double a, double b) {
+  return a > b ? a : b;
+}
+double max(double a, double b, double c) {
+  if (a > b) {
+    return b > c ? a : c;
+  }
+  if (a > c) {
+    return a > b ? a : b;
+  }
+}
+
+int min(int a, int b) {
+  return a < b ? a : b;
+}
+int min(int a, int b, int c) {
+  if (a < b) {
+    return b < c ? a : c;
+  }
+  if (a < c) {
+    return a < b ? a : b;
+  }
+}
+
+double min(double a, double b) {
+  return a < b ? a : b;
+}
+double min(double a, double b, double c) {
+  if (a < b) {
+    return b < c ? a : c;
+  }
+  if (a < c) {
+    return a < b ? a : b;
+  }
+}
+
 double max(double* nums, int length) {
     if (length == 0) {
       return -1;
@@ -174,7 +268,16 @@ double max(double* nums, int length) {
         min = max;
         max = tmp;
     }
-    return min + rand() % (max - min + 1);
+    return (rand() % max) + min;
+  }
+
+  double randomDouble(double min, double max) {
+    if (max < min) {
+        double tmp = min;
+        min = max;
+        max = tmp;
+    }
+    return min + ((double)rand() / RAND_MAX) * (max - min);
   }
 
   double variance(double* nums, int length) {

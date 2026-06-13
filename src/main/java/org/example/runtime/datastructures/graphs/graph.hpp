@@ -11,8 +11,6 @@ typedef struct Graph {
 
 Graph init_graph();
 
-void graph_free(Graph* graph);
-
 void graph_addNode(Graph* graph, Node* node);
 
 void graph_removeNode(Graph* graph, Node* node);

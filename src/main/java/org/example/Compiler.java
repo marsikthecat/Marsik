@@ -53,6 +53,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (ctx.print_stmt() != null) {
       code.append(visit(ctx.print_stmt()));
     }
+    if (ctx.println_stmt() != null) {
+      code.append(visit(ctx.println_stmt()));
+    }
     if (ctx.exit_stmt() != null) {
       code.append(visit(ctx.exit_stmt()));
     }
@@ -225,17 +228,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     if (ctx.scan_stmt() != null) {
       code.append(type).append(" ").append(name).append(";\n");
-      code.append("printf(").append(ctx.scan_stmt().STRING().getText()).append(");\n");
-      String formatSpecifier = switch (type) {
-        case "bool" -> "%i";
-        case "int" -> "%d";
-        case "double" -> "%f";
-        case "char" -> "%c";
-        case "string" -> "%s";
-        case "uint8_t" -> "%u";
-        default -> throw new RuntimeException("Only primitive Types are supported for user input");
-      };
-      code.append("scanf(\"").append(formatSpecifier).append("\", &").append(name).append(");\n");
+      code.append("std::cout");
+      for (MarsikParser.Print_argContext arg : ctx.scan_stmt().print_arg()) {
+        code.append(" << ");
+        if (arg.STRING() != null) {
+          code.append(arg.STRING().getText());
+        } else {
+          code.append(visit(arg.expr()));
+        }
+      }
+      code.append(";\n");
+      code.append("std::cin >>").append(name).append(";\n");
       return "";
     }
     String init = ctx.expr() != null ? visit(ctx.expr()) : ctx.type() != null
@@ -497,6 +500,21 @@ public class Compiler extends MarsikBaseVisitor<String> {
       }
     }
     cpp.append(";\n");
+    return cpp.toString();
+  }
+
+  @Override
+  public String visitPrintln_stmt(MarsikParser.Println_stmtContext ctx) {
+    StringBuilder cpp = new StringBuilder("std::cout");
+    for (MarsikParser.Print_argContext arg : ctx.print_arg()) {
+      cpp.append(" << ");
+      if (arg.STRING() != null) {
+        cpp.append(arg.STRING().getText());
+      } else {
+        cpp.append(visit(arg.expr()));
+      }
+    }
+    cpp.append("<< '\\n';\n");
     return cpp.toString();
   }
 
@@ -811,9 +829,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     int exitCode = process.waitFor();
     if (exitCode == 0) {
-      System.out.println("✅ Compilation successful!");
+      System.out.println("Compilation successful!");
     } else {
-      System.out.println("❌ Compilation failed! Exit code: " + exitCode);
+      System.out.println("Compilation failed! Exit code: " + exitCode);
     }
   }
 

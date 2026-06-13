@@ -14,8 +14,6 @@ struct Node {
 
 Node init_node(string identifier);
 
-void node_free(Node* node);
-
 string node_getIdentifier(Node* node);
 
 int node_getNumberOfEdges(Node* node);

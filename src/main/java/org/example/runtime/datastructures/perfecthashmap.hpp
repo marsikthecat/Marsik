@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "../string.hpp"
 #include "set.hpp"
+#include "../allocator/allocator.hpp"
 
 #define DEFAULT_HASHMAP_CAPACITY 10
 
@@ -25,11 +26,7 @@ template<typename V>
 PerfectHashMap<V> init_perfecthashmap(int numberOfKeys) {
     PerfectHashMap<V> map;
     map.usedIndices = init_set(numberOfKeys);
-    map.entries = malloc(numberOfKeys * sizeof(PerfectHashMapEntry<V>));
-    if (map.entries == NULL) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    map.entries = allocateFromMarsik(numberOfKeys * sizeof(PerfectHashMapEntry<V>));
     map.size = 0;
     map.keysetSize = numberOfKeys;
     return map;
@@ -39,11 +36,7 @@ template<typename V>
 bool perfecthashmap_defineKey(PerfectHashMap<V>* map,const string& key) {
   int index = hash(key);
   if (set_contains(map->usedIndices, index)) {
-    map->entries = realloc(map->entries, (map->keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
-    if (map->entries == NULL) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    map->entries = allocateFromMarsik(map->entries, (map->keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
     map->keysetSize *= 2;
     map->entries[index].key = key;
   } else {
@@ -105,9 +98,4 @@ void perfecthashmap_clear(PerfectHashMap<V>* map) {
         map->entries[i].value = NULL;
     }
     map->size = 0;
-}
-
-template<typename V>
-void perfecthashmap_free(PerfectHashMap<V>* map) {
-    free(map->entries);
 }

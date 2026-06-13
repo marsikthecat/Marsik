@@ -8,11 +8,16 @@ typedef struct {
     char data[DEFAULT_STRING_SIZE];
     char* mallocData;
     int length;
+    int capacity;
 } string;
 
 string str_init(const char str[]);
 
-bool str_isEqual(string* str1, string* str2);
+bool str_stringEquals(string* str1, string* str2);
+
+void str_printString(string* str);
+
+int str_hash(string* str);
 
 int str_stringLength(string* str);
 

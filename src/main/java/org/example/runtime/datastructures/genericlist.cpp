@@ -3,21 +3,16 @@
 #include <stdio.h>
 #include <string.h>
 #include "../string.h"
+#include "../allocator/allocator.hpp"
 
 #define DEFAULT_CAPACITY 10
 
 static void _genericlist_ensure_capacity(GenericList* list) {
     if (list->size >= list->capacity) {
         int new_capacity = list->capacity == 0 ? DEFAULT_CAPACITY : list->capacity * 2;
-        PositionInfo* new_positions = (PositionInfo*)malloc(new_capacity * sizeof(PositionInfo));
-
-        if (new_positions == NULL) {
-          fprintf(stderr, "FATAL ERROR: Out of memory\n");
-          exit(1);
-        }
+        PositionInfo* new_positions = (PositionInfo*)allocateFromMarsik(new_capacity * sizeof(PositionInfo));
         if (list->positions != NULL) {
             memcpy(new_positions, list->positions, list->size * sizeof(PositionInfo));
-            free(list->positions);
         }
         list->positions = new_positions;
         list->capacity = new_capacity;
@@ -27,15 +22,9 @@ static void _genericlist_ensure_capacity(GenericList* list) {
 static void _genericlist_ensure_int_capacity(GenericList* list) {
     if (list->int_size >= list->int_capacity) {
         int new_capacity = list->int_capacity == 0 ? DEFAULT_CAPACITY : list->int_capacity * 2;
-        int* new_array = (int*)malloc(new_capacity * sizeof(int));
-
-        if (new_array == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        int* new_array = (int*)allocateFromMarsik(new_capacity * sizeof(int));
         if (list->int_array != NULL) {
             memcpy(new_array, list->int_array, list->int_size * sizeof(int));
-            free(list->int_array);
         }
         list->int_array = new_array;
         list->int_capacity = new_capacity;
@@ -45,15 +34,9 @@ static void _genericlist_ensure_int_capacity(GenericList* list) {
 static void _genericlist_ensure_float_capacity(GenericList* list) {
     if (list->float_size >= list->float_capacity) {
         int new_capacity = list->float_capacity == 0 ? DEFAULT_CAPACITY : list->float_capacity * 2;
-        float* new_array = (float*)malloc(new_capacity * sizeof(float));
-
-        if (new_array == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        float* new_array = (float*)allocateFromMarsik(new_capacity * sizeof(float));
         if (list->float_array != NULL) {
             memcpy(new_array, list->float_array, list->float_size * sizeof(float));
-            free(list->float_array);
         }
         list->float_array = new_array;
         list->float_capacity = new_capacity;
@@ -63,15 +46,9 @@ static void _genericlist_ensure_float_capacity(GenericList* list) {
 static void _genericlist_ensure_double_capacity(GenericList* list) {
     if (list->double_size >= list->double_capacity) {
         int new_capacity = list->double_capacity == 0 ? DEFAULT_CAPACITY : list->double_capacity * 2;
-        double* new_array = (double*)malloc(new_capacity * sizeof(double));
-
-        if (new_array == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        double* new_array = (double*)allocateFromMarsik(new_capacity * sizeof(double));
         if (list->double_array != NULL) {
             memcpy(new_array, list->double_array, list->double_size * sizeof(double));
-            free(list->double_array);
         }
         list->double_array = new_array;
         list->double_capacity = new_capacity;
@@ -81,15 +58,9 @@ static void _genericlist_ensure_double_capacity(GenericList* list) {
 static void _genericlist_ensure_char_capacity(GenericList* list) {
     if (list->char_size >= list->char_capacity) {
         int new_capacity = list->char_capacity == 0 ? DEFAULT_CAPACITY : list->char_capacity * 2;
-        char* new_array = (char*)malloc(new_capacity * sizeof(char));
-
-        if (new_array == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        char* new_array = (char*)allocateFromMarsik(new_capacity * sizeof(char));
         if (list->char_array != NULL) {
             memcpy(new_array, list->char_array, list->char_size * sizeof(char));
-            free(list->char_array);
         }
         list->char_array = new_array;
         list->char_capacity = new_capacity;
@@ -99,15 +70,9 @@ static void _genericlist_ensure_char_capacity(GenericList* list) {
 static void _genericlist_ensure_bool_capacity(GenericList* list) {
     if (list->bool_size >= list->bool_capacity) {
         int new_capacity = list->bool_capacity == 0 ? DEFAULT_CAPACITY : list->bool_capacity * 2;
-        bool* new_array = (bool*)malloc(new_capacity * sizeof(bool));
-
-        if (new_array == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        bool* new_array = (bool*)allocateFromMarsik(new_capacity * sizeof(bool));
         if (list->bool_array != NULL) {
             memcpy(new_array, list->bool_array, list->bool_size * sizeof(bool));
-            free(list->bool_array);
         }
         list->bool_array = new_array;
         list->bool_capacity = new_capacity;
@@ -117,15 +82,9 @@ static void _genericlist_ensure_bool_capacity(GenericList* list) {
 static void _genericlist_ensure_string_capacity(GenericList* list) {
     if (list->string_size >= list->string_capacity) {
         int new_capacity = list->string_capacity == 0 ? DEFAULT_CAPACITY : list->string_capacity * 2;
-        string* new_array = (string*)malloc(new_capacity * sizeof(string));
-
-        if (new_array == NULL) {
-            fprintf(stderr, "FATAL ERROR: Out of memory\n");
-            exit(1);
-        }
+        string* new_array = (string*)allocateFromMarsik(new_capacity * sizeof(string));
         if (list->string_array != NULL) {
             memcpy(new_array, list->string_array, list->string_size * sizeof(string));
-            free(list->string_array);
         }
         list->string_array = new_array;
         list->string_capacity = new_capacity;
@@ -368,14 +327,4 @@ bool genericlist_allSameType(GenericList* list) {
         }
     }
     return true;
-}
-
-void genericlist_free(GenericList* list) {
-    free(list->int_array);
-    free(list->float_array);
-    free(list->double_array);
-    free(list->char_array);
-    free(list->bool_array);
-    free(list->string_array);
-    free(list->positions);
 }

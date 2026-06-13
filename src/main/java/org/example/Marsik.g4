@@ -11,7 +11,7 @@ type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY_
 // statements
 stmt: (var_decl | const_decl | assign_stmt | method_call | if_stmt | while_stmt | return_stmt
     | funcdef | for_stmt | array_decl | inc_stmt | dec_stmt
-    | object_stmt | print_stmt | exit_stmt | expr) NEWLINE*;
+    | object_stmt | print_stmt | println_stmt | exit_stmt | expr) NEWLINE*;
 
 // For Strings and Objects: Calling methods
 method_call: NAME '.' NAME ('(' arguments? ')' | '()');
@@ -53,9 +53,10 @@ return_stmt: RETURN expr?;
 
 // build in:
 print_stmt: PRINT '(' print_arg (',' print_arg)* ')';
+println_stmt: PRINTLN '(' print_arg (',' print_arg)* ')';
+scan_stmt: SCAN '(' print_arg (',' print_arg)* ')';
 print_arg: STRING | expr;
 exit_stmt: EXIT ( '(' INTEGER? ')' | '()' );
-scan_stmt: SCAN '(' STRING ')';
 arguments: expr (',' expr)*;
 
 // Arithmetic stuff and operations

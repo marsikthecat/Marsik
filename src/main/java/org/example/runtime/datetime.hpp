@@ -46,19 +46,19 @@ int getMonth(datetime* dt);
 
 int getYear(datetime* dt);
 
-int setSeconds(datetime *dt, int seconds);
+void setSeconds(datetime *dt, int seconds);
 
-int setMinutes(datetime *dt, int minutes);
+void setMinutes(datetime *dt, int minutes);
 
-int setHours(datetime *dt, int hours);
+void setHours(datetime *dt, int hours);
 
-int setDay(datetime *dt, int day);
+void setDay(datetime *dt, int day);
 
-int setMonth(datetime *dt, int month);
+void setMonth(datetime *dt, int month);
 
-int setYear(datetime *dt, int year);
+void setYear(datetime *dt, int year);
 
-int isLeapYear(int year);
+bool isLeapYear(int year);
 
 bool isBefore(datetime* dt1, datetime* dt2);
 

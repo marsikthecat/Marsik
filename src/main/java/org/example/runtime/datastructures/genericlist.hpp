@@ -68,5 +68,3 @@ bool genericlist_allNumeric(GenericList* list);
 bool genericlist_allStrings(GenericList* list);
 
 bool genericlist_allSameType(GenericList* list);
-
-void genericlist_free(GenericList* list);

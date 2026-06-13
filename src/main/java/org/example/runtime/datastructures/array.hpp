@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <string>
 #include "../string.hpp"
+#include "../error/error.hpp"
 
 #define DEFAULT_ARRAY_CAPACITY 10
 
@@ -20,6 +21,7 @@ struct Array {
 template<typename T>
 void array_removeAt(Array<T>* arr, int index) {
     if (index < 0 || index >= arr->length) {
+        runtimeError("Index out of bounds");
         return;
     }
     arr->data[index] = NULL;
@@ -28,6 +30,7 @@ void array_removeAt(Array<T>* arr, int index) {
 template<typename T>
 void array_set(Array<T>* arr, int index, const T& element) {
     if (index < 0 || index >= arr->length) {
+        runtimeError("Index out of bounds");
         return;
     }
     arr->data[index] = element;
@@ -36,6 +39,7 @@ void array_set(Array<T>* arr, int index, const T& element) {
 template<typename T>
 T array_get(Array<T>* arr, int index) {
     if (index < 0 || index >= arr->length) {
+        runtimeError("Index out of bounds");
         return T();
     }
     return arr->data[index];
@@ -74,6 +78,7 @@ int array_indexOf(const Array<T>* arr, const T& element) {
 template<typename T>
 T array_getRandomElement(const Array<T>* arr) {
     if (arr->length == 0) {
+        runtimeError("Array is empty");
         return T();
     }
     static int seeded = 0;
@@ -88,6 +93,7 @@ T array_getRandomElement(const Array<T>* arr) {
 template<typename T>
 Array<T> array_slice(const Array<T>* arr, int start, int end) {
     if (start < 0 || end > arr->length || start >= end) {
+        runtimeError("Invalid arguments for array slice");
         return Array<T>{nullptr, 0, 0};
     }
     int newLength = end - start;

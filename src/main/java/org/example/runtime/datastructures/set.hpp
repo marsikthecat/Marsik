@@ -2,6 +2,8 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include "../allocator/allocator.hpp"
+#include "../error/error.hpp"
 
 #define DEFAULT_SET_CAPACITY 10
 
@@ -18,11 +20,7 @@ Set<T> init_set(int capacity) {
     if (capacity < 0) {
         capacity = DEFAULT_SET_CAPACITY;
     }
-    set.data = malloc(capacity * sizeof(T));
-    if (set.data == NULL) {
-        fprintf(stderr, "FATAL ERROR: Out of memory\n");
-        exit(1);
-    }
+    set.data = allocateFromMarsik(capacity * sizeof(T));
     set.size = 0;
     set.capacity = capacity;
     return set;
@@ -34,7 +32,7 @@ bool set_add(Set<T>* set, const T& value) {
         return false;
     }
     if (set->size >= set->capacity) {
-        fprintf(stderr, "ERROR: Set is full\n");
+        runtimeError("Set is full");
         return false;
     }
     _set_ensure_capacity(set);
@@ -84,9 +82,4 @@ int set_capacity(Set<T>* set) {
 template<typename T>
 void set_clear(Set<T>* set) {
     set->size = 0;
-}
-
-template<typename T>
-void set_free(Set<T>* set) {
-    free(set->data);
 }
