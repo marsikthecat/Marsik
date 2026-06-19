@@ -5,8 +5,8 @@
 #define RED     "\033[31m"
 #define DARKRED  "\033[91m"
 
-void runtimeWarning(char* message);
+void runtimeWarning(const char* message);
 
-void runtimeError(char* message);
+void runtimeError(const char* message);
 
-void runtimeFatalError(char* message, bool isAllocError);
+void runtimeFatalError(const char* message, bool isAllocError);

@@ -18,7 +18,8 @@ public class Utils {
           "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart",
           "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric", "capitalize",
           "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "inOnlyUpperCase",
-          "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt");
+          "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt",
+          "printString");
 
   public static final List<String> arrayMethods = List.of(
           "set", "get", "length", "memorySize", "isEmpty",
@@ -40,7 +41,7 @@ public class Utils {
           ),
           "FileHandler", List.of(
                   "writeContentToFile", "appendContentToFile", "clearFile",
-                  "doesFileExist", "deleteFile", "readFile"
+                  "doesFileExist", "deleteFile", "readFile", "createFile"
           ),
           "Math", List.of(
                   "roundBasic", "roundUp", "roundDown", "ln", "logarithm", "ePowX",
@@ -51,6 +52,10 @@ public class Utils {
           ),
           "Crypto", List.of(
                   "encrypt", "decrypt", "generateKey"
+          ),
+          "Caster", List.of("intToDouble", "intToChar", "intToString",
+                  "booleanToString", "doubleToInt", "doubleToString", "stringToInt", "stringToBoolean",
+                  "stringToDouble", "booleanToInt", "intToBoolean"
           )
   );
 }

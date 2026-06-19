@@ -189,6 +189,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       case "FileHandler" -> imports.add("#include \"../runtime/filehandler.hpp\"\n");
       case "DateTime" -> imports.add("#include \"../runtime/datetime.hpp\"\n");
       case "Crypto" -> imports.add("#include \"../runtime/crypto.hpp\"\n");
+      case "Caster" -> imports.add("#include \"../runtime/caster.hpp\"\n");
       default -> throw new RuntimeException("Unknown builtin target: " + target);
     }
 
@@ -204,7 +205,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private String renderBuiltInArgument(String target, MarsikParser.ExprContext expr) {
     String rendered = visit(expr);
     String rawText = expr.getText();
-    if ((target.equals("FileHandler") || target.equals("Crypto") || target.equals("DateTime"))
+    if ((target.equals("FileHandler") || target.equals("Crypto") || target.equals("DateTime")
+            || target.equals("Caster"))
             && variables.containsKey(rawText)
             && "string".equals(variables.get(rawText).type)) {
       return "&" + rendered;
@@ -854,14 +856,28 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   private static void addUsedRuntimeSources(File runtimeDir, Set<String> usedIncludes, List<String> command) {
+    Set<String> addedFiles = new HashSet<>();
+    
+    // Always include core runtime files
+    addCoreRuntimeFile(runtimeDir, "error.cpp", command, addedFiles);
+    addCoreRuntimeFile(runtimeDir, "allocator.cpp", command, addedFiles);
+    
+    // Add sources for all included headers
     for (String include : usedIncludes) {
       String headerName = include.contains("/") ? include.substring(include.lastIndexOf("/") + 1) : include;
-      String sourceFileName = headerName.replace(".hpp", ".cpp").replace(".hpp", ".cpp");
+      String sourceFileName = headerName.replace(".hpp", ".cpp").replace(".h", ".c");
       
       File sourceFile = findSourceFile(runtimeDir, sourceFileName);
-      if (sourceFile != null && sourceFile.exists()) {
+      if (sourceFile != null && sourceFile.exists() && addedFiles.add(sourceFile.getAbsolutePath())) {
         command.add(sourceFile.getAbsolutePath());
       }
+    }
+  }
+
+  private static void addCoreRuntimeFile(File runtimeDir, String fileName, List<String> command, Set<String> addedFiles) {
+    File sourceFile = findSourceFile(runtimeDir, fileName);
+    if (sourceFile != null && sourceFile.exists() && addedFiles.add(sourceFile.getAbsolutePath())) {
+      command.add(sourceFile.getAbsolutePath());
     }
   }
 
@@ -890,7 +906,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    */
   static void main(String[] args) throws IOException, InterruptedException {
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\exampleFiles\\stringtanga.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\exampleFiles\\tests\\testFileHandler.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }

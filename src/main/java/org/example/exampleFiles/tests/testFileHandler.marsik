@@ -1,0 +1,29 @@
+string newFileName = "file.txt"
+string newFileContent = "Hello World!"
+FileHandler.createFile(newFileName)
+FileHandler.appendContentToFile(newFileName, newFileContent)
+printLine("Wrote content to file: ")
+newFileName.printString()
+
+if (FileHandler.doesFileExist(newFileName)) {
+  printLine("File ")
+  newFileName.printString()
+  printLine("exists")
+}
+string fileContent = FileHandler.readFile(newFileName)
+printLine("Content read from file: ")
+fileContent.printString()
+
+FileHandler.clearFile(newFileName)
+
+string emptyFileContent = FileHandler.readFile(newFileName)
+
+printLine("Content after clearing: ")
+emptyFileContent.printString()
+
+string a = newFileContent
+FileHandler.writeContentToFile(newFileName, a)
+
+FileHandler.deleteFile(newFileName)
+
+

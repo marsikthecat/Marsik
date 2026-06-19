@@ -1,7 +1,6 @@
-#pragma once
-
 #include <stdio.h>
 #include <stdlib.h>
+#include "allocator.hpp"
 #include "../error/error.hpp"
 
 #define MAX_MARSIK_HEAP_SIZE (10 * 1024 * 1024)

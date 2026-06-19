@@ -1,0 +1,18 @@
+int year = DateTime.currentYear()
+int month = DateTime.currentMonth()
+int day = DateTime.currentDay()
+int hour = DateTime.currentHour()
+int minute = DateTime.currentMinute()
+int second = DateTime.currentSeconds()
+
+printLine("Current year: ", year)
+printLine("Current month: ", month)
+printLine("Current day: ", day)
+printLine("Current hour: ", hour)
+printLine("Current minute: ", minute)
+printLine("Current second: ", second)
+
+string dn = DateTime.monthName(month)
+
+print("Current Month: ")
+dn.printString()

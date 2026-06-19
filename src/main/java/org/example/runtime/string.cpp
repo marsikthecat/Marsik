@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstring>
-#include "allocator/allocator.cpp"
+#include "allocator/allocator.hpp"
 
 bool isVowel(char c) {
     return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
@@ -28,13 +28,14 @@ int str_hash(string* str) {
       s *= 0x01000193;
       s = (s << 5) | (s >> 27);
     }
+    return s;
 }
 
 void str_printString(string* str) {
     if (str->data[0] == '\0') {
-        printf("String (dynamic): %s \n", str->mallocData);
+        printf("%s\n", str->mallocData);
     } else {
-        printf("String (static): %s \n", str->data);
+        printf("%s\n", str->data);
     }
 }
 
