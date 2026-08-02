@@ -13,13 +13,13 @@ public class Utils {
           "SplayArray", "CircularBuffer", "GapBuffer");
 
   public static final List<String> stringMethods = List.of(
-          "setCharAt", "allIndexOf", "firstIndexOf", "lastIndexOf",
-          "count", "reverse", "appendChar", "capitalize", "isEqual",
-          "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart",
+          "setCharAt", "allIndexOf", "firstIndexOf", "lastIndexOf", "stringEquals",
+          "count", "reverseString", "appendChar", "capitalize", "isEqual", "stringIndexOf",
+          "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart", "hasWhiteSpace",
           "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric", "capitalize",
           "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "inOnlyUpperCase",
           "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt",
-          "printString");
+          "printString", "append", "toUpperCase", "toLowerCase", "trim", "countOccurrence");
 
   public static final List<String> arrayMethods = List.of(
           "set", "get", "length", "memorySize", "isEmpty",
@@ -47,8 +47,9 @@ public class Utils {
                   "roundBasic", "roundUp", "roundDown", "ln", "logarithm", "ePowX",
                   "gcd", "scd", "modInverse", "factorial", "fibonacci", "hypotenuse", "hypotenuse3D",
                   "isEven", "isPrime", "areCongruentModuloM", "calculateCapital", "increasingSum",
-                  "max", "min", "sum", "avg", "median", "randomInt", "variance", "standardDeviation",
-                  "binomialCoefficient"
+                  "max", "min", "sum", "avg", "median", "randomInt", "randomDouble", "variance", "standardDeviation",
+                  "binomialCoefficient", "squareRoot", "cubeRoot", "toRadians", "toDegrees", "posDifference",
+                  "sine", "cosine", "tangent", "asine", "aconsine", "atangent", "pi", "e", "phi"
           ),
           "Crypto", List.of(
                   "encrypt", "decrypt", "generateKey"
@@ -58,4 +59,9 @@ public class Utils {
                   "stringToDouble", "booleanToInt", "intToBoolean"
           )
   );
+
+  static void main() {
+    LibraryDispatch l = new LibraryDispatch();
+    l.checkLibraryAndMethodExistence("Math", "phi");
+  }
 }

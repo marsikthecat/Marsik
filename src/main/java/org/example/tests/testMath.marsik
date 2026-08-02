@@ -1,0 +1,30 @@
+/*
+  Error: Multiple definition of "compare"
+*/
+
+int a = 7
+double aa = Caster.intToDouble(a)
+printLine(Math.squareRoot(aa))
+
+int b = 5
+int c = 8
+int d = 3
+
+double e = 3.4
+
+printLine(Math.max(b, c, d))
+printLine(Math.isEven(b))
+printLine(Math.min(b, c, d))
+printLine(Math.isPrime(b))
+printLine(Math.posDifference(b, c))
+printLine(Math.roundUp(e))
+printLine(Math.roundDown(e))
+printLine(Math.cubeRoot(125))
+printLine(Math.factorial(b))
+
+double[6] dArray = [4.3, 6.5, 3.3, 22.54, 11249.4, 6.0]
+
+printLine("Average of Array: ", Math.avg(dArray))
+printLine("Sum of Array: ", Math.sum(dArray))
+printLine("Biggest Element: ", Math.max(dArray))
+printLine("Smallest Element: ", Math.min(dArray))

@@ -12,10 +12,18 @@ bool isVowel(char c) {
 
 string str_init(const char chars[]) {
     string s;
-    strncpy(s.data, chars, DEFAULT_STRING_SIZE - 1);
-    s.data[DEFAULT_STRING_SIZE - 1] = '\0';
-    s.mallocData = NULL;
-    s.length = strlen(s.data);
+    int initLength = strlen(chars);
+    if (initLength <= DEFAULT_STRING_SIZE) {
+      strncpy(s.data, chars, DEFAULT_STRING_SIZE - 1);
+      s.data[DEFAULT_STRING_SIZE - 1] = '\0';
+      s.mallocData = NULL;
+    } else {
+      s.mallocData = (char*)allocateFromMarsik(initLength);
+      strncpy(s.mallocData, chars, initLength - 1);
+      s.mallocData[initLength - 1] = '\0';
+      s.data[0] = '\0';
+    }
+    s.length = initLength;
     return s;
 }
 
@@ -39,11 +47,11 @@ void str_printString(string* str) {
     }
 }
 
-bool str_stringEquals(string* str1, string* str2) {
-    if (str1->length != str2->length) {
+bool str_stringEquals(string* str1, string str2) {
+    if (str1->length != str2.length) {
         return false;
     }
-    return strcmp(str1->data, str2->data) == 0;
+    return strcmp(str1->data, str2.data) == 0;
 }
 
 int str_stringLength(string* str) {
@@ -110,36 +118,36 @@ void str_reverseString(string* str) {
     }
 }
 
-void str_append(string* str, string* other) {
-    char* otherData = other->mallocData == NULL ? other->data : other->mallocData;
+void str_append(string* str, string other) {
+    char* otherData = other.mallocData == NULL ? other.data : other.mallocData;
     if (str->mallocData == NULL) {
-        if (str->length + other->length < str->capacity - 1) {
+        if (str->length + other.length < str->capacity - 1) {
             strcat(str->data, otherData);
-            str->length += other->length;
+            str->length += other.length;
             return;
         } else {
-            size_t newCapacity = (str->length + other->length + 1) * 2;
-            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            size_t newCapacity = (str->length + other.length + 1) * 2;
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);
             strcpy(str->mallocData, str->data);
             strcat(str->mallocData, otherData);
             str->capacity = newCapacity;
-            str->length += other->length;
+            str->length += other.length;
             str->data[0] = '\0';
         }
     } else {
-        if (str->length + other->length < str->capacity - 1) {
+        if (str->length + other.length < str->capacity - 1) {
             strcat(str->mallocData, otherData);
-            str->length += other->length;
+            str->length += other.length;
             str->mallocData[str->length] = '\0';
             return;
         } else {
-            size_t newCapacity = (str->length + other->length + 1) * 2;
+            size_t newCapacity = (str->length + other.length + 1) * 2;
             char* temp = str->mallocData;
-            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);
             strcpy(str->mallocData, temp);
             strcat(str->mallocData, otherData);
             str->capacity = newCapacity;
-            str->length += other->length; 
+            str->length += other.length;
             str->mallocData[str->length] = '\0';
         }
     }
@@ -153,7 +161,7 @@ void str_appendChar(string* str, char c) {
             return;
         } else {
             size_t newCapacity = str->length * 2;
-            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);
             str->capacity = newCapacity;
             strcpy(str->mallocData, str->data);
             str->mallocData[str->length++] = c;
@@ -168,8 +176,8 @@ void str_appendChar(string* str, char c) {
         } else {
             size_t newCapacity = str->length * 2;
             char* temp = str->mallocData;
-            str->mallocData = (char*)allocateFromMarsik(newCapacity);    
-            str->capacity = newCapacity;   
+            str->mallocData = (char*)allocateFromMarsik(newCapacity);
+            str->capacity = newCapacity;
             strcpy(str->mallocData, temp);
             str->mallocData[str->length++] = c;
             str->mallocData[str->length] = '\0';
@@ -177,20 +185,20 @@ void str_appendChar(string* str, char c) {
     }
 }
 
-void str_replacePart(string* str, int start, int finish, string* replacement) {
+void str_replacePart(string* str, int start, int finish, string replacement) {
     if (start < 0 || finish > str->length || start >= finish) {
         return;
     }
     int replaceLen = finish - start;
-    int newLen = str->length - replaceLen + replacement->length;
+    int newLen = str->length - replaceLen + replacement.length;
 
     if (newLen >= DEFAULT_STRING_SIZE) {
         return;
     }
-    memmove(str->data + start + replacement->length,
+    memmove(str->data + start + replacement.length,
             str->data + finish,
             str->length - finish + 1);
-    memcpy(str->data + start, replacement->data, replacement->length);
+    memcpy(str->data + start, replacement.data, replacement.length);
     str->length = newLen;
 }
 

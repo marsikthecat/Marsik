@@ -1,0 +1,11 @@
+/*
+  Errors in implementation, rename print method to printList
+*/
+
+List<int> list1 = new List(10)
+list1.add(2)
+list1.add(3)
+list1.add(6)
+list1.add(6)
+list1.removeDuplicateOf(6)
+list1.printList()

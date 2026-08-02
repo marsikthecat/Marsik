@@ -1,3 +1,7 @@
+/*
+  Conflict string <-> string*
+*/
+
 string newFileName = "file.txt"
 string newFileContent = "Hello World!"
 FileHandler.createFile(newFileName)
@@ -24,6 +28,4 @@ emptyFileContent.printString()
 string a = newFileContent
 FileHandler.writeContentToFile(newFileName, a)
 
-FileHandler.deleteFile(newFileName)
-
-
+FileHandler.deleteFile("file.txt")

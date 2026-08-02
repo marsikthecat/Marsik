@@ -1,10 +1,19 @@
-package org.example.internals.datastructures;
+package org.example.compiler;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
+ * This class will be used here for mapping each build-in Library, with the corresponding methods
+ * For example:
+ * MarsikPerfectHashMap libaries = new MarsikPerfectHashMap();
+ * libaries.defineKeys("Caster", "Math", "FileHandler"); and so on
+ * It might also get used as a perfect hashSet that checks whether a key (methodname) exists for a giben libary.
+ * So it might get a hashmap and each key gets maped to a hashset, all without collisions (hopefully I manage to do it):
+
  * == SuperHashMap vs. java Hashmap ==
  * (Note: This benchmark was done before this project without Runtime extra stuff!)
  * Setup: Java destroys me apocalyptically (cuz I need to check if hashes for keys are unique)
@@ -57,6 +66,16 @@ public class MarsikPerfectHashMap<E> {
     values = (E[]) new Object[initialSize];
   }
 
+  @SuppressWarnings("unchecked")
+  public MarsikPerfectHashMap(String... keys) {
+    initialSize = keys.length;
+    values = (E[]) new Object[initialSize];
+    defineKeys(keys);
+    for (String key : keys) {
+      values[hash(key)] = (E) key;
+    }
+  }
+
   /**
    * Defines the set of keys that this map will use.
    * The method attempts to create a perfect hash by adjusting the internal array size.
@@ -68,10 +87,10 @@ public class MarsikPerfectHashMap<E> {
   public void defineKeys(String... keys) {
     boolean mapperResult;
     do {
-      mapperResult = hash(keys);
+      System.out.print("Trying growFactor " + growFactor);
+      mapperResult = hashAll(keys);
       growFactor++;
       values = (E[]) new Object[initialSize * growFactor];
-      System.out.print("Trying growFactor " + growFactor);
       if (growFactor > 64) {
         throw new UnsupportedOperationException("Cannot make perfect hashing out of these keys");
       } else {
@@ -130,8 +149,8 @@ public class MarsikPerfectHashMap<E> {
    * @return a set of keys
    */
   @SuppressWarnings("unchecked")
-  public MarsikSet<E> keySet() {
-    MarsikSet<E> set = new MarsikSet<>();
+  public Set<E> keySet() {
+    Set<E> set = new HashSet<>();
     for (Object key : keySet) {
       set.add((E) key);
     }
@@ -139,15 +158,13 @@ public class MarsikPerfectHashMap<E> {
   }
 
   /**
-   * Returns all values in a MarsikList.
+   * Returns all values in a List.
    *
    * @return a list of values
    */
-  public MarsikList<E> values() {
-    MarsikList<E> list = new MarsikList<>();
-    for (E value : values) {
-      list.add(value);
-    }
+  public ArrayList<E> values() {
+    ArrayList<E> list = new ArrayList<>();
+    Collections.addAll(list, values);
     return list;
   }
 
@@ -157,11 +174,11 @@ public class MarsikPerfectHashMap<E> {
    * @param keys the keys to check
    * @return true if perfect hashing is possible, false otherwise
    */
-  public boolean hash(String... keys) {
+  public boolean hashAll(String... keys) {
     HashSet<Integer> integerHashSet = new HashSet<>();
     for (String key : keys) {
-      int hash = key.hashCode() ^ (key.hashCode() >>> 16);
-      integerHashSet.add(hash % values.length);
+      int hash = Math.abs(key.hashCode() ^ (key.hashCode() >>> 16)) % values.length;
+      integerHashSet.add(hash);
     }
     return integerHashSet.size() == keys.length;
   }
@@ -173,7 +190,6 @@ public class MarsikPerfectHashMap<E> {
    * @return the index in the internal array
    */
   public int hash(String key) {
-    int h = key.hashCode() ^ (key.hashCode() >>> 16);
-    return Math.floorMod(h, values.length);
+    return Math.abs(key.hashCode() ^ (key.hashCode() >>> 16)) % values.length;
   }
 }

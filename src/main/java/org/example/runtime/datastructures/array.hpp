@@ -215,5 +215,5 @@ void array_shuffle(Array<T>* arr) {
 
 template<typename T>
 bool arr_isNumericArray(const Array<T>* arr) {
-    return arr->type == "int" ||  arr->type == "double";
+    return arr->type.data == "int" ||  arr->type.data == "double";
 }

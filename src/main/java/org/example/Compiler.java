@@ -91,10 +91,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
         // Handle built-in objects
         if (ctx.type_label() != null && !objectType.equals("BitSet") && !objectType.equals("GenericList")) {
           imports.add("#include \"../runtime/datastructures/" + objectType.toLowerCase() + ".hpp\"\n");
-        }  else if (objectType.equals("Alert")) {
-          imports.add("#include \"../runtime/dialogs/alert.h\"\n");
-        }  else if (objectType.equals("Dialog")) {
-          imports.add("#include \"../runtime/dialogs/dialog.h\"\n");
         } else {
           throw new RuntimeException("Unknown Type of Elements detected");
         }
@@ -192,7 +188,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
       case "Caster" -> imports.add("#include \"../runtime/caster.hpp\"\n");
       default -> throw new RuntimeException("Unknown builtin target: " + target);
     }
-
     List<String> args = new ArrayList<>();
     if (ctx.arguments() != null) {
       for (var e : ctx.arguments().expr()) {
@@ -206,7 +201,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String rendered = visit(expr);
     String rawText = expr.getText();
     if ((target.equals("FileHandler") || target.equals("Crypto") || target.equals("DateTime")
-            || target.equals("Caster"))
+            || target.equals("Caster") || target.equals("Math"))
             && variables.containsKey(rawText)
             && "string".equals(variables.get(rawText).type)) {
       return "&" + rendered;
@@ -319,18 +314,11 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (constants.containsKey(name)) {
       throw new RuntimeException("Cannot assign to const: " + name);
     }
-
     // Check if variable exists
     if (!variables.containsKey(name)) {
       throw new RuntimeException("Variable " + name + " does not exist");
     }
-
     String type = variables.get(name).getType();
-    // Check if value matches literal
-    // Example:
-    // int a
-    // a = 5 <- Correct
-    // a = "5" <- RuntimeException, because it's string and not int
     if (ctx.type() != null) {
       if (type.equals("string") && ctx.type().STRING() == null) {
         throw new RuntimeException("Value " + ctx.type().getText() + "does not match String");
@@ -729,7 +717,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       return ctx.DOUBLE().getText();
     }
     if (ctx.STRING() != null) {
-      return ctx.STRING().getText();
+      return "str_init(" +  ctx.STRING().getText() + ")";
     }
     if (ctx.CHAR() != null) {
       return ctx.CHAR().getText();
@@ -906,7 +894,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    */
   static void main(String[] args) throws IOException, InterruptedException {
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\exampleFiles\\tests\\testFileHandler.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\exampleFiles\\tests\\datastructureTests\\testList.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }

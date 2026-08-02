@@ -1,6 +1,0 @@
-int age = scan("Your age: ")
-if (age > 18) {
-  printLine("Your are old")
-} else {
-  printLine("You are too young!")
-}

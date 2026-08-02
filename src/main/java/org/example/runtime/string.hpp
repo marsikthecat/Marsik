@@ -13,7 +13,7 @@ typedef struct {
 
 string str_init(const char str[]);
 
-bool str_stringEquals(string* str1, string* str2);
+bool str_stringEquals(string* str1, string str2);
 
 void str_printString(string* str);
 
@@ -35,11 +35,11 @@ int str_countOccurrence(string* str, char c);
 
 void str_reverseString(string* str);
 
-void str_append(string* str, string* other);
+void str_append(string* str, string other);
 
 void str_appendChar(string* str, char c);
 
-void str_replacePart(string* str, int start, int finish, string* replacement);
+void str_replacePart(string* str, int start, int finish, string replacement);
 
 bool str_isPalindrome(string* str);
 

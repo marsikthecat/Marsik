@@ -1,16 +1,21 @@
 #include <cmath>
 #include <stdlib.h>
 #include <stdbool.h>
-
-#define PI 3.14159265358979323846
-#define E  2.71828182845904523536
+#include "math.hpp"
+#include "error/error.hpp"
 
 using namespace std;
 
-int compare(const void *a, const void *b) {
-  int *valA = (int *)a;
-  int *valB = (int *)b;
-  return *valA - *valB;
+double pi() {
+    return PI;
+}
+
+double e() {
+    return E;
+}
+
+double phi() {
+    return PHI;
 }
 
 int roundBasic(double num) {
@@ -26,8 +31,8 @@ int roundDown(double num) {
 }
 
 double posDifference(double a, double b) {
-  int c = abs(a);
-  int d = abs(b);
+  double c = abs(a);
+  double d = abs(b);
   return c >= d ? c - d : d - c;
 }
 
@@ -68,6 +73,10 @@ double squareRoot(double num) {
 }
 
 double cubeRoot(double num) {
+  if (num < 0) {
+    runtimeWarning("This Math runtime does not extend beyond real numbers!");
+    return -1.0;
+  }
   return cbrt(num);
 }
 
@@ -88,6 +97,16 @@ int scd(int a, int b) {
 }
 
 int factorial(int a) {
+    if (a < 0) {
+      return -1;
+    }
+    if (a > 12) {
+      runtimeError("Factorial result is too large to fit in an int.");
+      return -1;
+    }
+    if (a > 30) {
+      runtimeFatalError("Memory breakdown", false);
+    }
     return a <= 1 ? 1 : a * factorial(a - 1);
 }
 
@@ -109,7 +128,11 @@ double hypotenuse3D(double a, double b, double c) {
 
 bool isEven(int a) {
     return a % 2 == 0;
-  }
+}
+
+bool isNegative(int a) {
+    return a < 0;
+}
 
 bool isPrime(int n) {
     if (n == 2 || n == 3) {
@@ -161,150 +184,56 @@ double increasingSum(int start, int end) {
 }
 
 int max(int a, int b) {
-  return a > b ? a : b;
+    return a > b ? a : b;
 }
 int max(int a, int b, int c) {
-  if (a > b) {
-    return b > c ? a : c;
-  }
-  if (a > c) {
-    return a > b ? a : b;
-  }
+    return a > b ? (a > c ? a : c) : (b > c ? b : c);
 }
 
 double max(double a, double b) {
-  return a > b ? a : b;
+    return a > b ? a : b;
 }
 double max(double a, double b, double c) {
-  if (a > b) {
-    return b > c ? a : c;
-  }
-  if (a > c) {
-    return a > b ? a : b;
-  }
+    return a > b ? (a > c ? a : c) : (b > c ? b : c);
 }
 
 int min(int a, int b) {
-  return a < b ? a : b;
+    return a < b ? a : b;
 }
 int min(int a, int b, int c) {
-  if (a < b) {
-    return b < c ? a : c;
-  }
-  if (a < c) {
-    return a < b ? a : b;
-  }
+    return a < b ? (a < c ? a : c) : (b < c ? b : c);
 }
 
 double min(double a, double b) {
-  return a < b ? a : b;
+    return a < b ? a : b;
 }
 double min(double a, double b, double c) {
-  if (a < b) {
-    return b < c ? a : c;
-  }
-  if (a < c) {
-    return a < b ? a : b;
-  }
+    return a < b ? (a < c ? a : c) : (b < c ? b : c);
 }
 
-double max(double* nums, int length) {
-    if (length == 0) {
-      return -1;
-    }
-    double max = nums[0];
-    for (int i = 0; i < length; i++ ) {
-      int n = nums[i];
-      if (n > max) {
-        max = n;
-      }
-    }
-    return max;
-  }
-
- double min(double* nums, int length) {
-    if (length == 0) {
-      return -1;
-    }
-    double min = nums[0];
-    for (int i = 0; i < length; i++ ) {
-      int n = nums[i];
-      if (n < min) {
-        min = n;
-      }
-    }
-    return min;
-  }
-
-  double sum(double* nums, int length) {
-    if (length == 0) {
-      return -1;
-    }
-    double sum = 0;
-    for (int i = 0; i < length; i++ ) {
-      sum += nums[i];
-    }
-    return sum;
-  }
-
-  double avg(double* nums, int length) {
-    if (length == 0) {
-      return -1;
-    }
-    return sum(nums, length) / length;
-  }
-
-  double median(double* nums, int length, int size) {
-    if (length == 0) {
-      return -1;
-    }
-    qsort(nums, length, size, compare);
-    return length % 2 == 0 ? (nums[length / 2] + nums[length / 2 - 1]) / 2.0: nums[length / 2];
-  }
-
-  int randomInt(int min, int max) {
+int randomInt(int min, int max) {
     if (max < min) {
-        int tmp = min;
-        min = max;
-        max = tmp;
+      int tmp = min;
+      min = max;
+      max = tmp;
     }
-    return (rand() % max) + min;
-  }
+    return (rand() % (max - min + 1)) + min;
+}
 
-  double randomDouble(double min, double max) {
+double randomDouble(double min, double max) {
     if (max < min) {
-        double tmp = min;
-        min = max;
-        max = tmp;
+      double tmp = min;
+      min = max;
+      max = tmp;
     }
     return min + ((double)rand() / RAND_MAX) * (max - min);
-  }
+}
 
-  double variance(double* nums, int length) {
-    if (length == 0) {
-      return -1;
-    }
-    double avgResult = avg(nums, length);
-    double a = 0;
-    for (int i = 0; i < length; i++) {
-        double n = nums[i];
-        a += pow((n - avgResult), 2);
-    }
-    return a / length;
-  }
-
-  double standardDeviation(double* nums, int length) {
-    if (length == 0) {
-      return -1;
-    }
-    return sqrt(variance(nums, length));
-  }
-
-  double binomialCoefficient(int n, int k) {
+double binomialCoefficient(int n, int k) {
     if (k < 0 || k > n) {
       return -1;
     }
     double b = factorial(k);
     double c = factorial(n - k);
     return factorial(n) / (b * c);
-  }
+}

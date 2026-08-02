@@ -1,3 +1,7 @@
+/*
+  Works fine, no issues found so far, but no support for Datetime object
+*/
+
 int year = DateTime.currentYear()
 int month = DateTime.currentMonth()
 int day = DateTime.currentDay()
@@ -16,3 +20,11 @@ string dn = DateTime.monthName(month)
 
 print("Current Month: ")
 dn.printString()
+
+string msg = "Is this Year a leap Year?"
+if (DateTime.isLeapYear(year)) {
+  msg.append(" Yes")
+} else {
+  msg.append(" Nope")
+}
+msg.printString()
