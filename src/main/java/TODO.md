@@ -1,9 +1,7 @@
 # Task Overview
 
 ## Problems:
-- Inconsistent dealing with strings in arguments (sometime string, sometimes string*)
 - Can't handle negative numbers in static array (grammar error)
-- Unable to directly print strings in print(), need to call printString() on string instead
 - Matrix not supported in marsik code, only internally
 - Datetime not supported in marsik code, only internally
 - Error: Multiple definition of "compare" in module "math"
@@ -25,9 +23,11 @@
 - no datetime objects, only strings in datetime format
 
 ## In Progress:
+- Fix weird Error: Multiple definition of "compare" in module "math"
 - Advanced Random number generator in module "math"
 
 ## Complete:
+- Fix string issues (used cpp strings), strings normally printable
 - Support including variables in scan statement, same as in print statement
 - printLine statement
 - Bump allocator

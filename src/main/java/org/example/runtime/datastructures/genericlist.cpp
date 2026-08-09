@@ -1,8 +1,8 @@
 #include "genericlist.hpp"
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include "../string.h"
+#include <string>
+#include <cstring>
 #include "../allocator/allocator.hpp"
 
 #define DEFAULT_CAPACITY 10

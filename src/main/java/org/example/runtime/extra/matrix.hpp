@@ -18,6 +18,8 @@ int matrix_numberOfRows(Matrix* matrix);
 
 int matrix_numberOfColumns(Matrix* matrix);
 
+int matrix_sum(Matrix* matrix);
+
 Matrix matrix_add(Matrix* matrix, Matrix* other);
 
 Matrix matrix_multiply(Matrix* matrix, Matrix* other);
@@ -25,9 +27,13 @@ Matrix matrix_multiply(Matrix* matrix, Matrix* other);
 Matrix matrix_transpose(Matrix* matrix);
 
 Matrix matrix_clone(Matrix* matrix); 
-/* 
-Matrix matrix_invert(Matrix* matrix);*/
 
 double matrix_getDeterminant(Matrix* matrix);
+
+bool matrix_isInvertible(Matrix* matrix);
+
+double matrix_trace(Matrix* matrix);
+
+double matrix_normal(Matrix* matrix);
 
 void matrix_print(Matrix* matrix);

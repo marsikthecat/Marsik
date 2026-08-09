@@ -286,7 +286,7 @@ T list_randomElement(List<T>* list) {
 }
 
 template <typename T>
-void list_print(List<T>* list, void (*print_element)(void*)) {
+void list_printList(List<T>* list, void (*print_element)(void*)) {
     printf("[");
     for (int i = 0; i < list->size; i++) {
         if (print_element != nullptr) {

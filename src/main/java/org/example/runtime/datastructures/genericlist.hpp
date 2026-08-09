@@ -1,7 +1,9 @@
 #pragma once
 
 #include <stdbool.h>
-#include "../string.hpp"
+#include <string>
+
+using namespace std;
 
 typedef enum {
     TYPE_INT,
@@ -45,7 +47,7 @@ void genericlist_addChar(GenericList* list, char value);
 
 void genericlist_addBool(GenericList* list, bool value);
 
-void genericlist_addString(GenericList* list, string* value);
+void genericlist_addString(GenericList* list, string*value);
 
 void* genericlist_get(GenericList* list, int index);
 

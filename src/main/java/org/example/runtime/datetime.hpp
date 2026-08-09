@@ -2,7 +2,9 @@
 
 #include <stdio.h>
 #include <time.h>
-#include "string.hpp"
+#include <string>
+
+using namespace std;
 
 struct datetime
 {
@@ -25,6 +27,8 @@ int currentYear();
 int currentMonth();
 
 int currentDay();
+
+int currentDayOfWeek();
 
 int currentHour();
 
@@ -68,4 +72,8 @@ string toIsoFormat(datetime* dt);
 
 string monthName(int month);
 
+string getCurrentMonthName();
+
 string dayName(int day);
+
+string getCurrentDayName();

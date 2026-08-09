@@ -18,8 +18,7 @@ printLine("Current second: ", second)
 
 string dn = DateTime.monthName(month)
 
-print("Current Month: ")
-dn.printString()
+print("Current Month: ", dn)
 
 string msg = "Is this Year a leap Year?"
 if (DateTime.isLeapYear(year)) {
@@ -27,4 +26,4 @@ if (DateTime.isLeapYear(year)) {
 } else {
   msg.append(" Nope")
 }
-msg.printString()
+printLine(msg)

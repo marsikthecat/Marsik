@@ -6,20 +6,20 @@ string s1 = "racecar"
 printLine(s1.isPalindrome())
 
 string s2 = "Hell"
-char c = 'l'
-s2.appendChar(c)
-s2.appendChar('o')
-s2.printString()
+string c = "l"
+s2.append(c)
+s2.append("o")
+printLine(s2)
 printLine(s2.stringLength())
 printLine(s2.getCharAt(1))
-s2.printString()
+printLine(s2)
 
 string a = "Hello"
 string b = " World"
 a.append(b)
-a.printString()
+printLine(a)
 a.reverseString()
-a.printString()
+printLine(a)
 
 string nums = "12345"
 printLine(nums.hasOnlyDigits())
@@ -34,7 +34,7 @@ printLine(letters.hasOnlyLetters())
 
 string spaced = "a b c"
 printLine(spaced.hasWhiteSpace())
-spaced.printString()
+printLine(spaced)
 
 char aaaaa = 'l'
 printLine(a.stringIndexOf(aaaaa))
@@ -42,6 +42,6 @@ printLine(a.lastIndexOf('l'))
 printLine(a.countOccurrence('l'))
 
 a.capitalize()
-a.printString()
+printLine(a)
 
 printLine(a.stringEquals(b))

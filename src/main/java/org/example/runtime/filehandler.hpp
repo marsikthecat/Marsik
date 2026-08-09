@@ -1,18 +1,20 @@
 #pragma once
 
 #include <stdbool.h>
-#include "string.hpp"
+#include <string>
 
-bool createFile(string* filepath);
+using namespace std;
 
-bool writeContentToFile(string* filepath, string* content);
+bool createFile(string filepath);
 
-bool appendContentToFile(string* filepath, string* content);
+bool writeContentToFile(string filepath, string content);
 
-bool clearFile(string* filepath);
+bool appendContentToFile(string filepath, string content);
 
-bool doesFileExist(string* filepath);
+bool clearFile(string filepath);
 
-bool deleteFile(string* filepath);
+bool doesFileExist(string filepath);
 
-string readFile(string* filepath);
+bool deleteFile(string filepath);
+
+string readFile(string filepath);

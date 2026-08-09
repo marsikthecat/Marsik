@@ -2,9 +2,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../string.hpp"
+#include <string>
 #include "set.hpp"
 #include "../allocator/allocator.hpp"
+
+using namespace std;
 
 #define DEFAULT_HASHMAP_CAPACITY 10
 
@@ -48,12 +50,12 @@ bool perfecthashmap_defineKey(PerfectHashMap<V>* map,const string& key) {
 }
 
 static unsigned long hash(string key, int keysetSize) {
-    return (unsigned long)key.data % keysetSize;
+    return (unsigned long)key.c_str() % keysetSize;
 }
 
 template<typename V>
 bool perfecthashmap_put(PerfectHashMap<V>* map, const string& key, V value) {
-    int index = hash(key.data, map->keysetSize);
+    int index = hash(key, map->keysetSize);
     PerfectHashMapEntry<V> entry;
     entry.key = key;
     entry.value = value;
@@ -62,18 +64,18 @@ bool perfecthashmap_put(PerfectHashMap<V>* map, const string& key, V value) {
 
 template<typename V>
 V perfecthashmap_get(PerfectHashMap<V>* map, const string& key) {
-    return map->entries[hash(key.data, map->keysetSize)].value;
+    return map->entries[hash(key, map->keysetSize)].value;
 }
 
 template<typename V>
 bool perfecthashmap_remove(PerfectHashMap<V>* map, const string& key) {
-    map->entries[hash(key.data, map->keysetSize)] = (PerfectHashMapEntry<V>) { .key = NULL, .value = NULL };
+    map->entries[hash(key, map->keysetSize)] = (PerfectHashMapEntry<V>) { .key = NULL, .value = NULL };
     return true;
 }
 
 template<typename V>
 bool perfecthashmap_containsKey(PerfectHashMap<V>* map, const string& key) {
-    return set_contains(map->usedIndices, hash(key.data, map->keysetSize));
+    return set_contains(map->usedIndices, hash(key, map->keysetSize));
 }
 
 template<typename V>

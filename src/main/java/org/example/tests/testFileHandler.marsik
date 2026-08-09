@@ -6,24 +6,19 @@ string newFileName = "file.txt"
 string newFileContent = "Hello World!"
 FileHandler.createFile(newFileName)
 FileHandler.appendContentToFile(newFileName, newFileContent)
-printLine("Wrote content to file: ")
-newFileName.printString()
+printLine("Wrote content to file: ", newFileName)
 
 if (FileHandler.doesFileExist(newFileName)) {
-  printLine("File ")
-  newFileName.printString()
-  printLine("exists")
+  printLine("File ", newFileName, "exists")
 }
 string fileContent = FileHandler.readFile(newFileName)
-printLine("Content read from file: ")
-fileContent.printString()
+printLine("Content read from file: ", fileContent)
 
 FileHandler.clearFile(newFileName)
 
 string emptyFileContent = FileHandler.readFile(newFileName)
 
-printLine("Content after clearing: ")
-emptyFileContent.printString()
+printLine("Content after clearing: ", emptyFileContent)
 
 string a = newFileContent
 FileHandler.writeContentToFile(newFileName, a)

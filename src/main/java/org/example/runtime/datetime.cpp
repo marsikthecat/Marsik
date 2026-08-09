@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <time.h>
-#include "string.hpp"
+#include <string>
 #include "datetime.hpp"
 #include "error/error.hpp"
+
+using namespace std;
 
 string now() {
     time_t currentTime;
     time(&currentTime);
-    return str_init(ctime(&currentTime));
+    return string(ctime(&currentTime));
 }
 
 string currentDateISO() {
@@ -15,7 +17,7 @@ string currentDateISO() {
     struct tm *t = localtime(&now);
     char buffer[100];
     strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", t);
-    return str_init(buffer);
+    return string(buffer);
 }
 
 long currentMillis() {
@@ -38,6 +40,12 @@ int currentDay() {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
     return t->tm_mday;
+}
+
+int currentDayOfWeek() {
+    time_t now = time(NULL);
+    struct tm *t = localtime(&now);
+    return t->tm_wday + 1;
 }
 
 int currentHour() {
@@ -203,24 +211,34 @@ string toIsoFormat(datetime* dt) {
     char buffer[100];
     snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d",
              dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second);
-    return str_init(buffer);
+    return string(buffer);
 }
 
 string monthName(int month) {
-    const char *months[] = {"January", "February", "March", "April", "May", "June",
+    const string months[] = {"January", "February", "March", "April", "May", "June",
                             "July", "August", "September", "October", "November", "December"};
     if (month < 1 || month > 12) {
         runtimeError("Invalid month");
-        return str_init("");
+        return string("");
     }
-    return str_init(months[month - 1]);
+    return months[month - 1];
+}
+
+string getCurrentMonthName() {
+    int month = currentMonth();
+    return monthName(month);
 }
 
 string dayName(int day) {
-    const char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    const string days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     if (day < 1 || day > 7) {
         runtimeError("Invalid day");
-        return str_init("");
+        return string("");
     }
-    return str_init(days[day - 1]);
+    return days[day - 1];
+}
+
+string getCurrentDayName() {
+    int day = currentDayOfWeek();
+    return dayName(day);
 }

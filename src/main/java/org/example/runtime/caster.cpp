@@ -1,8 +1,10 @@
 #include "caster.hpp"
-#include "string.hpp"
+#include <string>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+
+using namespace std;
 
 double intToDouble(const int& num) {
     return (double) num;
@@ -15,11 +17,11 @@ char intToChar(const int& num) {
 string intToString(const int& num) {
     char buffer[32];
     snprintf(buffer, sizeof(buffer), "%d", num);
-    return str_init(buffer);
+    return string(buffer);
 }
 
 string booleanToString(const bool& boolean) {
-    return str_init(boolean ? "true" : "false");
+    return boolean ? "true" : "false";
 }
 
 int doubleToInt(const double& num) {
@@ -29,19 +31,19 @@ int doubleToInt(const double& num) {
 string doubleToString(const double& num) {
     char buffer[64];
     snprintf(buffer, sizeof(buffer), "%.6f", num);
-    return str_init(buffer);
+    return string(buffer);
 }
 
-int stringToInt(string* str) {
-    return atoi(str->data);
+int stringToInt(string str) {
+    return atoi(str.c_str());
 }
 
-bool stringToBoolean(string* str) {
-    return strcmp(str->data, "true") == 0 || strcmp(str->data, "1") == 0;
+bool stringToBoolean(string str) {
+    return str == "true" || str == "1";
 }
 
-double stringToDouble(string* str) {
-    return atof(str->data);
+double stringToDouble(string str) {
+    return atof(str.c_str());
 }
 
 int booleanToInt(const bool& boolean) {

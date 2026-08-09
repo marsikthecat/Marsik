@@ -51,6 +51,16 @@ int matrix_numberOfColumns(Matrix* matrix) {
     return matrix->colums;
 }
 
+int matrix_sum(Matrix* matrix) {
+    int sum = 0;
+    for (int i = 0; i < matrix->rows; i++) {
+        for (int j = 0; j < matrix->colums; j++) {
+            sum += matrix->data[i][j];
+        }
+    }
+    return sum;
+}
+
 Matrix matrix_add(Matrix* matrix, Matrix* other) {
     if (matrix->rows == other->rows && matrix->colums == other->colums) {
         Matrix newMatrix;
@@ -173,6 +183,24 @@ double matrix_getDeterminant(Matrix* matrix) {
       }
       return det;
     } 
+}
+
+bool matrix_isInvertable(Matrix* matrix) {
+    return matrix_getDeterminant(matrix) == 0.0;
+}
+
+double matrix_trace(Matrix* matrix) {
+    double trace = 0;
+    int i = 0;
+    while (i < matrix->colums && i < matrix->rows) {
+      trace += (matrix->data[i][i])*(matrix->data[i][i]); 
+      i++; 
+    }
+    return trace;
+}
+
+double matrix_normal(Matrix* matrix) {
+    return sqrt(matrix_trace(matrix));
 }
 
 void matrix_print(Matrix* matrix) {

@@ -1,6 +1,8 @@
 #pragma once
 
-#include "string.hpp"
+#include <string>
+
+using namespace std;
 
 double intToDouble(const int& num);
 
@@ -14,11 +16,11 @@ int doubleToInt(const double& num);
 
 string doubleToString(const double& num);
 
-int stringToInt(string* str);
+int stringToInt(string str);
 
-bool stringToBoolean(string* str);
+bool stringToBoolean(string str);
 
-double stringToDouble(string* str);
+double stringToDouble(string str);
 
 int booleanToInt(const bool& boolean);
 

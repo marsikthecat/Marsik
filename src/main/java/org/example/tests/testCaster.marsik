@@ -4,7 +4,7 @@
 
 int a = 5
 string b = Caster.intToString(a)
-b.printString()
+printLine(b)
 
 char c = Caster.intToChar(a)
 printLine("Char: ", c)
@@ -16,7 +16,7 @@ printLine(bbb)
 
 boolean d = true
 string e = Caster.booleanToString(d)
-e.printString()
+print(e)
 int zz = Caster.booleanToInt(d)
 
 double f = 3.15
@@ -24,7 +24,7 @@ int g = Caster.doubleToInt(f)
 printLine(g)
 
 string fs = Caster.doubleToString(f)
-fs.printString()
+print(fs)
 
 string s = "55"
 string s2 = "true"

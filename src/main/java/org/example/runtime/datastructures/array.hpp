@@ -6,8 +6,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string>
-#include "../string.hpp"
 #include "../error/error.hpp"
+
+using namespace std;
 
 #define DEFAULT_ARRAY_CAPACITY 10
 
@@ -215,5 +216,5 @@ void array_shuffle(Array<T>* arr) {
 
 template<typename T>
 bool arr_isNumericArray(const Array<T>* arr) {
-    return arr->type.data == "int" ||  arr->type.data == "double";
+    return arr->type == "int" ||  arr->type == "double";
 }

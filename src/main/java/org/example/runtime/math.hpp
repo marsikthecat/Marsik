@@ -183,4 +183,5 @@ T standardDeviation(Array<T> nums) {
   }
   return sqrt(variance(nums));
 }
+
 double binomialCoefficient(int n, int k);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "string.hpp"
 #include <stdbool.h>
 #include <pthread.h>
 

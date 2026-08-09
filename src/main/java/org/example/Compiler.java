@@ -169,7 +169,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
 
     String joinedArgs = String.join(", ", args);
-    return methodPrefix + method + "(&" + target + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
+    return methodPrefix + method + "(" + target + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
   }
 
 
@@ -204,7 +204,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
             || target.equals("Caster") || target.equals("Math"))
             && variables.containsKey(rawText)
             && "string".equals(variables.get(rawText).type)) {
-      return "&" + rendered;
+      return rendered;
     }
     return rendered;
   }
@@ -247,9 +247,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
         throw new RuntimeException("Literal " + ctx.type_label().getText()
                 + " does not match Value " + ctx.type().getText());
       }
-      String strInit = shouldWrapStringInitialization(type, ctx.type(), ctx.method_call())
-              ? "str_init(" + init + ")" : init;
-      code.append(type).append(" ").append(name).append(" = ").append(strInit).append(";\n");
+      code.append(type).append(" ").append(name).append(" = ").append(init).append(";\n");
       variables.put(name, new ValueHolder(type, true));
     } else {
       // Initializing variable without value
@@ -336,12 +334,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     code.append(name).append(" = ").append(value).append(";\n");
     return null;
-  }
-
-  private boolean shouldWrapStringInitialization(String type,
-                                                 MarsikParser.TypeContext literalValue,
-                                                 MarsikParser.Method_callContext methodCall) {
-    return type.equals("string") && literalValue != null && literalValue.STRING() != null && methodCall == null;
   }
 
   @Override
@@ -717,7 +709,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       return ctx.DOUBLE().getText();
     }
     if (ctx.STRING() != null) {
-      return "str_init(" +  ctx.STRING().getText() + ")";
+      return ctx.STRING().getText();
     }
     if (ctx.CHAR() != null) {
       return ctx.CHAR().getText();
@@ -743,7 +735,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
             """
             #include <iostream>
             #include <stdbool.h>
-            #include "string.hpp"
+            #include <string>
+            #include "stringUtils.hpp"
             %s
            
             int main() {
@@ -894,7 +887,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    */
   static void main(String[] args) throws IOException, InterruptedException {
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\exampleFiles\\tests\\datastructureTests\\testList.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testMath.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }
