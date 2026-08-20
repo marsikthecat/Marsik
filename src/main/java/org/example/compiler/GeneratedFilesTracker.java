@@ -2,7 +2,7 @@ package org.example.compiler;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.example.utils.FileHandler;
+import org.example.compiler.utils.FileHandler;
 
 /**
  * Tracks all generated custom object files (.h and .c) for cleanup.
@@ -33,7 +33,7 @@ public class GeneratedFilesTracker {
     generatedFiles.clear();
 
     // Delete the "out" folder
-    String outFolderPath = "C:\\Users\\dani_\\Desktop\\MarsikLang2\\src\\main\\java\\org\\example\\out";
+    String outFolderPath = "src/main/java/org/example/out";
     java.io.File outFolder = new java.io.File(outFolderPath);
     if (outFolder.exists() && outFolder.isDirectory()) {
       deleteDirectoryRecursive(outFolder);
@@ -64,6 +64,10 @@ public class GeneratedFilesTracker {
    */
   public static int getGeneratedFileCount() {
     return generatedFiles.size();
+  }
+
+  public static Set<String> getGeneratedFilesSnapshot() {
+    return new HashSet<>(generatedFiles);
   }
 
   /**

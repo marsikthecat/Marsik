@@ -27,27 +27,27 @@ Set<T> init_set(int capacity) {
 }
 
 template<typename T>
-bool set_add(Set<T>* set, const T& value) {
+bool set_add(Set<T> set, const T& value) {
     if (set_contains(set, value)) {
         return false;
     }
-    if (set->size >= set->capacity) {
+    if (set.size >= set.capacity) {
         runtimeError("Set is full");
         return false;
     }
     _set_ensure_capacity(set);
-    set->data[set->size++] = value;
+    set.data[set.size++] = value;
     return true;
 }
 
 template<typename T>
-bool set_remove(Set<T>* set, const T& value) {
-    for (int i = 0; i < set->size; i++) {
-        if (set->data[i] == value) {
-            for (int j = i; j < set->size - 1; j++) {
-                set->data[j] = set->data[j + 1];
+bool set_remove(Set<T> set, const T& value) {
+    for (int i = 0; i < set.size; i++) {
+        if (set.data[i] == value) {
+            for (int j = i; j < set.size - 1; j++) {
+                set.data[j] = set.data[j + 1];
             }
-            set->size--;
+            set.size--;
             return true;
         }
     }
@@ -55,9 +55,9 @@ bool set_remove(Set<T>* set, const T& value) {
 }
 
 template<typename T>
-bool set_contains(Set<T>* set, const T& value) {
-    for (int i = 0; i < set->size; i++) {
-        if (set->data[i] == value) {
+bool set_contains(Set<T> set, const T& value) {
+    for (int i = 0; i < set.size; i++) {
+        if (set.data[i] == value) {
             return true;
         }
     }
@@ -65,21 +65,21 @@ bool set_contains(Set<T>* set, const T& value) {
 }
 
 template<typename T>
-bool set_isEmpty(Set<T>* set) {
-    return set->size == 0;
+bool set_isEmpty(Set<T> set) {
+    return set.size == 0;
 }
 
 template<typename T>
-int set_size(Set<T>* set) {
-    return set->size;
+int set_size(Set<T> set) {
+    return set.size;
 }
 
 template<typename T>
-int set_capacity(Set<T>* set) {
-    return set->capacity;
+int set_capacity(Set<T> set) {
+    return set.capacity;
 }
 
 template<typename T>
-void set_clear(Set<T>* set) {
-    set->size = 0;
+void set_clear(Set<T> set) {
+    set.size = 0;
 }

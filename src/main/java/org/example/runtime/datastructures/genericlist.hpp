@@ -37,36 +37,36 @@ typedef struct GenericList{
 
 GenericList init_genericlist();
 
-void genericlist_addInt(GenericList* list, int value);
+void genericlist_addInt(GenericList list, int value);
 
-void genericlist_addFloat(GenericList* list, float value);
+void genericlist_addFloat(GenericList list, float value);
 
-void genericlist_addDouble(GenericList* list, double value);
+void genericlist_addDouble(GenericList list, double value);
 
-void genericlist_addChar(GenericList* list, char value);
+void genericlist_addChar(GenericList list, char value);
 
-void genericlist_addBool(GenericList* list, bool value);
+void genericlist_addBool(GenericList list, bool value);
 
-void genericlist_addString(GenericList* list, string*value);
+void genericlist_addString(GenericList list, string value);
 
-void* genericlist_get(GenericList* list, int index);
+void* genericlist_get(GenericList list, int index);
 
-GenericType genericlist_getType(GenericList* list, int index);
+GenericType genericlist_getType(GenericList list, int index);
 
-void genericlist_remove(GenericList* list, int index);
+void genericlist_remove(GenericList list, int index);
 
-bool genericlist_contains(GenericList* list, void* value);
+bool genericlist_contains(GenericList list, void* value);
 
-int genericlist_indexOf(GenericList* list, void* value);
+int genericlist_indexOf(GenericList list, void* value);
 
-int genericlist_size(GenericList* list);
+int genericlist_size(GenericList list);
 
-bool genericlist_isEmpty(GenericList* list);
+bool genericlist_isEmpty(GenericList list);
 
-void genericlist_clear(GenericList* list);
+void genericlist_clear(GenericList list);
 
-bool genericlist_allNumeric(GenericList* list);
+bool genericlist_allNumeric(GenericList list);
 
-bool genericlist_allStrings(GenericList* list);
+bool genericlist_allStrings(GenericList list);
 
-bool genericlist_allSameType(GenericList* list);
+bool genericlist_allSameType(GenericList list);

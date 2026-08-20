@@ -6,19 +6,7 @@
 
 using namespace std;
 
-struct datetime
-{
-    int year;
-    int month;
-    int day;
-    int hour;
-    int minute;
-    int second;
-} typedef datetime;
-
 string now();
-
-string currentDateISO();
 
 long currentMillis();
 
@@ -36,39 +24,37 @@ int currentMinute();
 
 int currentSeconds();
 
-datetime currentDateTime();
+string currentDateTime();
 
-int getSeconds(datetime* dt);
+int getSeconds(string dt);
 
-int getMinutes(datetime* dt);
+int getMinutes(string dt);
 
-int getHours(datetime* dt);
+int getHours(string dt);
 
-int getDay(datetime* dt);
+int getDay(string dt);
 
-int getMonth(datetime* dt);
+int getMonth(string dt);
 
-int getYear(datetime* dt);
+int getYear(string dt);
 
-void setSeconds(datetime *dt, int seconds);
+void setSeconds(string dt, int seconds);
 
-void setMinutes(datetime *dt, int minutes);
+void setMinutes(string dt, int minutes);
 
-void setHours(datetime *dt, int hours);
+void setHours(string dt, int hours);
 
-void setDay(datetime *dt, int day);
+void setDay(string dt, int day);
 
-void setMonth(datetime *dt, int month);
+void setMonth(string dt, int month);
 
-void setYear(datetime *dt, int year);
+void setYear(string dt, int year);
 
 bool isLeapYear(int year);
 
-bool isBefore(datetime* dt1, datetime* dt2);
+bool isBefore(string dt1, string dt2);
 
-bool isAfter(datetime* dt1, datetime* dt2);
-
-string toIsoFormat(datetime* dt);
+bool isAfter(string dt1, string dt2);
 
 string monthName(int month);
 

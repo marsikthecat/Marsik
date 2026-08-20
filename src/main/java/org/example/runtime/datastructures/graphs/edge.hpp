@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../string.hpp"
+#include "../../stringUtils.hpp"
 
 typedef struct Node Node;
 typedef struct Edge Edge;
@@ -13,10 +13,10 @@ struct Edge {
 
 Edge init_edge(string identifier);
 
-void edge_setWeight(Edge* edge, double weight);
+void edge_setWeight(Edge edge, double weight);
 
-void edge_setDestination(Edge* edge, Node* node);
+void edge_setDestination(Edge edge, Node node);
 
-Node edge_getDestination(Edge* edge);
+Node edge_getDestination(Edge edge);
 
-double edge_getWeight(Edge* edge);
+double edge_getWeight(Edge edge);

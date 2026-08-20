@@ -1,16 +1,20 @@
 package org.example.compiler;
 
-import org.example.utils.FileHandler;
+import org.example.compiler.utils.FileHandler;
 
 /**
- * Generates C header (.h) and implementation (.c) files for custom objects.
+ * Generates C++ header (.hpp) and implementation (.cpp) files for custom objects.
  * Each custom object gets its own pair of files in the generated objects folder.
  */
 public class CustomObjectGenerator {
-  private static final String OBJECTS_FOLDER = "C:\\Users\\dani_\\Desktop\\MarsikLang2\\src\\main\\java\\org\\example\\out\\";
+  private static String objectsFolder = "src/main/java/org/example/out";
+
+  public static void setOutputFolder(String outputFolder) {
+    objectsFolder = outputFolder;
+  }
 
   /**
-   * Generate .h and .c files for a custom object.
+   * Generate .hpp and .cpp files for a custom object.
    *
    * @param customObject the custom object definition
    */
@@ -21,8 +25,9 @@ public class CustomObjectGenerator {
       String headerContent = generateHeaderFile(customObject);
       String implContent = generateImplementationFile(customObject);
 
-      String headerPath = OBJECTS_FOLDER + customObject.name.toLowerCase() + ".h";
-      String implPath = OBJECTS_FOLDER + customObject.name.toLowerCase() + ".c";
+      String basePath = new java.io.File(objectsFolder).getAbsolutePath() + java.io.File.separator;
+      String headerPath = basePath + customObject.name.toLowerCase() + ".hpp";
+      String implPath = basePath + customObject.name.toLowerCase() + ".cpp";
 
       // Create and write header file
       if (!FileHandler.doesFileExist(headerPath)) {
@@ -52,13 +57,13 @@ public class CustomObjectGenerator {
    */
   private static String generateHeaderFile(CustomObjectHolder customObject) {
     StringBuilder header = new StringBuilder();
-    String guardName = customObject.name.toUpperCase() + "_H";
+    String guardName = customObject.name.toUpperCase() + "_HPP";
 
     header.append("#ifndef ").append(guardName).append("\n");
     header.append("#define ").append(guardName).append("\n\n");
-    header.append("#include <stdlib.h>\n");
     header.append("#include <stdbool.h>\n");
-    header.append("#include <stdint.h>\n\n");
+    header.append("#include <stdint.h>\n");
+    header.append("#include <string>\n\n");
 
     // Struct definition
     header.append("struct ").append(customObject.name).append(" {\n");
@@ -102,7 +107,9 @@ public class CustomObjectGenerator {
   private static String generateImplementationFile(CustomObjectHolder customObject) {
     StringBuilder impl = new StringBuilder();
 
-    impl.append("#include \"").append(customObject.name.toLowerCase()).append(".h\"\n\n");
+    impl.append("#include \"").append(customObject.name.toLowerCase()).append(".hpp\"\n");
+    impl.append("#include \"../runtime/stringUtils.hpp\"\n");
+    impl.append("#include <iostream>\n\n");
 
     // Initialization function implementation
     impl.append("struct ").append(customObject.name).append(" init_")
@@ -156,6 +163,13 @@ public class CustomObjectGenerator {
     for (FieldHolder field : customObject.fields) {
       result = result.replaceAll("\\b" + field.name + "\\b", "obj->" + field.name);
     }
+    for (FieldHolder field : customObject.fields) {
+      if (!field.type.equals("string") && !field.type.equals("char")) {
+        String fieldAccess = "obj->" + field.name;
+        result = result.replaceAll("\\+\\s*" + java.util.regex.Pattern.quote(fieldAccess),
+                "+ std::to_string(" + fieldAccess + ")");
+      }
+    }
     return result;
   }
 
@@ -169,7 +183,7 @@ public class CustomObjectGenerator {
     return switch (marsikType) {
       case "int" -> "int";
       case "double" -> "double";
-      case "string" -> "string";
+      case "string" -> "std::string";
       case "char" -> "char";
       case "boolean" -> "bool";
       case "baby_int" -> "uint8_t";
@@ -189,6 +203,7 @@ public class CustomObjectGenerator {
       case "double" -> "0.0";
       case "char" -> "'\\0'";
       case "bool" -> "false";
+      case "std::string" -> "\"\"";
       default -> "NULL";
     };
   }
@@ -197,11 +212,11 @@ public class CustomObjectGenerator {
    * Ensure that the generated_objects folder exists.
    */
   private static void ensureFolderExists() {
-    java.io.File folder = new java.io.File(OBJECTS_FOLDER);
+    java.io.File folder = new java.io.File(objectsFolder);
     if (!folder.exists()) {
       boolean success = folder.mkdirs();
       if (success) {
-        System.out.println("Created generated_objects folder: " + OBJECTS_FOLDER);
+        System.out.println("Created generated_objects folder: " + objectsFolder);
       } else {
         System.err.println("Failed to create generated_objects folder");
       }

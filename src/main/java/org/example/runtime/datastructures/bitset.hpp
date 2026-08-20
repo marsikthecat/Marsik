@@ -8,20 +8,20 @@ typedef struct Bitset {
 
 Bitset init_bitSet();
 
-void bitset_set(Bitset* bs, int index);
+void bitset_set(Bitset bs, int index);
 
-void bitset_clear(Bitset* bs, int index);
+void bitset_clear(Bitset bs, int index);
 
-void bitset_toggle(Bitset* bs, int index);
+void bitset_toggle(Bitset bs, int index);
 
-bool bitset_get(Bitset* bs, int index);
+bool bitset_get(Bitset bs, int index);
 
-void bitset_setAll(Bitset* bs);
+void bitset_setAll(Bitset bs);
 
-void bitset_clearAll(Bitset* bs);
+void bitset_clearAll(Bitset bs);
 
-bool bitset_isEmpty(Bitset* bs);
+bool bitset_isEmpty(Bitset bs);
 
-bool bitset_isFull(Bitset* bs);
+bool bitset_isFull(Bitset bs);
 
-int bitset_count(Bitset* bs);
+int bitset_count(Bitset bs);

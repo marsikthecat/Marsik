@@ -25,6 +25,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public final StringBuilder code = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, CustomObjectHolder> customObjects = new HashMap<>();
+  public CustomObjectHolder currentCustomObject = null;
+  public ClassHolder currentClass = null;
 
   @Override
   public String visitProgram(MarsikParser.ProgramContext ctx) {
@@ -45,7 +47,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitType_label(MarsikParser.Type_labelContext ctx) {
-    return super.visitType_label(ctx);
+    return toCppType(ctx.getText());
   }
 
   @Override
@@ -124,18 +126,19 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (isBuiltInLibraryMethod(target, method)) {
       return visitBuiltInLibraryMethodCall(ctx, target, method);
     }
- /*   if (currentClass != null) {
+    if (variables.containsKey(target) && customObjects.containsKey(variables.get(target).type)) {
+      CustomObjectHolder customObject = customObjects.get(variables.get(target).type);
       boolean methodFound = false;
-      for (MethodHolder m : currentClass.methods) {
+      for (MethodHolder m : customObject.methods) {
         if (m.name.equals(method)) {
           methodFound = true;
           break;
         }
       }
       if (!methodFound) {
-        throw new RuntimeException("Method " + method + " not found in class " + currentClass.name);
+        throw new RuntimeException("Method " + method + " not found in class " + customObject.name);
       }
-    } */else {
+    } else {
       if (!variables.containsKey(target)) {
         throw new RuntimeException("Variable " + target + " does not exist");
       } else {
@@ -155,10 +158,19 @@ public class Compiler extends MarsikBaseVisitor<String> {
       }
     }
 
+    if (variables.containsKey(target) && variables.get(target).type.equals("string") && method.equals("reverse")) {
+      return "std::string(" + target + ".rbegin(), " + target + ".rend())";
+    }
+
     // Check if target is a built-in object and format method name accordingly
     String methodPrefix = "";
     if (variables.containsKey(target)) {
       String type = variables.get(target).type;
+      if (customObjects.containsKey(type)) {
+        String joinedArgs = String.join(", ", args);
+        return type.toLowerCase() + "_" + method + "(&" + target
+                + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
+      }
       // Apply naming convention: [objecttype]_[method] for built-in objects
       if (Utils.buildInObjectsDatastructures.contains(type) || type.equals("array")) {
         methodPrefix = type.toLowerCase() + "_";
@@ -201,10 +213,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String rendered = visit(expr);
     String rawText = expr.getText();
     if ((target.equals("FileHandler") || target.equals("Crypto") || target.equals("DateTime")
-            || target.equals("Caster") || target.equals("Math"))
-            && variables.containsKey(rawText)
-            && "string".equals(variables.get(rawText).type)) {
-      return rendered;
+            || target.equals("Caster") || target.equals("Math")) && variables.containsKey(rawText)) {
+      variables.get(rawText);
     }
     return rendered;
   }
@@ -235,7 +245,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
         }
       }
       code.append(";\n");
-      code.append("std::cin >>").append(name).append(";\n");
+      code.append("std::cin >> ").append(name).append(";\n");
       return "";
     }
     String init = ctx.expr() != null ? visit(ctx.expr()) : ctx.type() != null
@@ -398,6 +408,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
     return type + " " + name;
   }
 
+  private String toCppType(String marsikType) {
+    return switch (marsikType) {
+      case "boolean" -> "bool";
+      case "baby_int" -> {
+        imports.add("#include <stdint.h>\n");
+        yield "uint8_t";
+      }
+      default -> marsikType;
+    };
+  }
+
   @Override
   public String visitIf_stmt(MarsikParser.If_stmtContext ctx) {
     code.append("if (").append(visit(ctx.expr())).append(") ");
@@ -511,7 +532,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     code.append("return ").append(ctx.expr() != null ? visit(ctx.expr()) : "").append(";\n");
     return null;
   }
-/*
+
   @Override
   public String visitClass_def(MarsikParser.Class_defContext ctx) {
     String className = ctx.NAME().getText();
@@ -529,14 +550,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
         customObj.fields.add(field);
 
         // Add field to variables scope for method access
-        String fieldType = field.type;
-        if (fieldType.equals("boolean")) {
-          fieldType = "bool";
-        }
-        if (fieldType.equals("baby_int")) {
-          fieldType = "uint8_t";
-        }
-        variables.put(field.name, new ValueHolder(fieldType, true));
+        variables.put(field.name, new ValueHolder(toCppType(field.type), true));
       }
     }
     // Second pass: Process all methods (without appending to main code)
@@ -556,6 +570,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
                     p.type_label().getText(),
                     p.NAME().getText()
             ));
+            variables.put(p.NAME().getText(), new ValueHolder(toCppType(p.type_label().getText()), true));
           }
         }
         // Capture method body without appending to main code
@@ -563,13 +578,16 @@ public class Compiler extends MarsikBaseVisitor<String> {
         method.body = code.toString();
         code.setLength(0); // Reset for next method
         customObj.methods.add(method);
+        for (ParamHolder param : method.params) {
+          variables.remove(param.name);
+        }
       }
     }
     code.append(tempCodeStorage); // Restore main code
 
     customObjects.put(className, customObj);
     CustomObjectGenerator.generateCustomObject(customObj);
-    imports.add("#include \"" + className.toLowerCase() + ".h\"\n");
+    imports.add("#include \"" + className.toLowerCase() + ".hpp\"\n");
 
     // Clear field variables after processing the class
     for (FieldHolder field : customObj.fields) {
@@ -607,7 +625,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     m.body = visitBlock(ctx.block());
     currentClass.methods.add(m);
     return null;
-  }*/
+  }
 
   @Override
   public String visitExpr(MarsikParser.ExprContext ctx) {
@@ -763,6 +781,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     MarsikParser parser = new MarsikParser(tokens);
     ParseTree tree = parser.program();
     Compiler compiler = new Compiler();
+    CustomObjectGenerator.setOutputFolder(outputDir.getAbsolutePath());
     compiler.visit(tree);
     String cppCode = compiler.generateC();
     File cppFile = new File(outputDir, "generated.cpp");
@@ -788,6 +807,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
       addUsedRuntimeSources(runtimeDir, usedIncludes, command);
       command.add("-I" + runtimeDir.getAbsolutePath());
     }
+    addGeneratedObjectSources(command);
+    command.add("-I" + outputDir.getAbsolutePath());
     command.add("-std=gnu++17");
     command.add("-static-libgcc");
     command.add("-static-libstdc++");
@@ -855,6 +876,14 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
   }
 
+  private static void addGeneratedObjectSources(List<String> command) {
+    for (String generatedFile : GeneratedFilesTracker.getGeneratedFilesSnapshot()) {
+      if (generatedFile.endsWith(".cpp") || generatedFile.endsWith(".c")) {
+        command.add(new File(generatedFile).getAbsolutePath());
+      }
+    }
+  }
+
   private static void addCoreRuntimeFile(File runtimeDir, String fileName, List<String> command, Set<String> addedFiles) {
     File sourceFile = findSourceFile(runtimeDir, fileName);
     if (sourceFile != null && sourceFile.exists() && addedFiles.add(sourceFile.getAbsolutePath())) {
@@ -887,7 +916,10 @@ public class Compiler extends MarsikBaseVisitor<String> {
    */
   static void main(String[] args) throws IOException, InterruptedException {
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testMath.marsik",
+   /* compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testString.marsik",
+            "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");*/
+
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testList.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }

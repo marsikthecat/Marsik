@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "../error/error.hpp"
 
 #define DEFAULT_STACK_SIZE 100
 
@@ -21,43 +22,43 @@ Stack<T> init_stack() {
 }
 
 template<typename T>
-void stack_push(Stack<T>* s, const T& value) {
-    if (s->top == DEFAULT_STACK_SIZE - 1) {
+void stack_push(Stack<T> s, const T& value) {
+    if (s.top == DEFAULT_STACK_SIZE - 1) {
         fprintf(stderr, "ERROR: Size %d of Stack exceeded %p\n", DEFAULT_STACK_SIZE, value);
         return;
     }
-    s->data[++s->top] = value;
+    s.data[++s.top] = value;
 }
 
 template<typename T>
-T stack_peek(Stack<T>* s) {
-    if (s->top == -1) {
+T stack_peek(Stack<T> s) {
+    if (s.top == -1) {
         runtimeError("Stack is empty");
         return T{};
     }
-    return s->data[s->top];
+    return s.data[s.top];
 }
 
 template<typename T>
-T stack_pop(Stack<T>* s) {
-    if (s->top == -1) {
+T stack_pop(Stack<T> s) {
+    if (s.top == -1) {
         runtimeError("Stack is empty");
         return T{};
     }
-    return s->data[s->top--];
+    return s.data[s.top--];
 }
 
 template<typename T>
-bool stack_isFull(Stack<T>* s) {
-    return s->top == DEFAULT_STACK_SIZE - 1;
+bool stack_isFull(Stack<T> s) {
+    return s.top == DEFAULT_STACK_SIZE - 1;
 }
 
 template<typename T>
-bool stack_isEmpty(Stack<T>* s) {
-    return s->top == -1;
+bool stack_isEmpty(Stack<T> s) {
+    return s.top == -1;
 }
 
 template<typename T>
-int stack_size(Stack<T>* s) {
-    return s->top + 1;
+int stack_size(Stack<T> s) {
+    return s.top + 1;
 }

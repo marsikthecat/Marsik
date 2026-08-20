@@ -35,18 +35,18 @@ PerfectHashMap<V> init_perfecthashmap(int numberOfKeys) {
 }
 
 template<typename V>
-bool perfecthashmap_defineKey(PerfectHashMap<V>* map,const string& key) {
+bool perfecthashmap_defineKey(PerfectHashMap<V> map, const string& key) {
   int index = hash(key);
-  if (set_contains(map->usedIndices, index)) {
-    map->entries = allocateFromMarsik(map->entries, (map->keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
-    map->keysetSize *= 2;
-    map->entries[index].key = key;
+  if (set_contains(map.usedIndices, index)) {
+    map.entries = allocateFromMarsik(map.entries, (map.keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
+    map.keysetSize *= 2;
+    map.entries[index].key = key;
   } else {
     PerfectHashMapEntry<V> entry;
     entry.key = key;
-    set_add(map->usedIndices, index);
+    set_add(map.usedIndices, index);
   }
-  set_add(map->usedIndices, index);
+  set_add(map.usedIndices, index);
 }
 
 static unsigned long hash(string key, int keysetSize) {
@@ -54,50 +54,50 @@ static unsigned long hash(string key, int keysetSize) {
 }
 
 template<typename V>
-bool perfecthashmap_put(PerfectHashMap<V>* map, const string& key, V value) {
-    int index = hash(key, map->keysetSize);
+bool perfecthashmap_put(PerfectHashMap<V> map, const string& key, V value) {
+    int index = hash(key, map.keysetSize);
     PerfectHashMapEntry<V> entry;
     entry.key = key;
     entry.value = value;
-    map->entries[index] = entry;
+    map.entries[index] = entry;
 }
 
 template<typename V>
-V perfecthashmap_get(PerfectHashMap<V>* map, const string& key) {
-    return map->entries[hash(key, map->keysetSize)].value;
+V perfecthashmap_get(PerfectHashMap<V> map, const string& key) {
+    return map.entries[hash(key, map.keysetSize)].value;
 }
 
 template<typename V>
-bool perfecthashmap_remove(PerfectHashMap<V>* map, const string& key) {
-    map->entries[hash(key, map->keysetSize)] = (PerfectHashMapEntry<V>) { .key = NULL, .value = NULL };
+bool perfecthashmap_remove(PerfectHashMap<V> map, const string& key) {
+    map.entries[hash(key, map.keysetSize)] = (PerfectHashMapEntry<V>) { .key = NULL, .value = NULL };
     return true;
 }
 
 template<typename V>
-bool perfecthashmap_containsKey(PerfectHashMap<V>* map, const string& key) {
-    return set_contains(map->usedIndices, hash(key, map->keysetSize));
+bool perfecthashmap_containsKey(PerfectHashMap<V> map, const string& key) {
+    return set_contains(map.usedIndices, hash(key, map.keysetSize));
 }
 
 template<typename V>
-bool perfecthashmap_isEmpty(PerfectHashMap<V>* map) {
-    return map->size == 0;
+bool perfecthashmap_isEmpty(PerfectHashMap<V> map) {
+    return map.size == 0;
 }
 
 template<typename V>    
-int perfecthashmap_size(PerfectHashMap<V>* map) {
-    return map->size;
+int perfecthashmap_size(PerfectHashMap<V> map) {
+    return map.size;
 }
 
 template<typename V>
-int perfecthashmap_capacity(PerfectHashMap<V>* map) {
-    return map->keysetSize;
+int perfecthashmap_capacity(PerfectHashMap<V> map) {
+    return map.keysetSize;
 }
 
 template<typename V>
-void perfecthashmap_clear(PerfectHashMap<V>* map) {
-    for (int i = 0; i < map->capacity; i++) {
-        map->entries[i].key = NULL;
-        map->entries[i].value = NULL;
+void perfecthashmap_clear(PerfectHashMap<V> map) {
+    for (int i = 0; i < map.keysetSize; i++) {
+        map.entries[i].key = NULL;
+        map.entries[i].value = NULL;
     }
-    map->size = 0;
+    map.size = 0;
 }

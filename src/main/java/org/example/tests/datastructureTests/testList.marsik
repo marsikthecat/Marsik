@@ -1,5 +1,5 @@
 /*
-  Errors in implementation, rename print method to printList
+  Works fine, no issues found so far
 */
 
 List<int> list1 = new List(10)

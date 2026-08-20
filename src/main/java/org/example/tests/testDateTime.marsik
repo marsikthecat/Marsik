@@ -1,5 +1,5 @@
 /*
-  Works fine, no issues found so far, but no support for Datetime object
+  Works fine, no issues found so far
 */
 
 int year = DateTime.currentYear()
@@ -27,3 +27,6 @@ if (DateTime.isLeapYear(year)) {
   msg.append(" Nope")
 }
 printLine(msg)
+
+string currentDate = DateTime.currentDateTime()
+printLine(DateTime.getSeconds(currentDate))

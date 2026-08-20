@@ -2,23 +2,26 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "../../string.hpp"
+#include <string>
+
+using namespace std;
 
 template <typename T>
 struct TreeNode {
-    string key;
     T data;
     TreeNode* left;
     TreeNode* right;
+    int height;
 };
 
 template <typename T>
 TreeNode<T> treeNode_init(T data) {
    TreeNode<T> node; 
+   node.height = 1;
    node.data = data;
    node.left = NULL;
    node.right = NULL;
-   return node.data;
+   return node;
 } 
 
 template <typename T>
@@ -39,9 +42,4 @@ TreeNode<T> treeNode_getLeft(TreeNode<T> node) {
 template <typename T>
 TreeNode<T> treeNode_getRight(TreeNode<T> node) {
     return node.right;
-} 
-
-template <typename T>
-T treeNode_getKey(TreeNode<T> node) {
-    return node.key;
 } 

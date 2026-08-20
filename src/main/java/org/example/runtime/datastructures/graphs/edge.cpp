@@ -11,18 +11,18 @@ Edge init_edge(string identifier) {
     return edge;
 }
 
-void edge_setWeight(Edge* edge, double weight) {
-    edge->weight = weight;
+void edge_setWeight(Edge edge, double weight) {
+    edge.weight = weight;
 }
 
-void edge_setDestination(Edge* edge, Node* node) {
-    edge->destination = node;
+void edge_setDestination(Edge edge, Node node) {
+    edge.destination = &node;
 }
 
-Node edge_getDestination(Edge* edge) {
-    return *edge->destination;
+Node edge_getDestination(Edge edge) {
+    return *edge.destination;
 }
 
-double edge_getWeight(Edge* edge) {
-    return edge->weight;
+double edge_getWeight(Edge edge) {
+    return edge.weight;
 }

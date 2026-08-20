@@ -1,5 +1,5 @@
 /*
-  Works fine, no issues found so far (More tests to come)
+  Works fine, no issues found so far
 */
 
 int[5] intArray = [1,2,3,4,5]

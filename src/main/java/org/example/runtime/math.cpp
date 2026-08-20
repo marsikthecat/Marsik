@@ -217,6 +217,7 @@ int randomInt(int min, int max) {
       min = max;
       max = tmp;
     }
+    srand(time(0));
     return (rand() % (max - min + 1)) + min;
 }
 
@@ -226,6 +227,7 @@ double randomDouble(double min, double max) {
       min = max;
       max = tmp;
     }
+    srand(time(0));
     return min + ((double)rand() / RAND_MAX) * (max - min);
 }
 

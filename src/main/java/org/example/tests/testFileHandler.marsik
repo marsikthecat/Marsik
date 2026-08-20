@@ -1,5 +1,5 @@
 /*
-  Conflict string <-> string*
+  Works fine, no issues found so far
 */
 
 string newFileName = "file.txt"

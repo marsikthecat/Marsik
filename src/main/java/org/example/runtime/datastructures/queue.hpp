@@ -23,48 +23,48 @@ Queue<T> init_queue() {
 }
 
 template<typename T>
-void queue_enqueue(Queue<T>* q, const T& value) {
-    if (q->size == DEFAULT_QUEUE_SIZE) {
+void queue_enqueue(Queue<T> q, const T& value) {
+    if (q.size == DEFAULT_QUEUE_SIZE) {
         fprintf(stderr, "ERROR: Size %d of queue exceeded %p\n", DEFAULT_QUEUE_SIZE, value);
         return;
     }
-    q->rear = (q->rear + 1) % DEFAULT_QUEUE_SIZE;
-    q->data[q->rear] = value;
-    q->size++;
+    q.rear = (q.rear + 1) % DEFAULT_QUEUE_SIZE;
+    q.data[q.rear] = value;
+    q.size++;
 }
 
 template<typename T>
-T queue_dequeue(Queue<T>* q) {
-    if (q->size == 0) {
+T queue_dequeue(Queue<T> q) {
+    if (q.size == 0) {
         runtimeError("Queue is empty");
         return T{};
     }
-    T value = q->data[q->front];
-    q->front = (q->front + 1) % DEFAULT_QUEUE_SIZE;
-    q->size--;
+    T value = q.data[q.front];
+    q.front = (q.front + 1) % DEFAULT_QUEUE_SIZE;
+    q.size--;
     return value;
 }
 
 template<typename T>
-T queue_peek(Queue<T>* q) {
-    if (q->size == 0) {
+T queue_peek(Queue<T> q) {
+    if (q.size == 0) {
         runtimeError("Queue is empty");
         return T{};
     }
-    return q->data[q->front];
+    return q.data[q.front];
 }
 
 template<typename T>
-bool queue_isFull(Queue<T>* q) {
-    return q->size == DEFAULT_QUEUE_SIZE;
+bool queue_isFull(Queue<T> q) {
+    return q.size == DEFAULT_QUEUE_SIZE;
 }
 
 template<typename T>
-bool queue_isEmpty(Queue<T>* q) {
-    return q->size == 0;
+bool queue_isEmpty(Queue<T> q) {
+    return q.size == 0;
 }
 
 template<typename T>
-int queue_size(Queue<T>* q) {
-    return q->size;
+int queue_size(Queue<T> q) {
+    return q.size;
 }

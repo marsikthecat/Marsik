@@ -7,7 +7,7 @@
 #define E  2.71828182845904523536
 #define PHI 1.61803398874989484820
 
-int compare(const void *a, const void *b) {
+inline int compare(const void *a, const void *b) {
   int *valA = (int *)a;
   int *valB = (int *)b;
   return *valA - *valB;
@@ -80,7 +80,7 @@ T max(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -99,7 +99,7 @@ T min(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -118,7 +118,7 @@ T sum(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -134,7 +134,7 @@ T avg(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -146,7 +146,7 @@ T median(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -159,7 +159,7 @@ T variance(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -177,7 +177,7 @@ T standardDeviation(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(&nums)) {
+  if (!arr_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }

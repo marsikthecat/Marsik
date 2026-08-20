@@ -13,13 +13,13 @@ public class Utils {
           "SplayArray", "CircularBuffer", "GapBuffer");
 
   public static final List<String> stringMethods = List.of(
-          "setCharAt", "allIndexOf", "firstIndexOf", "lastIndexOf", "stringEquals",
-          "count", "reverseString", "appendChar", "capitalize", "isEqual", "stringIndexOf",
+          "setCharAt", "allIndexOf", "firstIndexOf", "lastIndexOf",
+          "count", "reverse", "append", "capitalize", "stringIndexOf", "stringEquals",
           "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart", "hasWhiteSpace",
           "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric", "capitalize",
           "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "inOnlyUpperCase",
           "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt",
-          "printString", "append", "toUpperCase", "toLowerCase", "trim", "countOccurrence");
+          "toUpperCase", "toLowerCase", "trim", "countOccurrence");
 
   public static final List<String> arrayMethods = List.of(
           "set", "get", "length", "memorySize", "isEmpty",

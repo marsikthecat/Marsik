@@ -1,5 +1,5 @@
 /*
-  Error: Multiple definition of "compare"
+  Works fine, no issues found so far
 */
 
 int a = 7

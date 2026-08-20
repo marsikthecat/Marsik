@@ -12,10 +12,10 @@ string now() {
     return string(ctime(&currentTime));
 }
 
-string currentDateISO() {
+string currentDateTime() {
     time_t now = time(NULL);
     struct tm *t = localtime(&now);
-    char buffer[100];
+    char buffer[20];
     strftime(buffer, sizeof(buffer), "%d-%m-%Y %H:%M:%S", t);
     return string(buffer);
 }
@@ -66,151 +66,111 @@ int currentSeconds() {
     return t->tm_sec;
 }
 
-datetime currentDateTime() {
-    time_t now = time(NULL);
-    struct tm *t = localtime(&now);
-    datetime dt;
-    dt.year = t->tm_year + 1900;
-    dt.month = t->tm_mon + 1;
-    dt.day = t->tm_mday;
-    dt.hour = t->tm_hour;
-    dt.minute = t->tm_min;
-    dt.second = t->tm_sec;
-    return dt;
+int getSeconds(string dt) {
+    return stoi(dt.substr(17, 2));
 }
 
-int getSeconds(datetime* dt) {
-    return dt->second;
+int getMinutes(string dt) {
+    return stoi(dt.substr(14, 2));
 }
 
-int getMinutes(datetime* dt) {
-    return dt->minute;
+int getHours(string dt) {
+    return stoi(dt.substr(11, 2));
 }
 
-int getHours(datetime* dt) {
-    return dt->hour;
+int getDay(string dt) {
+    return stoi(dt.substr(8, 2));
 }
 
-int getDay(datetime* dt) {
-    return dt->day;
+int getMonth(string dt) {
+    return stoi(dt.substr(5, 2));
 }
 
-int getMonth(datetime* dt) {
-    return dt->month;
+int getYear(string dt) {
+    return stoi(dt.substr(0, 4));
 }
 
-int getYear(datetime* dt) {
-    return dt->year;
-}
-
-void setSeconds(datetime *dt, int seconds) {
+void setSeconds(string dt, int seconds) {
     if (seconds < 0 || seconds > 59) {
         runtimeError("Invalid number of seconds");
         return;
     }
-    dt->second = seconds;
+    dt[17] = '0' + seconds / 10;
+    dt[18] = '0' + seconds % 10;
 }
 
-void setMinutes(datetime *dt, int minutes) {
+void setMinutes(string dt, int minutes) {
     if (minutes < 0 || minutes > 59) {
         runtimeError("Invalid number of minutes");
         return;
     }
-    dt->minute = minutes;
+    dt[14] = '0' + minutes / 10;
+    dt[15] = '0' + minutes % 10;
 }
 
-void setHours(datetime *dt, int hours) {
+void setHours(string dt, int hours) {
     if (hours < 0 || hours > 23) {
         runtimeError("Invalid number of hours");
         return;
     }
-    dt->hour = hours;
+    dt[11] = '0' + hours / 10;
+    dt[12] = '0' + hours % 10;
 }
 
-void setDay(datetime *dt, int day) {
+void setDay(string dt, int day) {
     if (day < 1 || day > 31) {
         runtimeError("Invalid number of days");
         return;
     }
-    dt->day = day;
+    dt[8] = '0' + day / 10;
+    dt[9] = '0' + day % 10;
 }
 
-void setMonth(datetime *dt, int month) {
+void setMonth(string dt, int month) {
     if (month < 1 || month > 12) {
         runtimeError("Invalid number of months");
         return;
     }
-    dt->month = month;
+    dt[5] = '0' + month / 10;
+    dt[6] = '0' + month % 10;
 }
 
-void setYear(datetime *dt, int year) {
+void setYear(string dt, int year) {
     if (year < 1900 || year > 2100) {
         runtimeError("Years out of range for Marsik the year-cat");
         return;
     }
-    dt->year = year;
+    dt[0] = '0' + year / 1000;
+    dt[1] = '0' + (year / 100) % 10;
+    dt[2] = '0' + (year / 10) % 10;
+    dt[3] = '0' + year % 10;
 }
 
-bool isBefore(datetime* dt1, datetime* dt2) {
-    if (dt1->year < dt2->year) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month < dt2->month) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month && dt1->day < dt2->day) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month
-         && dt1->day == dt2->day && dt1->hour < dt2->hour) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month
-         && dt1->day == dt2->day && dt1->hour == dt2->hour && dt1->minute < dt2->minute) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month
-         && dt1->day == dt2->day && dt1->hour == dt2->hour && dt1->minute == dt2->minute
-         &&	dt1->second < dt2->second) {
-        return true;
-    }
-    return false;
+bool isBefore(string dt1, string dt2) {
+    return dt1 < dt2;
 }
 
-bool isAfter(datetime* dt1, datetime* dt2) {
-    if (dt1->year > dt2->year) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month > dt2->month) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month && dt1->day > dt2->day) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month
-        && dt1->day == dt2->day && dt1->hour > dt2->hour) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month
-        && dt1->day == dt2->day && dt1->hour == dt2->hour && dt1->minute > dt2->minute) {
-        return true;
-    }
-    if (dt1->year == dt2->year && dt1->month == dt2->month
-         && dt1->day == dt2->day && dt1->hour == dt2->hour && dt1->minute == dt2->minute
-         &&	dt1->second > dt2->second) {
-        return true;
-    }
-    return false;
+bool isAfter(string dt1, string dt2) {
+    return dt1 > dt2;
 }
 
 bool isLeapYear(int year) {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
-string toIsoFormat(datetime* dt) {
-    char buffer[100];
-    snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02d",
-             dt->year, dt->month, dt->day, dt->hour, dt->minute, dt->second);
+string toGermanFormat(string isoDateTime) {
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%02d.%02d.%04d %02d:%02d:%02d",
+            getDay(isoDateTime), getMonth(isoDateTime), getYear(isoDateTime),
+            getHours(isoDateTime), getMinutes(isoDateTime), getSeconds(isoDateTime));
+    return string(buffer);
+}
+
+string toIsoUtcFormat(string isoDateTime) {
+    char buffer[20];
+    snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02dZ",
+            getYear(isoDateTime), getMonth(isoDateTime), getDay(isoDateTime),
+            getHours(isoDateTime), getMinutes(isoDateTime), getSeconds(isoDateTime));
     return string(buffer);
 }
 
@@ -229,13 +189,13 @@ string getCurrentMonthName() {
     return monthName(month);
 }
 
-string dayName(int day) {
+string dayName(int dayOfWeek) {
     const string days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-    if (day < 1 || day > 7) {
+    if (dayOfWeek < 1 || dayOfWeek > 7) {
         runtimeError("Invalid day");
         return string("");
     }
-    return days[day - 1];
+    return days[dayOfWeek - 1];
 }
 
 string getCurrentDayName() {

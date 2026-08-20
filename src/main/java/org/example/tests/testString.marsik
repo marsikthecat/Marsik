@@ -18,7 +18,7 @@ string a = "Hello"
 string b = " World"
 a.append(b)
 printLine(a)
-a.reverseString()
+a.reverse()
 printLine(a)
 
 string nums = "12345"
