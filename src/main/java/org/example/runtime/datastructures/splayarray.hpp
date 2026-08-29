@@ -21,7 +21,7 @@ struct SplayArray {
 };
 
 template<typename T>
-SplayArray<T> splayarray_init() {
+SplayArray<T> init_splayarray() {
     SplayArray<T> arr;
     arr.length = 0;
     for (int i = 0; i < DEFAULT_SPLAY_ARRAY_CAPACITY; i++) {

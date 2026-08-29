@@ -14,21 +14,27 @@
 ```
 
 ## Open:
-
+- Fix: For compiler - adjust method "visit Object_stmt" to handle objects without type holder: 
+- BitSet, GenericList, Graph, Edge, GapBuffer
+- Fix: Add rest of the runtime objects in lookup buildInObjectsDatastructures
+- Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
+- Fix: Investigate and fix heavy errors in hashmap
 
 ## In Progress:
-- Implement support of trees in datastructures (At least Binary- and B-Trees)
+- Feat: Complete tests
+- Feat: Implement support of trees in datastructures (At least Binary- and B-Trees)
 
 ## Complete
-- remove all pointer types in params and pointer accessing
-- Add Pseudo-OOP support in compiler
-- Implement GapBuffer, SplayArray in datastructures
-- Fix weird Error: Multiple definition of "compare" in module "math"
-- Support using strings for Datetime
-- Fix string issues (used cpp strings), strings normally printable
-- Support including variables in scan statement, same as in print statement
-- printLine statement
-- Bump allocator
-- hash function for hashmaps and strings
-- getting day of week function in module "datetime"
-- Random number generator in module "math"
+- Fix: Rename init method for SplayArray to "init_splayarray"
+- Fix: remove all pointer types in params and pointer accessing
+- Feat: Add Pseudo-OOP support in compiler
+- Feat: Implement GapBuffer, SplayArray in datastructures
+- Fix: Error - Multiple definition of "compare" in module "math"
+- Feat: Support using strings for Datetime
+- Fix: String issues (used cpp strings), strings normally printable
+- Feat: Support including variables in scan statement, same as in print statement
+- Feat: PrintLine statement
+- Feat: Bump allocator
+- Feat: Hash function for hashmaps and strings
+- Feat: Getting day of week function in module "datetime"
+- Feat: Random number generator in module "math"

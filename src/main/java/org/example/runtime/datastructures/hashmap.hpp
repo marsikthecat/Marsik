@@ -28,7 +28,7 @@ static unsigned long _hashmap_hash(K key, int capacity) {
 }
 
 template<typename K, typename V>
-static int _hashmap_find_entry(HashMap<K, V> map,const K& key) {
+static int _hashmap_find_entry(HashMap<K, V> map, const K& key) {
     unsigned long index = _hashmap_hash(key, map.capacity);
     unsigned long start_index = index;
 
