@@ -2,13 +2,13 @@
 
 #include <stdbool.h>
 
-typedef struct {
+typedef struct Matrix {
     int rows;
     int colums;
     int** data;
 } Matrix;
 
-Matrix matrix_init(int rows, int columns);
+Matrix init_matrix(int rows, int columns);
 
 int matrix_get(Matrix matrix, int row, int culumn);
 

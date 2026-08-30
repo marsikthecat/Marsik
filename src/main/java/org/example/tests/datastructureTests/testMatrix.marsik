@@ -1,0 +1,12 @@
+/*
+  Works fine, no issues found so far
+*/
+
+Matrix matrix = new Matrix(3, 3)
+matrix.set(0, 0, 2)
+matrix.set(0, 1, 3)
+matrix.set(0, 2, 4)
+printLine("Number of Rows:", matrix.numberOfRows())
+printLine("Number of Columns:", matrix.numberOfColumns())
+printLine("Sum of Matrix:", matrix.sum())
+

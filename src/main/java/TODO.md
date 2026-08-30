@@ -17,11 +17,13 @@
 - Fix: Investigate and fix heavy errors in hashmap
 
 ## In Progress:
-- Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
+
 - Feat: Complete tests
 - Feat: Implement support of trees in datastructures (At least Binary- and B-Trees)
 
 ## Complete
+- Feat: Test and fix Matrix
+- Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
 - Fix: Add rest of the runtime objects in lookup buildInObjectsDatastructures
 - Fix: For compiler - adjust method "visit Object_stmt" to handle objects without type holder:
 - BitSet, GenericList, Graph, Edge, GapBuffer

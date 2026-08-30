@@ -5,7 +5,7 @@
 #include "../allocator/allocator.hpp"
 #include "../error/error.hpp"
 
-Matrix matrix_init(int rows, int columns) {
+Matrix init_matrix(int rows, int columns) {
     Matrix matrix;
     matrix.rows = rows;
     matrix.colums = columns;
@@ -76,7 +76,7 @@ Matrix matrix_add(Matrix matrix, Matrix other) {
       return newMatrix;
     } else {
         runtimeError("Matrix dimensions does not match for addition");
-        return matrix_init(matrix.rows, matrix.colums);
+        return init_matrix(matrix.rows, matrix.colums);
     }
 }
 
@@ -99,12 +99,12 @@ Matrix matrix_multiply(Matrix matrix, Matrix other) {
       return newMatrix;
     } else {
         runtimeError("Matrix dimensions does not match for multiplication");
-        return matrix_init(matrix.rows, matrix.colums);
+        return init_matrix(matrix.rows, matrix.colums);
     }
 }
 
 Matrix matrix_transpose(Matrix matrix) {
-    Matrix transposed = matrix_init(matrix.rows, matrix.colums);
+    Matrix transposed = init_matrix(matrix.rows, matrix.colums);
     for (int i = 0; i < matrix.rows; i++) {
       for (int j = 0; j < matrix.colums; j++) {
         transposed.data[j][i] = matrix.data[i][j];
@@ -114,7 +114,7 @@ Matrix matrix_transpose(Matrix matrix) {
 }
 
 Matrix matrix_clone(Matrix matrix) {
-    Matrix cloned = matrix_init(matrix.rows, matrix.colums);
+    Matrix cloned = init_matrix(matrix.rows, matrix.colums);
     for (int i = 0; i < matrix.rows; i++) {
       for (int j = 0; j < matrix.colums; j++) {
         cloned.data[i][j] = matrix.data[i][j];
