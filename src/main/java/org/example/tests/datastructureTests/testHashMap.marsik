@@ -1,0 +1,17 @@
+/*
+  A lot of errors, some of them look ugly
+*/
+
+HashMap<int> numbers = new HashMap(4)
+numbers.put(1, 10)
+numbers.put(5, 50)
+print("Value for key 1: ", numbers.get(1))
+print("Value for colliding key 5: ", numbers.get(5))
+print("Contains key 1: ", numbers.containsKey(1))
+print("Size: ", numbers.size())
+numbers.put(1, 100)
+print("Updated value for key 1: ", numbers.get(1))
+numbers.remove(1)
+print("Contains key 1 after removal: ", numbers.containsKey(1))
+numbers.clear()
+print("Empty after clear: ", numbers.isEmpty())

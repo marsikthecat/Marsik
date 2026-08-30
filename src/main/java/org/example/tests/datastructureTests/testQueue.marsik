@@ -1,0 +1,12 @@
+/*
+  Works fine, no issues found so far
+*/
+
+Queue<int> queue = new Queue()
+queue.enqueue(10)
+queue.enqueue(20)
+print("Front: ", queue.peek())
+print("Dequeue 1: ", queue.dequeue())
+print("Dequeue 2: ", queue.dequeue())
+print("Empty after dequeues: ", queue.isEmpty())
+print("Size: ", queue.size())

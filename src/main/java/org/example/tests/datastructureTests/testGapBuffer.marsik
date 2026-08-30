@@ -1,0 +1,10 @@
+/*
+  Works fine, no issues found so far
+*/
+
+GapBuffer buffer = new GapBuffer()
+buffer.insert("Marsik", 0)
+buffer.insert(" Lang", 6)
+buffer.insert(" is", 6)
+buffer.moveCursor(0)
+buffer.insert("The ", 0)

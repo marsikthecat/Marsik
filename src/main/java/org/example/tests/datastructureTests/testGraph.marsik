@@ -1,0 +1,21 @@
+/*
+  Works fine, no issues found so far
+*/
+
+Graph graph = new Graph()
+Node origin = new Node("origin")
+Node destination = new Node("destination")
+Edge route = new Edge("route")
+route.setWeight(2.5)
+route.setDestination(destination)
+origin.addEdge(route)
+graph.addNode(origin)
+graph.addNode(destination)
+print("Graph contains origin: ", graph.containsNode("origin"))
+print("Origin contains route: ", origin.containsEdge("route"))
+print("Origin edge count: ", origin.getNumberOfEdges())
+print("Route weight: ", route.getWeight())
+origin.removeEdge(route)
+graph.removeNode(destination)
+print("Origin contains route after removal: ", origin.containsEdge("route"))
+print("Graph contains destination after removal: ", graph.containsNode("destination"))

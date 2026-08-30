@@ -1,0 +1,18 @@
+/*
+  Works fine, no issues found so far
+*/
+
+SplayArray<int> values = new SplayArray()
+values.set(0, 3)
+values.set(1, 1)
+values.set(2, 2)
+print("Length: ", values.length())
+print("Value at index 1: ", values.get(1))
+print("Index of 2: ", values.indexOf(2))
+values.sort()
+print("Sorted values: ")
+values.printArray()
+values.reverse()
+print("Reversed values: ")
+values.printArray()
+print("Most appearing value: ", values.mostAppearingElement())

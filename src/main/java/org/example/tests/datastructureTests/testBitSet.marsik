@@ -1,0 +1,17 @@
+/*
+   Error: variable 'main()::BitSet bits' has initializer but incomplete type
+*/
+
+BitSet bits = new BitSet()
+print("Initially empty: ", bits.isEmpty())
+bits.set(0)
+bits.set(3)
+print("Bit 0: ", bits.get(0))
+print("Bit 3: ", bits.get(3))
+print("Set bits: ", bits.count())
+bits.toggle(3)
+print("After toggling bit 3: ", bits.get(3))
+bits.setAll()
+print("Full after setAll: ", bits.isFull())
+bits.clearAll()
+print("Empty after clearAll: ", bits.isEmpty())

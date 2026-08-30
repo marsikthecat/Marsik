@@ -1,0 +1,16 @@
+/*
+  error: reference to 'hash' is ambiguous
+  no numberOfKeys in constructor, check whether marsik code can inject it from constructor parameter
+*/
+
+PerfectHashMap<int> values = new PerfectHashMap(16)
+values.put("answer", 42)
+values.put("year", 2026)
+print("Answer: ", values.get("answer"))
+print("Year: ", values.get("year"))
+print("Contains answer: ", values.containsKey("answer"))
+print("Size: ", values.size())
+values.remove("answer")
+print("Contains answer after removal: ", values.containsKey("answer"))
+values.clear()
+print("Empty after clear: ", values.isEmpty())

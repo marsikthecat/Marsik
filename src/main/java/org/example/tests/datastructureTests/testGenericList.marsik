@@ -1,0 +1,17 @@
+/*
+  Works fine, no issues found so far
+*/
+
+GenericList values = new GenericList()
+values.addInt(4)
+values.addDouble(2.5)
+values.addString("Marsik")
+print("Size: ", values.size())
+print("Type at index 0: ", values.getType(0))
+print("Type at index 1: ", values.getType(1))
+print("Type at index 2: ", values.getType(2))
+print("All same type: ", values.allSameType())
+values.remove(1)
+print("Size after remove: ", values.size())
+values.clear()
+print("Empty after clear: ", values.isEmpty())

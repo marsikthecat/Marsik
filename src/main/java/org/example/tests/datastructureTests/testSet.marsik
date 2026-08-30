@@ -1,0 +1,14 @@
+/*
+  Works fine, no issues found so far
+*/
+
+Set<int> values = new Set(4)
+print("Add 7: ", values.add(7))
+print("Add duplicate 7: ", values.add(7))
+values.add(3)
+print("Contains 7: ", values.contains(7))
+print("Size: ", values.size())
+values.remove(7)
+print("Contains 7 after removal: ", values.contains(7))
+values.clear()
+print("Empty after clear: ", values.isEmpty())

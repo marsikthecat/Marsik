@@ -1,0 +1,12 @@
+/*
+  Works fine, no issues found so far
+*/
+
+Stack<int> stack = new Stack()
+stack.push(10)
+stack.push(20)
+print("Top: ", stack.peek())
+print("Pop 1: ", stack.pop())
+print("Pop 2: ", stack.pop())
+print("Empty after pops: ", stack.isEmpty())
+print("Size: ", stack.size())
