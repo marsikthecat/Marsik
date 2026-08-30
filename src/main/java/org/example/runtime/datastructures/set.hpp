@@ -20,7 +20,7 @@ Set<T> init_set(int capacity) {
     if (capacity < 0) {
         capacity = DEFAULT_SET_CAPACITY;
     }
-    set.data = allocateFromMarsik(capacity * sizeof(T));
+    set.data = (T*)allocateFromMarsik(capacity * sizeof(T));
     set.size = 0;
     set.capacity = capacity;
     return set;
@@ -35,7 +35,6 @@ bool set_add(Set<T> set, const T& value) {
         runtimeError("Set is full");
         return false;
     }
-    _set_ensure_capacity(set);
     set.data[set.size++] = value;
     return true;
 }

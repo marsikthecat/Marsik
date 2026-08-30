@@ -14,10 +14,10 @@
 ```
 
 ## Open:
-- Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
 - Fix: Investigate and fix heavy errors in hashmap
 
 ## In Progress:
+- Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
 - Feat: Complete tests
 - Feat: Implement support of trees in datastructures (At least Binary- and B-Trees)
 

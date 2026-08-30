@@ -28,7 +28,7 @@ template<typename V>
 PerfectHashMap<V> init_perfecthashmap(int numberOfKeys) {
     PerfectHashMap<V> map;
     map.usedIndices = init_set(numberOfKeys);
-    map.entries = allocateFromMarsik(numberOfKeys * sizeof(PerfectHashMapEntry<V>));
+    map.entries = (PerfectHashMapEntry*)(numberOfKeys * sizeof(PerfectHashMapEntry<V>));
     map.size = 0;
     map.keysetSize = numberOfKeys;
     return map;
@@ -38,7 +38,7 @@ template<typename V>
 bool perfecthashmap_defineKey(PerfectHashMap<V> map, const string& key) {
   int index = hash(key);
   if (set_contains(map.usedIndices, index)) {
-    map.entries = allocateFromMarsik(map.entries, (map.keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
+    map.entries = (PerfectHashMapEntry*)allocateFromMarsik(map.entries, (map.keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
     map.keysetSize *= 2;
     map.entries[index].key = key;
   } else {

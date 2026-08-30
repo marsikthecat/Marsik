@@ -6,7 +6,7 @@ typedef struct Bitset {
     unsigned char bits;
 } Bitset;
 
-Bitset init_bitSet();
+Bitset init_bitset();
 
 void bitset_set(Bitset bs, int index);
 

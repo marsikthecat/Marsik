@@ -9,7 +9,7 @@
 #define DEFAULT_HASHMAP_CAPACITY 10
 
 template<typename K, typename V>
-struct  HashMapEntry {
+struct HashMapEntry {
     K key;
     V value;
     bool used;
@@ -28,7 +28,7 @@ static unsigned long _hashmap_hash(K key, int capacity) {
 }
 
 template<typename K, typename V>
-static int _hashmap_find_entry(HashMap<K, V> map, const K& key) {
+static int _hashmap_find_entry(HashMap<K, V> map,const K& key) {
     unsigned long index = _hashmap_hash(key, map.capacity);
     unsigned long start_index = index;
 
@@ -66,7 +66,7 @@ static void _hashmap_rehash(HashMap<K, V> map, int new_capacity) {
     HashMapEntry* old_entries = map.entries;
     int old_capacity = map.capacity;
 
-    map.entries = allocateFromMarsik(new_capacity * sizeof(HashMapEntry));
+    map.entries = (HashMapEntry*)(new_capacity * sizeof(HashMapEntry));
     for (int i = 0; i < new_capacity; i++) {
         map.entries[i].key = NULL;
         map.entries[i].value = NULL;
@@ -89,7 +89,7 @@ HashMap<K, V> init_hashmap(int capacity) {
     if (capacity < 1) {
         capacity = DEFAULT_HASHMAP_CAPACITY;
     }
-    map.entries = allocateFromMarsik(capacity * sizeof(HashMapEntry));
+    map.entries = (HashMapEntry)*(capacity * sizeof(HashMapEntry));
     for (int i = 0; i < capacity; i++) {
         map.entries[i].key = NULL;
         map.entries[i].value = NULL;

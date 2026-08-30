@@ -126,7 +126,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       }
       String parameters = String.join(", ", args);
       String type = isTyped ? "<" + ctx.type_label().getText() + ">" : "";
-      code.append("struct ").append(objectType).append(type)
+      code.append("struct ").append(objectType).append(" ").append(type)
               .append(variable).append(" = init_").append(objectType.toLowerCase()).append(type).append("(")
               .append(parameters).append(");\n");
     } else {
@@ -936,7 +936,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    /* compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testString.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");*/
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testList.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testSplayArray.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }
