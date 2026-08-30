@@ -17,7 +17,7 @@ struct GapBuffer {
     int size;
 };
 
-GapBuffer gapbuffer_init() {
+GapBuffer init_gapbuffer() {
     GapBuffer buffer;
     buffer.gapSize = DEFAULT_GAP_BUFFER_CAPACITY;
     buffer.gapLeft = 0;

@@ -1,27 +1,27 @@
 package org.example.compiler;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class Utils {
 
-  // All instantiatable datastructures objects of the marsik runtime
-  public static final List<String> buildInObjectsDatastructures = List.of(
-          "Array", "Stack", "SparseArray", "Set", "Queue", "List",
-          "HashMap", "PerfectHashMap", "BitSet", "Array", "BinaryTree",
-          "AvlTree", "Btree", "SplayTree", "Graph", "WeightedGraph",
-          "SplayArray", "CircularBuffer", "GapBuffer");
+  public static final Set<String> buildInTypedObjects = Set.of(
+          "HashMap", "List", "PerfectHashMap", "Queue", "Set", "SplayArray", "Stack",
+          "AvlTree", "BinaryTree", "TreeNode");
 
-  public static final List<String> stringMethods = List.of(
+  public static final Set<String> getBuildInUnTypedObjects = Set.of(
+          "BitSet", "GapBuffer", "GenericList", "Node", "Edge", "Graph", "Matrix");
+
+  public static final Set<String> stringMethods = Set.of(
           "setCharAt", "allIndexOf", "firstIndexOf", "lastIndexOf",
           "count", "reverse", "append", "capitalize", "stringIndexOf", "stringEquals",
           "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart", "hasWhiteSpace",
-          "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric", "capitalize",
+          "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric",
           "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "inOnlyUpperCase",
           "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt",
           "toUpperCase", "toLowerCase", "trim", "countOccurrence");
 
-  public static final List<String> arrayMethods = List.of(
+  public static final Set<String> arrayMethods = Set.of(
           "set", "get", "length", "memorySize", "isEmpty",
           "contains", "indexOf", "getRandomElement", "slice",
           "reverse", "removeDuplicates", "removeDuplicateOf", "sort",
@@ -29,8 +29,8 @@ public class Utils {
           "isNumericArray"
   );
 
-  public static final Map<String, List<String>> libraryMethodsLookup = Map.of(
-          "DateTime", List.of(
+  public static final Map<String, Set<String>> libraryMethodsLookup = Map.of(
+          "DateTime", Set.of(
                   "now", "currentDateISO", "currentMillis",
                   "currentYear", "currentMonth", "currentDay",
                   "currentHour", "currentMinute", "currentSeconds",
@@ -39,11 +39,11 @@ public class Utils {
                   "setHours", "setDay", "setMonth", "setYear", "isLeapYear",
                   "isBefore", "isAfter", "toIsoFormat", "monthName", "dayName"
           ),
-          "FileHandler", List.of(
+          "FileHandler", Set.of(
                   "writeContentToFile", "appendContentToFile", "clearFile",
                   "doesFileExist", "deleteFile", "readFile", "createFile"
           ),
-          "Math", List.of(
+          "Math", Set.of(
                   "roundBasic", "roundUp", "roundDown", "ln", "logarithm", "ePowX",
                   "gcd", "scd", "modInverse", "factorial", "fibonacci", "hypotenuse", "hypotenuse3D",
                   "isEven", "isPrime", "areCongruentModuloM", "calculateCapital", "increasingSum",
@@ -51,10 +51,10 @@ public class Utils {
                   "binomialCoefficient", "squareRoot", "cubeRoot", "toRadians", "toDegrees", "posDifference",
                   "sine", "cosine", "tangent", "asine", "aconsine", "atangent", "pi", "e", "phi"
           ),
-          "Crypto", List.of(
+          "Crypto", Set.of(
                   "encrypt", "decrypt", "generateKey"
           ),
-          "Caster", List.of("intToDouble", "intToChar", "intToString",
+          "Caster", Set.of("intToDouble", "intToChar", "intToString",
                   "booleanToString", "doubleToInt", "doubleToString", "stringToInt", "stringToBoolean",
                   "stringToDouble", "booleanToInt", "intToBoolean"
           )

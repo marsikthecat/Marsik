@@ -14,9 +14,6 @@
 ```
 
 ## Open:
-- Fix: For compiler - adjust method "visit Object_stmt" to handle objects without type holder: 
-- BitSet, GenericList, Graph, Edge, GapBuffer
-- Fix: Add rest of the runtime objects in lookup buildInObjectsDatastructures
 - Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
 - Fix: Investigate and fix heavy errors in hashmap
 
@@ -25,6 +22,9 @@
 - Feat: Implement support of trees in datastructures (At least Binary- and B-Trees)
 
 ## Complete
+- Fix: Add rest of the runtime objects in lookup buildInObjectsDatastructures
+- Fix: For compiler - adjust method "visit Object_stmt" to handle objects without type holder:
+- BitSet, GenericList, Graph, Edge, GapBuffer
 - Fix: Rename init method for SplayArray to "init_splayarray"
 - Fix: remove all pointer types in params and pointer accessing
 - Feat: Add Pseudo-OOP support in compiler

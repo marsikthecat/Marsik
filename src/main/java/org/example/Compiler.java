@@ -72,12 +72,11 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String objectType = ctx.NAME(0).getText();
     String variable = ctx.NAME(1).getText();
     String newObjectName = ctx.NAME(2).getText();
-
+    boolean isTyped = false;
     if (objectType.equals(newObjectName)) {
       // Check if it's a custom object
       if (customObjects.containsKey(objectType)) {
         variables.put(variable, new ValueHolder(objectType, true));
-
         // Get arguments and convert them properly
         List<String> args = new ArrayList<>();
         if (ctx.arguments() != null) {
@@ -89,29 +88,47 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
         code.append("struct ").append(objectType).append(" ").append(variable).append(" = init_")
                 .append(objectType.toLowerCase()).append("(").append(parameters).append(");\n");
-      } else if (Utils.buildInObjectsDatastructures.contains(objectType)) {
-        // Handle built-in objects
-        if (ctx.type_label() != null && !objectType.equals("BitSet") && !objectType.equals("GenericList")) {
-          imports.add("#include \"../runtime/datastructures/" + objectType.toLowerCase() + ".hpp\"\n");
-        } else {
-          throw new RuntimeException("Unknown Type of Elements detected");
-        }
-        variables.put(variable, new ValueHolder(objectType, true));
-
-        List<String> args = new ArrayList<>();
-        if (ctx.arguments() != null) {
-          for (var e : ctx.arguments().expr()) {
-            args.add(visit(e));
-          }
-        }
-        String parameters = String.join(", ", args);
-
-        code.append("struct ").append(objectType).append("<").append(ctx.type_label().getText()).append("> ")
-                .append(variable).append(" = init_").append(objectType.toLowerCase()).append("<").
-                append(ctx.type_label().getText()).append(">(").append(parameters).append(");\n");
       } else {
-        throw new RuntimeException("Unknown object type: " + objectType);
+
+        if (Utils.buildInTypedObjects.contains(objectType)) {
+          if (ctx.type_label() != null) {
+            StringBuilder importString = new StringBuilder("#include \"../runtime/datastructures/");
+            if (objectType.equals("AvlTree") || objectType.equals("BinaryTree") || objectType.equals("TreeNode")) {
+              importString.append("trees/");
+            }
+            importString.append(objectType.toLowerCase()).append(".hpp\"\n");
+            imports.add(importString.toString());
+            isTyped = true;
+          } else {
+            throw new RuntimeException("Type is not specified");
+          }
+        } else if (Utils.getBuildInUnTypedObjects.contains(objectType)) {
+            StringBuilder importString = new StringBuilder("#include \"");
+            if (objectType.equals("Edge") || objectType.equals("Graph") || objectType.equals("Node")) {
+              importString.append("../runtime/datastructures/graphs/");
+            } else if (objectType.equals("Matrix")) {
+              importString.append("../runtime/extra/");
+            } else {
+              importString.append("../runtime/datastructures/");
+            }
+            importString.append(objectType.toLowerCase()).append(".hpp\"\n");
+            imports.add(importString.toString());
+          } else {
+            throw new RuntimeException("Unknown Type of Elements detected");
+          }
       }
+      variables.put(variable, new ValueHolder(objectType, true));
+      List<String> args = new ArrayList<>();
+      if (ctx.arguments() != null) {
+        for (var e : ctx.arguments().expr()) {
+          args.add(visit(e));
+        }
+      }
+      String parameters = String.join(", ", args);
+      String type = isTyped ? "<" + ctx.type_label().getText() + ">" : "";
+      code.append("struct ").append(objectType).append(type)
+              .append(variable).append(" = init_").append(objectType.toLowerCase()).append(type).append("(")
+              .append(parameters).append(");\n");
     } else {
       throw new RuntimeException("Object " + objectType + " and " + newObjectName + " do not match");
     }
@@ -172,7 +189,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
                 + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
       }
       // Apply naming convention: [objecttype]_[method] for built-in objects
-      if (Utils.buildInObjectsDatastructures.contains(type) || type.equals("array")) {
+      if (Utils.buildInTypedObjects.contains(type) || Utils.getBuildInUnTypedObjects.contains(type) || type.equals("array")) {
         methodPrefix = type.toLowerCase() + "_";
       }
       if (Utils.stringMethods.contains(type) || type.equals("string")) {
@@ -919,7 +936,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    /* compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testString.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");*/
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testGapBuffer.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testList.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }
