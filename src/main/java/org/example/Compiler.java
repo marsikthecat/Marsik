@@ -1,23 +1,34 @@
 package org.example;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.example.compiler.*;
-import org.example.org.example.MarsikBaseVisitor;
-import org.example.org.example.MarsikLexer;
-import org.example.org.example.MarsikParser;
+import org.example.compiler.ClassHolder;
+import org.example.compiler.CustomObjectGenerator;
+import org.example.compiler.CustomObjectHolder;
+import org.example.compiler.FieldHolder;
+import org.example.compiler.GeneratedFilesTracker;
+import org.example.compiler.MethodHolder;
+import org.example.compiler.ParamHolder;
+import org.example.compiler.Utils;
+import org.example.compiler.ValueHolder;
+import org.example.compiler.generated.MarsikBaseVisitor;
+import org.example.compiler.generated.MarsikLexer;
+import org.example.compiler.generated.MarsikParser;
 
-/**
- * Transforms marsik-code into java code and inserts it in a file.
- */
 public class Compiler extends MarsikBaseVisitor<String> {
 
   public final HashMap<String, ValueHolder> variables = new HashMap<>();
@@ -932,9 +943,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
    * Compiles all generated .c/c++ files in the out folder using g++;
    */
   static void main(String[] args) throws IOException, InterruptedException {
-
-   /* compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testString.marsik",
-            "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");*/
 
     compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testPerfectHashMap.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");

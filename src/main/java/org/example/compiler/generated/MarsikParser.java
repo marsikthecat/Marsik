@@ -1,15 +1,17 @@
-// Generated from C:/Marsik/MarsikLang/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
-package org.example.org.example;
+// Generated from c:/Marsik/MarsikLang/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.1
+package org.example.compiler.generated;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.*;
 import org.antlr.v4.runtime.tree.*;
-
 import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
-@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue", "this-escape"})
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast", "CheckReturnValue"})
 public class MarsikParser extends Parser {
-	static { RuntimeMetaData.checkVersion("4.13.2", RuntimeMetaData.VERSION); }
+	static { RuntimeMetaData.checkVersion("4.13.1", RuntimeMetaData.VERSION); }
 
 	protected static final DFA[] _decisionToDFA;
 	protected static final PredictionContextCache _sharedContextCache =
@@ -148,8 +150,16 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_program; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterProgram(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitProgram(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof MarsikVisitor) return ((MarsikVisitor<? extends T>)visitor).visitProgram(this);
+			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitProgram(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -245,6 +255,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_type; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterType(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitType(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitType(this);
 			else return visitor.visitChildren(this);
@@ -293,6 +311,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_type_label; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterType_label(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitType_label(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitType_label(this);
@@ -391,6 +417,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterStmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitStmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitStmt(this);
@@ -557,6 +591,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_method_call; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterMethod_call(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitMethod_call(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitMethod_call(this);
 			else return visitor.visitChildren(this);
@@ -641,6 +683,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_object_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterObject_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitObject_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitObject_stmt(this);
@@ -747,6 +797,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_var_decl; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterVar_decl(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitVar_decl(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitVar_decl(this);
 			else return visitor.visitChildren(this);
@@ -842,6 +900,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_const_decl; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterConst_decl(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitConst_decl(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitConst_decl(this);
 			else return visitor.visitChildren(this);
@@ -897,6 +963,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_assign_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterAssign_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitAssign_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitAssign_stmt(this);
@@ -969,6 +1043,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_inc_stmt; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterInc_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitInc_stmt(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitInc_stmt(this);
 			else return visitor.visitChildren(this);
@@ -1017,6 +1099,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_dec_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterDec_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitDec_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitDec_stmt(this);
@@ -1087,6 +1177,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_array_decl; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterArray_decl(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitArray_decl(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitArray_decl(this);
@@ -1177,6 +1275,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_funcdef; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterFuncdef(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitFuncdef(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitFuncdef(this);
 			else return visitor.visitChildren(this);
@@ -1254,6 +1360,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_parameters; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterParameters(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitParameters(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitParameters(this);
 			else return visitor.visitChildren(this);
@@ -1309,6 +1423,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_parameter; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterParameter(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitParameter(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitParameter(this);
 			else return visitor.visitChildren(this);
@@ -1357,6 +1479,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_if_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterIf_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitIf_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitIf_stmt(this);
@@ -1426,6 +1556,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_while_stmt; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterWhile_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitWhile_stmt(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitWhile_stmt(this);
 			else return visitor.visitChildren(this);
@@ -1491,6 +1629,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_block; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterBlock(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitBlock(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitBlock(this);
@@ -1563,6 +1709,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_for_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterFor_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitFor_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitFor_stmt(this);
@@ -1645,6 +1799,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_for_init; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterFor_init(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitFor_init(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitFor_init(this);
 			else return visitor.visitChildren(this);
@@ -1705,6 +1867,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_for_update; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterFor_update(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitFor_update(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitFor_update(this);
 			else return visitor.visitChildren(this);
@@ -1755,6 +1925,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_return_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterReturn_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitReturn_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitReturn_stmt(this);
@@ -1812,6 +1990,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_print_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterPrint_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitPrint_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitPrint_stmt(this);
@@ -1883,6 +2069,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_println_stmt; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterPrintln_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitPrintln_stmt(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitPrintln_stmt(this);
 			else return visitor.visitChildren(this);
@@ -1953,6 +2147,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_scan_stmt; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterScan_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitScan_stmt(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitScan_stmt(this);
 			else return visitor.visitChildren(this);
@@ -2014,6 +2216,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_print_arg; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterPrint_arg(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitPrint_arg(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitPrint_arg(this);
 			else return visitor.visitChildren(this);
@@ -2064,6 +2274,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_exit_stmt; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterExit_stmt(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitExit_stmt(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitExit_stmt(this);
@@ -2140,6 +2358,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_arguments; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterArguments(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitArguments(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitArguments(this);
 			else return visitor.visitChildren(this);
@@ -2194,6 +2420,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_expr; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterExpr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitExpr(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitExpr(this);
 			else return visitor.visitChildren(this);
@@ -2233,6 +2467,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_or_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterOr_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitOr_expr(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitOr_expr(this);
@@ -2290,6 +2532,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_and_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterAnd_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitAnd_expr(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitAnd_expr(this);
@@ -2355,6 +2605,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_equality_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterEquality_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitEquality_expr(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitEquality_expr(this);
@@ -2437,6 +2695,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_relational_expr; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterRelational_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitRelational_expr(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitRelational_expr(this);
 			else return visitor.visitChildren(this);
@@ -2509,6 +2775,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_additive_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterAdditive_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitAdditive_expr(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitAdditive_expr(this);
@@ -2590,6 +2864,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_multiplicative_expr; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterMultiplicative_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitMultiplicative_expr(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitMultiplicative_expr(this);
 			else return visitor.visitChildren(this);
@@ -2656,6 +2938,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_unary_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterUnary_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitUnary_expr(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitUnary_expr(this);
@@ -2733,6 +3023,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_power_expr; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterPower_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitPower_expr(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitPower_expr(this);
 			else return visitor.visitChildren(this);
@@ -2794,6 +3092,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_atom_expr; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterAtom_expr(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitAtom_expr(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitAtom_expr(this);
@@ -2904,6 +3210,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_class_def; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterClass_def(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitClass_def(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitClass_def(this);
 			else return visitor.visitChildren(this);
@@ -2968,6 +3282,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_class_member; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterClass_member(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitClass_member(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitClass_member(this);
@@ -3047,6 +3369,14 @@ public class MarsikParser extends Parser {
 		}
 		@Override public int getRuleIndex() { return RULE_field_decl; }
 		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterField_decl(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitField_decl(this);
+		}
+		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitField_decl(this);
 			else return visitor.visitChildren(this);
@@ -3115,6 +3445,14 @@ public class MarsikParser extends Parser {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_method_decl; }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).enterMethod_decl(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof MarsikListener ) ((MarsikListener)listener).exitMethod_decl(this);
+		}
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
 			if ( visitor instanceof MarsikVisitor ) return ((MarsikVisitor<? extends T>)visitor).visitMethod_decl(this);

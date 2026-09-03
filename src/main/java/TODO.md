@@ -14,10 +14,10 @@
 ```
 
 ## Open:
-- Refactor: Compiler, Lookup and Utils
 - Fix: Key-Value insertion not supported by Compiler
 
 ## In Progress:
+- Refactor: Compiler, Lookup and Utils
 - Feat: Complete tests
 
 ## Complete

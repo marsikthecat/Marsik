@@ -1,5 +1,5 @@
-// Generated from C:/Marsik/MarsikLang/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.2
-package org.example.org.example;
+// Generated from c:/Marsik/MarsikLang/src/main/java/org/example/Marsik.g4 by ANTLR 4.13.1
+package org.example.compiler.generated;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 /**
