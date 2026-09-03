@@ -936,7 +936,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    /* compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testString.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");*/
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testMatrix.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testPerfectHashMap.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }

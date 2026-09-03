@@ -2,7 +2,7 @@
 
 ## Problems:
 - Can't handle negative numbers in static array (grammar error)
-- Matrix not supported in marsik code, only internally
+- Thread handling no supported
 
 ## Discussion and Ideas:
 - BabyInt remove?
@@ -14,14 +14,17 @@
 ```
 
 ## Open:
-- Fix: Investigate and fix heavy errors in hashmap
+- Refactor: Compiler, Lookup and Utils
+- Fix: Key-Value insertion not supported by Compiler
 
 ## In Progress:
-
 - Feat: Complete tests
-- Feat: Implement support of trees in datastructures (At least Binary- and B-Trees)
 
 ## Complete
+- Fix: Investigate and fix heavy errors in hashmap and perfectHashmap
+- Feat: More methods for string
+- Fix: Typos across the whole runtime (e.g. "culumn" instead column)
+- Feat: Implement support of trees in datastructures (At least Binary- and AVL-Trees)
 - Feat: Test and fix Matrix
 - Fix: Add cast of allocation in Set, PerfectHashMap, HashMap
 - Fix: Add rest of the runtime objects in lookup buildInObjectsDatastructures

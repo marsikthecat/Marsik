@@ -24,58 +24,75 @@ struct PerfectHashMap {
     int keysetSize;
 };
 
+static unsigned long _perfecthashmap_hash(const string& key, int keysetSize) {
+    return std::hash<string>{}(key) % keysetSize;
+}
+
 template<typename V>
 PerfectHashMap<V> init_perfecthashmap(int numberOfKeys) {
     PerfectHashMap<V> map;
-    map.usedIndices = init_set(numberOfKeys);
-    map.entries = (PerfectHashMapEntry*)(numberOfKeys * sizeof(PerfectHashMapEntry<V>));
+    if (numberOfKeys < 1) {
+        numberOfKeys = 1;
+    }
+    map.usedIndices = init_set<int>(numberOfKeys);
+    map.entries = (PerfectHashMapEntry<V>*)allocateFromMarsik(numberOfKeys * sizeof(PerfectHashMapEntry<V>));
     map.size = 0;
     map.keysetSize = numberOfKeys;
     return map;
 }
 
 template<typename V>
-bool perfecthashmap_defineKey(PerfectHashMap<V> map, const string& key) {
-  int index = hash(key);
-  if (set_contains(map.usedIndices, index)) {
-    map.entries = (PerfectHashMapEntry*)allocateFromMarsik(map.entries, (map.keysetSize * 2) * sizeof(PerfectHashMapEntry<V>));
-    map.keysetSize *= 2;
+bool perfecthashmap_defineKey(PerfectHashMap<V>& map, const string& key) {
+    int index = _perfecthashmap_hash(key, map.keysetSize);
+    if (set_contains(map.usedIndices, index)) {
+        return false;
+    }
     map.entries[index].key = key;
-  } else {
-    PerfectHashMapEntry<V> entry;
-    entry.key = key;
+    map.entries[index].value = V();
     set_add(map.usedIndices, index);
-  }
-  set_add(map.usedIndices, index);
-}
-
-static unsigned long hash(string key, int keysetSize) {
-    return (unsigned long)key.c_str() % keysetSize;
-}
-
-template<typename V>
-bool perfecthashmap_put(PerfectHashMap<V> map, const string& key, V value) {
-    int index = hash(key, map.keysetSize);
-    PerfectHashMapEntry<V> entry;
-    entry.key = key;
-    entry.value = value;
-    map.entries[index] = entry;
-}
-
-template<typename V>
-V perfecthashmap_get(PerfectHashMap<V> map, const string& key) {
-    return map.entries[hash(key, map.keysetSize)].value;
-}
-
-template<typename V>
-bool perfecthashmap_remove(PerfectHashMap<V> map, const string& key) {
-    map.entries[hash(key, map.keysetSize)] = (PerfectHashMapEntry<V>) { .key = NULL, .value = NULL };
+    map.size++;
     return true;
 }
 
 template<typename V>
-bool perfecthashmap_containsKey(PerfectHashMap<V> map, const string& key) {
-    return set_contains(map.usedIndices, hash(key, map.keysetSize));
+bool perfecthashmap_put(PerfectHashMap<V>& map, const string& key, V value) {
+    int index = _perfecthashmap_hash(key, map.keysetSize);
+    if (!set_contains(map.usedIndices, index) || map.entries[index].key != key) {
+        return false;
+    }
+    PerfectHashMapEntry<V> entry;
+    entry.key = key;
+    entry.value = value;
+    map.entries[index] = entry;
+    return true;
+}
+
+template<typename V>
+V perfecthashmap_get(const PerfectHashMap<V>& map, const string& key) {
+    int index = _perfecthashmap_hash(key, map.keysetSize);
+    if (!set_contains(map.usedIndices, index) || map.entries[index].key != key) {
+        return V();
+    }
+    return map.entries[index].value;
+}
+
+template<typename V>
+bool perfecthashmap_remove(PerfectHashMap<V>& map, const string& key) {
+    int index = _perfecthashmap_hash(key, map.keysetSize);
+    if (!set_contains(map.usedIndices, index) || map.entries[index].key != key) {
+        return false;
+    }
+    map.entries[index].key = string();
+    map.entries[index].value = V();
+    set_remove(map.usedIndices, index);
+    map.size--;
+    return true;
+}
+
+template<typename V>
+bool perfecthashmap_containsKey(const PerfectHashMap<V>& map, const string& key) {
+    int index = _perfecthashmap_hash(key, map.keysetSize);
+    return set_contains(map.usedIndices, index) && map.entries[index].key == key;
 }
 
 template<typename V>
@@ -94,10 +111,11 @@ int perfecthashmap_capacity(PerfectHashMap<V> map) {
 }
 
 template<typename V>
-void perfecthashmap_clear(PerfectHashMap<V> map) {
+void perfecthashmap_clear(PerfectHashMap<V>& map) {
     for (int i = 0; i < map.keysetSize; i++) {
-        map.entries[i].key = NULL;
-        map.entries[i].value = NULL;
+        map.entries[i].key = string();
+        map.entries[i].value = V();
     }
+    set_clear(map.usedIndices);
     map.size = 0;
 }
