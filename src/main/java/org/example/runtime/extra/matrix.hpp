@@ -2,15 +2,15 @@
 
 #include <stdbool.h>
 
-typedef struct Matrix {
+typedef struct Matrix{
     int rows;
-    int colums;
+    int columns;
     int** data;
 } Matrix;
 
 Matrix init_matrix(int rows, int columns);
 
-int matrix_get(Matrix matrix, int row, int culumn);
+int matrix_get(Matrix matrix, int row, int column);
 
 void matrix_set(Matrix matrix, int row, int column, int value);
 

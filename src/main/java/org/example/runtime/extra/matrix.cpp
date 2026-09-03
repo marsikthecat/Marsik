@@ -8,7 +8,7 @@
 Matrix init_matrix(int rows, int columns) {
     Matrix matrix;
     matrix.rows = rows;
-    matrix.colums = columns;
+    matrix.columns = columns;
     matrix.data = (int**)allocateFromMarsik(rows * sizeof(int*));
     for (int i = 0; i < rows; i++) {
         matrix.data[i] = (int*)allocateFromMarsik(columns * sizeof(int));
@@ -24,7 +24,7 @@ int matrix_get(Matrix matrix, int row, int column) {
         runtimeError("Row does not match matrix");
         return -1;
     }
-    if (column < 0 || column > matrix.colums ) {
+    if (column < 0 || column > matrix.columns ) {
         runtimeError("Column does not match matrix");
         return -1;
     }
@@ -36,7 +36,7 @@ void matrix_set(Matrix matrix, int row, int column, int value) {
         runtimeError("Row does not match matrix");
         return;
     }
-    if (column < 0 || column > matrix.colums ) {
+    if (column < 0 || column > matrix.columns ) {
         runtimeError("Column does not match matrix");
         return;
     }
@@ -48,13 +48,13 @@ int matrix_numberOfRows(Matrix matrix) {
 }
 
 int matrix_numberOfColumns(Matrix matrix) {
-    return matrix.colums;
+    return matrix.columns;
 }
 
 int matrix_sum(Matrix matrix) {
     int sum = 0;
     for (int i = 0; i < matrix.rows; i++) {
-        for (int j = 0; j < matrix.colums; j++) {
+        for (int j = 0; j < matrix.columns; j++) {
             sum += matrix.data[i][j];
         }
     }
@@ -62,35 +62,35 @@ int matrix_sum(Matrix matrix) {
 }
 
 Matrix matrix_add(Matrix matrix, Matrix other) {
-    if (matrix.rows == other.rows && matrix.colums == other.colums) {
+    if (matrix.rows == other.rows && matrix.columns == other.columns) {
         Matrix newMatrix;
         newMatrix.data = (int**)allocateFromMarsik(matrix.rows * sizeof(int*));
         newMatrix.rows = matrix.rows;
-        newMatrix.colums = matrix.colums;
+        newMatrix.columns = matrix.columns;
         for (int i = 0; i < newMatrix.rows; i++) {
-            newMatrix.data[i] = (int*)allocateFromMarsik(matrix.colums * sizeof(int));
-            for (int j = 0; j < newMatrix.colums; j++) {
+            newMatrix.data[i] = (int*)allocateFromMarsik(matrix.columns * sizeof(int));
+            for (int j = 0; j < newMatrix.columns; j++) {
                matrix_set(newMatrix, i, j, matrix_get(matrix, i, j) + matrix_get(other, i, j));
         }
       }
       return newMatrix;
     } else {
         runtimeError("Matrix dimensions does not match for addition");
-        return init_matrix(matrix.rows, matrix.colums);
+        return init_matrix(matrix.rows, matrix.columns);
     }
 }
 
 Matrix matrix_multiply(Matrix matrix, Matrix other) {
-    if (matrix.rows == other.colums && matrix.colums == other.rows) {
+    if (matrix.rows == other.columns && matrix.columns == other.rows) {
         Matrix newMatrix;
         newMatrix.data = (int**)allocateFromMarsik(matrix.rows * sizeof(int*));
         newMatrix.rows = matrix.rows;
-        newMatrix.colums = matrix.colums;
+        newMatrix.columns = matrix.columns;
         for (int i = 0; i < newMatrix.rows; i++) {
-            newMatrix.data[i] = (int*)allocateFromMarsik(matrix.colums * sizeof(int));
-            for (int j = 0; j < newMatrix.colums; j++) {
+            newMatrix.data[i] = (int*)allocateFromMarsik(matrix.columns * sizeof(int));
+            for (int j = 0; j < newMatrix.columns; j++) {
                int sum = 0;
-                for (int k = 0; k < matrix.colums; k++) {
+                for (int k = 0; k < matrix.columns; k++) {
                  sum += matrix_get(matrix, i, k) * matrix_get(other, k, j);
                 }
             matrix_set(newMatrix, i, j, sum);    
@@ -99,14 +99,14 @@ Matrix matrix_multiply(Matrix matrix, Matrix other) {
       return newMatrix;
     } else {
         runtimeError("Matrix dimensions does not match for multiplication");
-        return init_matrix(matrix.rows, matrix.colums);
+        return init_matrix(matrix.rows, matrix.columns);
     }
 }
 
 Matrix matrix_transpose(Matrix matrix) {
-    Matrix transposed = init_matrix(matrix.rows, matrix.colums);
+    Matrix transposed = init_matrix(matrix.rows, matrix.columns);
     for (int i = 0; i < matrix.rows; i++) {
-      for (int j = 0; j < matrix.colums; j++) {
+      for (int j = 0; j < matrix.columns; j++) {
         transposed.data[j][i] = matrix.data[i][j];
       }
     }
@@ -114,9 +114,9 @@ Matrix matrix_transpose(Matrix matrix) {
 }
 
 Matrix matrix_clone(Matrix matrix) {
-    Matrix cloned = init_matrix(matrix.rows, matrix.colums);
+    Matrix cloned = init_matrix(matrix.rows, matrix.columns);
     for (int i = 0; i < matrix.rows; i++) {
-      for (int j = 0; j < matrix.colums; j++) {
+      for (int j = 0; j < matrix.columns; j++) {
         cloned.data[i][j] = matrix.data[i][j];
       }
     }
@@ -124,7 +124,7 @@ Matrix matrix_clone(Matrix matrix) {
 }
 
 double matrix_getDeterminant(Matrix matrix) {
-    if (matrix.colums != matrix.rows) {
+    if (matrix.columns != matrix.rows) {
         runtimeError("Matrix must be square");
         return 0;
     }
@@ -146,7 +146,7 @@ double matrix_getDeterminant(Matrix matrix) {
     }
     else {
         int rows = matrix.rows;
-        int columns = matrix.colums;
+        int columns = matrix.columns;
         double temp[rows][columns];
         for (int i = 0; i < rows; i++) {
           for (int j = 0; j < columns; j++) {
@@ -192,7 +192,7 @@ bool matrix_isInvertable(Matrix matrix) {
 double matrix_trace(Matrix matrix) {
     double trace = 0;
     int i = 0;
-    while (i < matrix.colums && i < matrix.rows) {
+    while (i < matrix.columns && i < matrix.rows) {
       trace += (matrix.data[i][i])*(matrix.data[i][i]); 
       i++; 
     }
@@ -205,7 +205,7 @@ double matrix_normal(Matrix matrix) {
 
 void matrix_print(Matrix matrix) {
     for (int i = 0; i < matrix.rows; i++) {
-      for (int j = 0; j < matrix.colums; j++) {
+      for (int j = 0; j < matrix.columns; j++) {
         printf("%d", matrix.data[i][j]);
       }
       printf(" \n");
