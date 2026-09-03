@@ -84,10 +84,58 @@ void str_reverseString(string str) {
     }
 }
 
+string str_substring(string str, int start, int end) {
+    if (start < 0 || end > str.length() || start > end) {
+        return "";
+    }
+    return str.substr(start, end - start);
+}
+
 void str_append(string str, string other) {
     str.append(other);
 }
 
+string str_toUpperCase(string str) {
+    for(int i = 0; i < str.length(); i++) {
+        char temp = str[i];
+        str[i] = toupper(temp);
+    }
+    return str;
+}
+
+string str_toLowerCase(string str) {
+    for(int i = 0; i < str.length(); i++) {
+        char temp = str[i];
+        str[i] = tolower(temp);
+    }
+    return str;
+}
+
+bool str_startsWith(string str, string prefix) {
+    if (prefix.length() > str.length()) {
+        return false;
+    }
+    for (int i = 0; i < prefix.length(); i++) {
+        if (str[i] != prefix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool str_endsWith(string str, string suffix) {
+    int suffixLength = suffix.length();
+    int strLength = str.length();
+    if (suffixLength > strLength) {
+        return false;
+    }
+    for (int i = 0; i < suffixLength; i++) {
+        if (str[strLength - suffixLength + i] != suffix[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
 bool str_isPalindrome(string str) {
     for(int i = 0; i < str.length() / 2; i++) {

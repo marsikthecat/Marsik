@@ -25,11 +25,21 @@ int str_countOccurrence(string str, char c);
 
 void str_reverseString(string str);
 
+string str_substring(string str, int start, int end);
+
 void str_append(string str, string other);
+
+string str_toUpperCase(string str);
+
+string str_toLowerCase(string str);
+
+bool str_startsWith(string str, string prefix);
+
+bool str_endsWith(string str, string suffix);
 
 bool str_isPalindrome(string str);
 
-int* str_alphabetIndexes(string str);
+string str_alphabetIndexes(string str);
 
 bool str_hasOnlyDigits(string str);
 
