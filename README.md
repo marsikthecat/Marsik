@@ -35,7 +35,6 @@ Spoiler: the generated C file(s) looks like salad 🥗 and it does not compile :
 - Finished OOP support
 - Fixing C codegeneration until GCC can compile it without errors (could take a while)
 - Fixing more errors
-- Fixing fucking errors
 
 ## Code samples
 

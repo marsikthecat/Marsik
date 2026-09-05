@@ -640,6 +640,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
     // add only used runtime sources (C files based on includes in generated code)
     File runtimeDir = new File(outputDir.getParent(), "runtime");
+    if (!runtimeDir.exists()) {
+      runtimeDir = new File("src/main/java/org/example/runtime");
+    }
     if (runtimeDir.exists()) {
       Set<String> usedIncludes = extractUsedIncludes(cppFile);
       addUsedRuntimeSources(runtimeDir, usedIncludes, command);
@@ -749,11 +752,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   /**
-   * Compiles all generated .c/c++ files in the out folder using g++;
+   * Navigate to src/main/java/org/example and then start the compiler in CLI using:
+   * gradle.bat -p C:\Marsik\MarsikLang run --args="src/main/java/org/example/tests/testString.marsik out"
+   * Choose the file you want to compile and specify the output directory.
    */
   static void main(String[] args) throws IOException, InterruptedException {
-
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testMath.marsik",
-            "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
+    if (args.length == 0 || args.length > 2) {
+      System.out.println("Usage: Compiler <input.marsik> [output-directory]");
+      return;
+    }
+    String input = args[0];
+    String output = args.length == 2 ? args[1]: "src/main/java/org/example/out";
+    compile(input, output);
   }
 }

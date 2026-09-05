@@ -1,5 +1,5 @@
 /*
-   Error: variable 'main()::BitSet bits' has initializer but incomplete type
+  Works fine, no issues found so far
 */
 
 BitSet bits = new BitSet()

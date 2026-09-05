@@ -5,8 +5,8 @@
 - Thread handling no supported
 
 ## Discussion and Ideas:
+- What is with Crypto?
 - BabyInt remove?
-- enabling compilation in CLI
 - Matrix: fill method like
 ```
  Matrix matrix = new Matrix(2, 2) 
@@ -14,13 +14,14 @@
 ```
 
 ## Open:
-- Fix: Key-Value insertion not supported by Compiler
+- Fix: Key-Value insertion not supported by Compiler (grammar error)
 
 ## In Progress:
-- Refactor: Compiler, Lookup and Utils
 - Feat: Complete tests
 
 ## Complete
+- Feat: enable compilation in CLI
+- Refactor: Compiler, Lookup and Utils
 - Fix: Investigate and fix heavy errors in hashmap and perfectHashmap
 - Feat: More methods for string
 - Fix: Typos across the whole runtime (e.g. "culumn" instead column)

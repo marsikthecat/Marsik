@@ -1,6 +1,5 @@
 /*
-  error: reference to 'hash' is ambiguous
-  no numberOfKeys in constructor, check whether marsik code can inject it from constructor parameter
+  Works fine, no issues found so far
 */
 
 PerfectHashMap<int> values = new PerfectHashMap(16)
