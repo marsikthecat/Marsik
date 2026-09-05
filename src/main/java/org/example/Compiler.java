@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.example.compiler.ClassHolder;
 import org.example.compiler.CustomObjectGenerator;
 import org.example.compiler.CustomObjectHolder;
 import org.example.compiler.FieldHolder;
@@ -37,14 +37,13 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, CustomObjectHolder> customObjects = new HashMap<>();
   public CustomObjectHolder currentCustomObject = null;
-  public ClassHolder currentClass = null;
 
   @Override
   public String visitProgram(MarsikParser.ProgramContext ctx) {
     // First pass: collect all custom object definitions
     for (var child : ctx.children) {
-      if (child instanceof MarsikParser.Class_defContext) {
-        visitClass_def((MarsikParser.Class_defContext) child);
+      if (child instanceof MarsikParser.Class_defContext classDef) {
+        visitClass_def(classDef);
       }
     }
     // Second pass: process statements
@@ -58,7 +57,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitType_label(MarsikParser.Type_labelContext ctx) {
-    return toCppType(ctx.getText());
+    return Utils.toCppType(ctx.getText(), imports);
   }
 
   @Override
@@ -80,70 +79,56 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
-    String objectType = ctx.NAME(0).getText();
-    String variable = ctx.NAME(1).getText();
-    String newObjectName = ctx.NAME(2).getText();
-    boolean isTyped = false;
-    if (objectType.equals(newObjectName)) {
-      // Check if it's a custom object
-      if (customObjects.containsKey(objectType)) {
-        variables.put(variable, new ValueHolder(objectType, true));
-        // Get arguments and convert them properly
-        List<String> args = new ArrayList<>();
-        if (ctx.arguments() != null) {
-          for (var e : ctx.arguments().expr()) {
-            args.add(visit(e));
-          }
-        }
-        String parameters = String.join(", ", args);
-
-        code.append("struct ").append(objectType).append(" ").append(variable).append(" = init_")
-                .append(objectType.toLowerCase()).append("(").append(parameters).append(");\n");
-      } else {
-
-        if (Utils.buildInTypedObjects.contains(objectType)) {
-          if (ctx.type_label() != null) {
-            StringBuilder importString = new StringBuilder("#include \"../runtime/datastructures/");
-            if (objectType.equals("AvlTree") || objectType.equals("BinaryTree") || objectType.equals("TreeNode")) {
-              importString.append("trees/");
-            }
-            importString.append(objectType.toLowerCase()).append(".hpp\"\n");
-            imports.add(importString.toString());
-            isTyped = true;
-          } else {
-            throw new RuntimeException("Type is not specified");
-          }
-        } else if (Utils.getBuildInUnTypedObjects.contains(objectType)) {
-            StringBuilder importString = new StringBuilder("#include \"");
-            if (objectType.equals("Edge") || objectType.equals("Graph") || objectType.equals("Node")) {
-              importString.append("../runtime/datastructures/graphs/");
-            } else if (objectType.equals("Matrix")) {
-              importString.append("../runtime/extra/");
-            } else {
-              importString.append("../runtime/datastructures/");
-            }
-            importString.append(objectType.toLowerCase()).append(".hpp\"\n");
-            imports.add(importString.toString());
-          } else {
-            throw new RuntimeException("Unknown Type of Elements detected");
-          }
-      }
-      variables.put(variable, new ValueHolder(objectType, true));
-      List<String> args = new ArrayList<>();
-      if (ctx.arguments() != null) {
-        for (var e : ctx.arguments().expr()) {
-          args.add(visit(e));
-        }
-      }
-      String parameters = String.join(", ", args);
-      String type = isTyped ? "<" + ctx.type_label().getText() + ">" : "";
-      code.append("struct ").append(objectType).append(" ").append(type)
-              .append(variable).append(" = init_").append(objectType.toLowerCase()).append(type).append("(")
-              .append(parameters).append(");\n");
-    } else {
+    String objectType = Objects.requireNonNull(ctx.NAME(0).getText());
+    String variable = Objects.requireNonNull(ctx.NAME(1).getText());
+    String newObjectName = Objects.requireNonNull(ctx.NAME(2).getText());
+    if (!objectType.equals(newObjectName)) {
       throw new RuntimeException("Object " + objectType + " and " + newObjectName + " do not match");
     }
+
+    variables.put(variable, new ValueHolder(objectType, true));
+    String parameters = renderArguments(ctx.arguments());
+    if (customObjects.containsKey(objectType)) {
+      appendObjectInitialization(objectType, variable, "", parameters);
+      return null;
+    }
+
+    boolean isTyped = registerBuiltInObject(objectType, ctx.type_label());
+    String type = isTyped ? "<" + ctx.type_label().getText() + ">" : "";
+    appendObjectInitialization(objectType, variable, type, parameters);
     return null;
+  }
+
+  private void appendObjectInitialization(String objectType, String variable,
+                                          String type, String parameters) {
+    code.append("struct ").append(objectType).append(" ").append(type)
+            .append(variable).append(" = init_").append(objectType.toLowerCase()).append(type).append("(")
+            .append(parameters).append(");\n");
+  }
+
+  private boolean registerBuiltInObject(String objectType,
+                                        MarsikParser.Type_labelContext typeLabel) {
+    if (Utils.buildInTypedObjects.contains(objectType)) {
+      if (typeLabel == null) {
+        throw new RuntimeException("Type is not specified");
+      }
+      String subdirectory = Utils.multiEquals(objectType, "AvlTree", "BinaryTree", "TreeNode")
+              ? "trees/" : "";
+      imports.add("#include \"../runtime/datastructures/" + subdirectory
+              + objectType.toLowerCase() + ".hpp\"\n");
+      return true;
+    }
+    if (Utils.getBuildInUnTypedObjects.contains(objectType)) {
+      String normalizedObjectType = Objects.requireNonNull(objectType);
+      String subdirectory = switch (objectType) {
+        case "Edge", "Graph", "Node" -> "../runtime/datastructures/graphs/";
+        case "Matrix" -> "../runtime/extra/";
+        default -> "../runtime/datastructures/";
+      };
+      imports.add("#include \"" + subdirectory + normalizedObjectType.toLowerCase() + ".hpp\"\n");
+      return false;
+    }
+    throw new RuntimeException("Unknown Type of Elements detected");
   }
 
   @Override
@@ -151,100 +136,67 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String target = ctx.NAME(0).getText();
     String method = ctx.NAME(1).getText();
 
-    if (isBuiltInLibraryMethod(target, method)) {
+    if (Utils.isBuiltInLibraryMethod(target, method)) {
       return visitBuiltInLibraryMethodCall(ctx, target, method);
     }
-    if (variables.containsKey(target) && customObjects.containsKey(variables.get(target).type)) {
-      CustomObjectHolder customObject = customObjects.get(variables.get(target).type);
-      boolean methodFound = false;
-      for (MethodHolder m : customObject.methods) {
-        if (m.name.equals(method)) {
-          methodFound = true;
-          break;
-        }
-      }
+    ValueHolder targetValue = variables.get(target);
+    if (targetValue == null) {
+      throw new RuntimeException("Variable " + target + " does not exist");
+    }
+    String type = targetValue.type;
+    CustomObjectHolder customObject = customObjects.get(type);
+    if (customObject != null) {
+      boolean methodFound = customObject.methods.stream()
+              .anyMatch(candidate -> candidate.name.equals(method));
       if (!methodFound) {
         throw new RuntimeException("Method " + method + " not found in class " + customObject.name);
       }
     } else {
-      if (!variables.containsKey(target)) {
-        throw new RuntimeException("Variable " + target + " does not exist");
-      } else {
-        String type = variables.get(target).type;
-        if (type.equals("string") && !Utils.stringMethods.contains(method)) {
-          throw new RuntimeException("Unknown method " + method + " for String: " + target);
-        }
-        if (type.equals("array") && !Utils.arrayMethods.contains(method)) {
-          throw new RuntimeException("Unknown method " + method + " for Array: " + target);
-        }
+      if (type.equals("string") && !Utils.stringMethods.contains(method)) {
+        throw new RuntimeException("Unknown method " + method + " for String: " + target);
+      }
+      if (type.equals("array") && !Utils.arrayMethods.contains(method)) {
+        throw new RuntimeException("Unknown method " + method + " for Array: " + target);
       }
     }
-    List<String> args = new ArrayList<>();
-    if (ctx.arguments() != null) {
-      for (var e : ctx.arguments().expr()) {
-        args.add(visit(e));
-      }
-    }
-
-    if (variables.containsKey(target) && variables.get(target).type.equals("string") && method.equals("reverse")) {
-      return "std::string(" + target + ".rbegin(), " + target + ".rend())";
-    }
-
-    // Check if target is a built-in object and format method name accordingly
-    String methodPrefix = "";
-    if (variables.containsKey(target)) {
-      String type = variables.get(target).type;
-      if (customObjects.containsKey(type)) {
-        String joinedArgs = String.join(", ", args);
-        return type.toLowerCase() + "_" + method + "(&" + target
-                + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
-      }
-      // Apply naming convention: [objecttype]_[method] for built-in objects
-      if (Utils.buildInTypedObjects.contains(type) || Utils.getBuildInUnTypedObjects.contains(type) || type.equals("array")) {
-        methodPrefix = type.toLowerCase() + "_";
-      }
-      if (Utils.stringMethods.contains(type) || type.equals("string")) {
-        methodPrefix =  "str_";
-      }
-    }
+    List<String> args = renderArgumentList(ctx.arguments());
 
     String joinedArgs = String.join(", ", args);
-    return methodPrefix + method + "(" + target + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
+    String targetArgument = customObject != null ? "&" + target : target;
+    return type.toLowerCase() + "_" + method + "(" + targetArgument
+            + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
   }
 
-
-  private boolean isBuiltInLibraryMethod(String target, String method) {
-    return Utils.libraryMethodsLookup.containsKey(target)
-            && Utils.libraryMethodsLookup.get(target).contains(method);
-  }
-
-  private String visitBuiltInLibraryMethodCall(MarsikParser.Method_callContext ctx,
-                                               String target, String method) {
-    switch (target) {
-      case "Math" -> imports.add("#include \"../runtime/math.hpp\"\n");
-      case "FileHandler" -> imports.add("#include \"../runtime/filehandler.hpp\"\n");
-      case "DateTime" -> imports.add("#include \"../runtime/datetime.hpp\"\n");
-      case "Crypto" -> imports.add("#include \"../runtime/crypto.hpp\"\n");
-      case "Caster" -> imports.add("#include \"../runtime/caster.hpp\"\n");
-      default -> throw new RuntimeException("Unknown builtin target: " + target);
+  private String visitBuiltInLibraryMethodCall(MarsikParser.Method_callContext ctx, String target, String method) {
+    if (!Utils.multiEquals(target, "Math", "FileHandler", "DateTime", "Crypto", "Caster")) {
+      throw new RuntimeException("Unknown builtin target: " + target);
     }
+    imports.add("#include \"../runtime/" + target.toLowerCase() + ".hpp\"\n");                                            
     List<String> args = new ArrayList<>();
     if (ctx.arguments() != null) {
       for (var e : ctx.arguments().expr()) {
-        args.add(renderBuiltInArgument(target, e));
+        args.add(renderBuiltInArgument(e));
       }
     }
     return method + "(" + String.join(", ", args) + ")";
   }
 
-  private String renderBuiltInArgument(String target, MarsikParser.ExprContext expr) {
-    String rendered = visit(expr);
-    String rawText = expr.getText();
-    if ((target.equals("FileHandler") || target.equals("Crypto") || target.equals("DateTime")
-            || target.equals("Caster") || target.equals("Math")) && variables.containsKey(rawText)) {
-      variables.get(rawText);
+  private String renderBuiltInArgument(MarsikParser.ExprContext expr) {
+    return visit(expr);
+  }
+
+  private String renderArguments(MarsikParser.ArgumentsContext ctx) {
+    return String.join(", ", renderArgumentList(ctx));
+  }
+
+  private List<String> renderArgumentList(MarsikParser.ArgumentsContext ctx) {
+    List<String> args = new ArrayList<>();
+    if (ctx != null) {
+      for (var expr : ctx.expr()) {
+        args.add(visit(expr));
+      }
     }
-    return rendered;
+    return args;
   }
 
   @Override
@@ -253,67 +205,48 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (variables.containsKey(name)) {
       throw new RuntimeException("Variable " + name + " already exists");
     }
-    String type = ctx.type_label().getText();
-    if (type.equals("boolean")) {
-      type = "bool";
-    }
-    if (type.equals("baby_int")) {
-      imports.add("#include \"stdint.h\"\n");
-      type = "uint8_t";
-    }
+    String type = Utils.toCppType(ctx.type_label().getText(), imports);
     if (ctx.scan_stmt() != null) {
-      code.append(type).append(" ").append(name).append(";\n");
-      code.append("std::cout");
-      for (MarsikParser.Print_argContext arg : ctx.scan_stmt().print_arg()) {
-        code.append(" << ");
-        if (arg.STRING() != null) {
-          code.append(arg.STRING().getText());
-        } else {
-          code.append(visit(arg.expr()));
-        }
-      }
-      code.append(";\n");
-      code.append("std::cin >> ").append(name).append(";\n");
+      appendScanDeclaration(ctx.scan_stmt(), type, name);
+      variables.put(name, new ValueHolder(type, true));
       return "";
     }
-    String init = ctx.expr() != null ? visit(ctx.expr()) : ctx.type() != null
-            ? ctx.type().getText() : ctx.method_call() != null ? visit(ctx.method_call()) : null;
+
+    String init = renderInitializer(ctx);
     if (init != null) {
-      // Initializing variable and assigning value
-      if (ctx.type() != null && checkCorrectValueForLiteral(ctx.type_label(), ctx.type())) {
-        // Check if atomic primitive datatype matches literal
-        throw new RuntimeException("Literal " + ctx.type_label().getText()
-                + " does not match Value " + ctx.type().getText());
-      }
       code.append(type).append(" ").append(name).append(" = ").append(init).append(";\n");
       variables.put(name, new ValueHolder(type, true));
     } else {
-      // Initializing variable without value
       code.append(type).append(" ").append(name).append(";\n");
       variables.put(name, new ValueHolder(type, false));
     }
     return null;
   }
 
-  private boolean checkCorrectValueForLiteral(MarsikParser.Type_labelContext typeLabelContext,
-                                              MarsikParser.TypeContext type) {
-    if (typeLabelContext.STRING_TYPE() != null) {
-      return type.STRING() == null;
-    } else if (typeLabelContext.BOOL_TYPE() != null) {
-      return type.BOOLEAN() == null;
-    } else if (typeLabelContext.INT_TYPE() != null) {
-      return type.INTEGER() == null;
-    } else if (typeLabelContext.DOUBLE_TYPE() != null) {
-      return type.DOUBLE() == null;
-    } else if (typeLabelContext.CHAR_TYPE() != null) {
-      return type.CHAR() == null;
-    } else if (typeLabelContext.BABY_INT_TYPE() != null) {
-      // Accept both BABY_INTEGER and INTEGER tokens for baby_int type
-      // BABY_INTEGER matches 1-255, but INTEGER may also be used for values in that range
-      return type.BABY_INTEGER() == null && type.INTEGER() == null;
-    } else {
-      return false;
+  private String renderInitializer(MarsikParser.Var_declContext ctx) {
+    if (ctx.type() != null) {
+      Utils.validateLiteralType(ctx.type_label().getText(), ctx.type());
+      return ctx.type().getText();
     }
+    if (ctx.expr() != null) {
+      return visit(ctx.expr());
+    }
+    if (ctx.method_call() != null) {
+      return visit(ctx.method_call());
+    }
+    return null;
+  }
+
+  private void appendScanDeclaration(MarsikParser.Scan_stmtContext scan,
+                                     String type, String name) {
+    code.append(type).append(" ").append(name).append(";\n");
+    code.append("std::cout");
+    for (MarsikParser.Print_argContext arg : scan.print_arg()) {
+      code.append(" << ");
+      code.append(arg.STRING() != null ? arg.STRING().getText() : visit(arg.expr()));
+    }
+    code.append(";\n");
+    code.append("std::cin >> ").append(name).append(";\n");
   }
 
   @Override
@@ -322,19 +255,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (constants.containsKey(name)) {
       throw new RuntimeException("Constant " + name + " already exists");
     }
-    String type = ctx.type_label().getText();
-    if (type.equals("boolean")) {
-      type = "bool";
-    }
-    if (type.equals("baby_int")) {
-      imports.add("#include \"stdint.h\"\n");
-      type = "uint8_t";
-    }
+    String type = Utils.toCppType(ctx.type_label().getText(), imports);
     String value = ctx.type().getText();
-    if (checkCorrectValueForLiteral(ctx.type_label(), ctx.type())) {
-      throw new RuntimeException("Literal " + ctx.type_label().getText()
-              + " does not match Value " + ctx.type().getText());
-    }
+    Utils.validateLiteralType(ctx.type_label().getText(), ctx.type());
     code.append("const ").append(type).append(" ").append(name)
             .append(" = ").append(value).append(";\n");
     constants.put(name, new ValueHolder(type, true));
@@ -344,32 +267,21 @@ public class Compiler extends MarsikBaseVisitor<String> {
   @Override
   public String visitAssign_stmt(MarsikParser.Assign_stmtContext ctx) {
     String name = ctx.NAME().getText();
-    String value = ctx.type() != null ? ctx.type().getText()
-            : ctx.expr() != null ? visit(ctx.expr())
-            : visit(ctx.method_call());
     if (constants.containsKey(name)) {
       throw new RuntimeException("Cannot assign to const: " + name);
     }
-    // Check if variable exists
-    if (!variables.containsKey(name)) {
+    ValueHolder variable = variables.get(name);
+    if (variable == null) {
       throw new RuntimeException("Variable " + name + " does not exist");
     }
-    String type = variables.get(name).getType();
+
     if (ctx.type() != null) {
-      if (type.equals("string") && ctx.type().STRING() == null) {
-        throw new RuntimeException("Value " + ctx.type().getText() + "does not match String");
-      } else if (type.equals("int") && ctx.type().INTEGER() == null) {
-        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Integer");
-      } else if (type.equals("double") && ctx.type().DOUBLE() == null) {
-        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Double");
-      } else if (type.equals("bool") && ctx.type().BOOLEAN() == null) {
-        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Boolean");
-      } else if (type.equals("char") && ctx.type().CHAR() == null) {
-        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Character");
-      } else if (type.equals("baby_int") && ctx.type().BABY_INTEGER() == null && ctx.type().INTEGER() == null) {
-        throw new RuntimeException("Value " + ctx.type().getText() + "does not match Baby Integer");
-      }
+      Utils.validateLiteralType(variable.getType(), ctx.type());
     }
+
+    String value = ctx.type() != null ? ctx.type().getText()
+            : ctx.expr() != null ? visit(ctx.expr())
+            : visit(ctx.method_call());
     code.append(name).append(" = ").append(value).append(";\n");
     return null;
   }
@@ -381,14 +293,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
       throw new RuntimeException("Array size " + size + " does not match number of elements");
     }
     String typeLabel = ctx.type_label().getText();
-    for (int i = 0; i < size; i++) {
-      if (typeLabel.equals("string") && ctx.type(i).STRING() == null ||
-          typeLabel.equals("int") && ctx.type(i).INTEGER() == null ||
-          typeLabel.equals("double") && ctx.type(i).DOUBLE() == null ||
-          typeLabel.equals("bool") && ctx.type(i).BOOLEAN() == null ||
-          typeLabel.equals("char") && ctx.type(i).CHAR() == null ||
-          typeLabel.equals("baby_int") && ctx.type(i).BABY_INTEGER() == null) {
-        throw new RuntimeException("Array element " + ctx.type(i).getText() + " does not match " + typeLabel);
+    for (MarsikParser.TypeContext value : ctx.type()) {
+      if (!Utils.isCompatibleLiteral(typeLabel, value)) {
+        throw new RuntimeException("Array element " + value.getText() + " does not match " + typeLabel);
       }
     }
     String name = ctx.NAME().getText();
@@ -396,10 +303,13 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
     StringBuilder compoundLiteral = new StringBuilder();
     compoundLiteral.append("{");
-    for (int i = 0; i < ctx.type().size() - 1; i++) {
-      compoundLiteral.append(ctx.type().get(i).getText()).append(",");
+    for (int i = 0; i < ctx.type().size(); i++) {
+      if (i > 0) {
+        compoundLiteral.append(",");
+      }
+      compoundLiteral.append(ctx.type(i).getText());
     }
-    compoundLiteral.append(ctx.type().getLast().getText()).append("}");
+    compoundLiteral.append("}");
 
     imports.add("#include \"../runtime/datastructures/array.hpp\"\n");
     code.append("struct Array<").append(typeLabel).append("> ").append(name).append(" = {")
@@ -434,17 +344,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String type = visit(ctx.type_label());
     String name = ctx.NAME().getText();
     return type + " " + name;
-  }
-
-  private String toCppType(String marsikType) {
-    return switch (marsikType) {
-      case "boolean" -> "bool";
-      case "baby_int" -> {
-        imports.add("#include <stdint.h>\n");
-        yield "uint8_t";
-      }
-      default -> marsikType;
-    };
   }
 
   @Override
@@ -521,31 +420,20 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitPrint_stmt(MarsikParser.Print_stmtContext ctx) {
-    StringBuilder cpp = new StringBuilder("std::cout");
-    for (MarsikParser.Print_argContext arg : ctx.print_arg()) {
-      cpp.append(" << ");
-      if (arg.STRING() != null) {
-        cpp.append(arg.STRING().getText());
-      } else {
-        cpp.append(visit(arg.expr()));
-      }
-    }
-    cpp.append(";\n");
-    return cpp.toString();
+    return renderPrintArguments(ctx.print_arg()) + ";\n";
   }
 
   @Override
   public String visitPrintln_stmt(MarsikParser.Println_stmtContext ctx) {
+    return renderPrintArguments(ctx.print_arg()) + "<< '\\n';\n";
+  }
+
+  private String renderPrintArguments(List<MarsikParser.Print_argContext> args) {
     StringBuilder cpp = new StringBuilder("std::cout");
-    for (MarsikParser.Print_argContext arg : ctx.print_arg()) {
+    for (MarsikParser.Print_argContext arg : args) {
       cpp.append(" << ");
-      if (arg.STRING() != null) {
-        cpp.append(arg.STRING().getText());
-      } else {
-        cpp.append(visit(arg.expr()));
-      }
+      cpp.append(arg.STRING() != null ? arg.STRING().getText() : visit(arg.expr()));
     }
-    cpp.append("<< '\\n';\n");
     return cpp.toString();
   }
 
@@ -578,7 +466,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
         customObj.fields.add(field);
 
         // Add field to variables scope for method access
-        variables.put(field.name, new ValueHolder(toCppType(field.type), true));
+        variables.put(field.name, new ValueHolder(Utils.toCppType(field.type, imports), true));
       }
     }
     // Second pass: Process all methods (without appending to main code)
@@ -598,7 +486,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
                     p.type_label().getText(),
                     p.NAME().getText()
             ));
-            variables.put(p.NAME().getText(), new ValueHolder(toCppType(p.type_label().getText()), true));
+                variables.put(p.NAME().getText(), new ValueHolder(
+                  Utils.toCppType(p.type_label().getText(), imports), true));
           }
         }
         // Capture method body without appending to main code
@@ -626,96 +515,38 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   @Override
-  public String visitField_decl(MarsikParser.Field_declContext ctx) {
-    FieldHolder f = new FieldHolder();
-    f.type = ctx.type_label().getText();
-    f.name = ctx.NAME().getText();
-    f.isPublic = ctx.getText().contains("public");
-    f.isConst = ctx.getText().contains("const");
-    currentClass.fields.add(f);
-    return null;
-  }
-
-  @Override
-  public String visitMethod_decl(MarsikParser.Method_declContext ctx) {
-    MethodHolder m = new MethodHolder();
-    m.name = ctx.NAME().getText();
-    m.isInternal = ctx.getText().startsWith("internal");
-    m.returnType = ctx.type_label() != null ? ctx.type_label().getText() : "void";
-    if (ctx.parameters() != null) {
-      for (var p : ctx.parameters().parameter()) {
-        m.params.add(new ParamHolder(
-                p.type_label().getText(),
-                p.NAME().getText()
-        ));
-      }
-    }
-    m.body = visitBlock(ctx.block());
-    currentClass.methods.add(m);
-    return null;
-  }
-
-  @Override
   public String visitExpr(MarsikParser.ExprContext ctx) {
     return super.visitExpr(ctx);
   }
 
   @Override
   public String visitOr_expr(MarsikParser.Or_exprContext ctx) {
-    StringBuilder result = new StringBuilder(visit(ctx.and_expr(0)));
-    for (int i = 1; i < ctx.and_expr().size(); i++) {
-      result.append(" || ").append(visit(ctx.and_expr(i)));
-    }
-    return result.toString();
+    return Utils.joinBinaryExpressions(ctx.and_expr(), this::visit, "||");
   }
 
   @Override
   public String visitAnd_expr(MarsikParser.And_exprContext ctx) {
-    StringBuilder result = new StringBuilder(visit(ctx.equality_expr(0)));
-    for (int i = 1; i < ctx.equality_expr().size(); i++) {
-      result.append(" && ").append(visit(ctx.equality_expr(i)));
-    }
-    return result.toString();
+    return Utils.joinBinaryExpressions(ctx.equality_expr(), this::visit, "&&");
   }
 
   @Override
   public String visitEquality_expr(MarsikParser.Equality_exprContext ctx) {
-    StringBuilder result = new StringBuilder(visit(ctx.relational_expr(0)));
-    for (int i = 1; i < ctx.relational_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
-              .append(visit(ctx.relational_expr(i)));
-    }
-    return result.toString();
+    return Utils.joinBinaryExpressions(ctx.relational_expr(), this::visit, ctx);
   }
 
   @Override
   public String visitRelational_expr(MarsikParser.Relational_exprContext ctx) {
-    StringBuilder result = new StringBuilder(visit(ctx.additive_expr(0)));
-    for (int i = 1; i < ctx.additive_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
-              .append(visit(ctx.additive_expr(i)));
-    }
-    return result.toString();
+    return Utils.joinBinaryExpressions(ctx.additive_expr(), this::visit, ctx);
   }
 
   @Override
   public String visitAdditive_expr(MarsikParser.Additive_exprContext ctx) {
-    StringBuilder result = new StringBuilder(visit(ctx.multiplicative_expr(0)));
-    for (int i = 1; i < ctx.multiplicative_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
-              .append(visit(ctx.multiplicative_expr(i)));
-    }
-    return result.toString();
+    return Utils.joinBinaryExpressions(ctx.multiplicative_expr(), this::visit, ctx);
   }
 
   @Override
   public String visitMultiplicative_expr(MarsikParser.Multiplicative_exprContext ctx) {
-    StringBuilder result = new StringBuilder(visit(ctx.unary_expr(0)));
-    for (int i = 1; i < ctx.unary_expr().size(); i++) {
-      result.append(" ").append(ctx.getChild(1).getText()).append(" ")
-              .append(visit(ctx.unary_expr(i)));
-    }
-    return result.toString();
+    return Utils.joinBinaryExpressions(ctx.unary_expr(), this::visit, ctx);
   }
 
   @Override
@@ -769,29 +600,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
     return "";
   }
 
-  /**
-   * Generates full C/C++ code.
-   */
   public String generateC() {
-    StringBuilder importsAsString = new StringBuilder();
-    for (String anImport : imports) {
-      importsAsString.append(anImport);
-    }
-    return
-            """
-            #include <iostream>
-            #include <stdbool.h>
-            #include <string>
-            #include "stringUtils.hpp"
-            %s
-           
-            int main() {
-              %s
-              std::cout << "Press ENTER to exit...";
-              std::cin.get();
-              return 0;
-            }
-            """.formatted(importsAsString, code.toString());
+    return Utils.generateC(imports, code.toString());
   }
 
   private static void compile(String srcPath, String outDir) throws IOException, InterruptedException {
@@ -852,8 +662,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     ProcessBuilder pb = new ProcessBuilder(command);
     pb.redirectErrorStream(true);
     Process process = pb.start();
-    try (BufferedReader reader = new BufferedReader(
-            new InputStreamReader(process.getInputStream()))) {
+    try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
         System.out.println(line);
@@ -944,7 +753,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    */
   static void main(String[] args) throws IOException, InterruptedException {
 
-    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\datastructureTests\\testPerfectHashMap.marsik",
+    compile("C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\tests\\testMath.marsik",
             "C:\\Marsik\\MarsikLang\\src\\main\\java\\org\\example\\out");
   }
 }

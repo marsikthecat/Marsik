@@ -31,7 +31,7 @@ void graph_addNode(Graph graph, Node node) {
 void graph_removeNode(Graph graph, Node node) {
     int index = -1;
     for (int i = 0; i < graph.numberOfNodes; i++) {
-        if (str_stringEquals(graph.nodes[i]->identifier, node.identifier)) {
+        if (string_equals(graph.nodes[i]->identifier, node.identifier)) {
             index = i;
             break;
         }
@@ -49,7 +49,7 @@ void graph_removeNode(Graph graph, Node node) {
 bool graph_containsNode(Graph graph, string identifier) {
     for (int i = 0; i < graph.numberOfNodes; i++) {
         Node node = *graph.nodes[i];
-        if (str_stringEquals(node.identifier, identifier)) {
+        if (string_equals(node.identifier, identifier)) {
             return true;
         }
     }

@@ -41,7 +41,7 @@ void node_removeEdge(Node node, Edge edge) {
         Edge temp_edge = *node.edges[i];
         string t = temp_edge.identifier;
         string t2 = edge.identifier;
-        if (str_stringEquals(t, t2)) {
+        if (string_equals(t, t2)) {
             index = i;
             break;
         }
@@ -58,7 +58,7 @@ void node_removeEdge(Node node, Edge edge) {
 bool node_containsEdge(Node node, string edgeIdentifier) {
     for (int i = 0; i < node.numberOfEdges; i++) {
         Edge edge = *node.edges[i];
-        if (str_stringEquals(edge.identifier, edgeIdentifier)) {
+        if (string_equals(edge.identifier, edgeIdentifier)) {
             return true;
         }
     }

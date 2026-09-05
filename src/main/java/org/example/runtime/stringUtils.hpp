@@ -5,64 +5,64 @@
 
 using namespace std;
 
-bool str_stringEquals(string str1, string str2);
+bool string_equals(string str1, string str2);
 
-int str_hash(string str);
+int string_hash(string str);
 
-int str_stringLength(string str);
+int string_length(string str);
 
-void str_setCharAt(string str, int pos, char c);
+void string_setCharAt(string str, int pos, char c);
 
-char str_getCharAt(string str, int pos);
+char string_getCharAt(string str, int pos);
 
-int str_stringIndexOf(string str, char c);
+int string_indexOf(string str, char c);
 
-int str_lastIndexOf(string str, char c);
+int string_lastIndexOf(string str, char c);
 
-bool str_stringContains(string str, char c);
+bool string_contains(string str, char c);
 
-int str_countOccurrence(string str, char c);
+int string_countOccurrence(string str, char c);
 
-void str_reverseString(string str);
+void string_reverse(string str);
 
-string str_substring(string str, int start, int end);
+string string_substring(string str, int start, int end);
 
-void str_append(string str, string other);
+void string_append(string str, string other);
 
-string str_toUpperCase(string str);
+string string_toUpperCase(string str);
 
-string str_toLowerCase(string str);
+string string_toLowerCase(string str);
 
-bool str_startsWith(string str, string prefix);
+bool string_startsWith(string str, string prefix);
 
-bool str_endsWith(string str, string suffix);
+bool string_endsWith(string str, string suffix);
 
-bool str_isPalindrome(string str);
+bool string_isPalindrome(string str);
 
-string str_alphabetIndexes(string str);
+string string_alphabetIndexes(string str);
 
-bool str_hasOnlyDigits(string str);
+bool string_hasOnlyDigits(string str);
 
-bool str_hasDigits(string str);
+bool string_hasDigits(string str);
 
-bool str_hasOnlyLetters(string str);
+bool string_hasOnlyLetters(string str);
 
-bool str_hasLetters(string str);
+bool string_hasLetters(string str);
 
-bool str_hasWhiteSpace(string str);
+bool string_hasWhiteSpace(string str);
 
-bool str_isAlphaNumeric(string str);
+bool string_isAlphaNumeric(string str);
 
-void str_capitalize(string str);
+void string_capitalize(string str);
 
-bool str_isLowercase(string str);
+bool string_isLowercase(string str);
 
-bool str_isUppercase(string str);
+bool string_isUppercase(string str);
 
-bool str_isWhiteSpace(string str);
+bool string_isWhiteSpace(string str);
 
-int str_numberOfWhiteSpaces(string str);
+int string_numberOfWhiteSpaces(string str);
 
-int str_numberOfVowels(string str);
+int string_numberOfVowels(string str);
 
-int str_numberOfConsonants(string str);
+int string_numberOfConsonants(string str);

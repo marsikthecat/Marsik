@@ -10,7 +10,7 @@ string c = "l"
 s2.append(c)
 s2.append("o")
 printLine(s2)
-printLine(s2.stringLength())
+printLine(s2.length())
 printLine(s2.getCharAt(1))
 printLine(s2)
 
@@ -37,11 +37,11 @@ printLine(spaced.hasWhiteSpace())
 printLine(spaced)
 
 char aaaaa = 'l'
-printLine(a.stringIndexOf(aaaaa))
+printLine(a.indexOf(aaaaa))
 printLine(a.lastIndexOf('l'))
 printLine(a.countOccurrence('l'))
 
 a.capitalize()
 printLine(a)
 
-printLine(a.stringEquals(b))
+printLine(a.equals(b))
