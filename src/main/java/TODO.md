@@ -7,11 +7,6 @@
 ## Discussion and Ideas:
 - What is with Crypto?
 - BabyInt remove?
-- Matrix: fill method like
-```
- Matrix matrix = new Matrix(2, 2) 
- matrix.fill(4,6,3,7)
-```
 
 ## Open:
 - Fix: Key-Value insertion not supported by Compiler (grammar error)
@@ -20,6 +15,7 @@
 - Feat: Complete tests
 
 ## Complete
+- Feat: fill method for matrix using Array
 - Feat: enable compilation in CLI
 - Refactor: Compiler, Lookup and Utils
 - Fix: Investigate and fix heavy errors in hashmap and perfectHashmap

@@ -753,8 +753,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   /**
    * Navigate to src/main/java/org/example and then start the compiler in CLI using:
-   * gradle.bat -p C:\Marsik\MarsikLang run --args="src/main/java/org/example/tests/testString.marsik out"
-   * Choose the file you want to compile and specify the output directory.
+   * gradle.bat -p C:\Marsik\MarsikLang run --args="src/main/java/org/example/tests/datastructureTests/testMatrix.marsik"
+   * Choose the file you want to compile and optionally specify the output directory.
    */
   static void main(String[] args) throws IOException, InterruptedException {
     if (args.length == 0 || args.length > 2) {
