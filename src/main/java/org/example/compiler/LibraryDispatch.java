@@ -4,8 +4,6 @@ import java.util.ArrayList;
 
 public class LibraryDispatch {
 
-  private final String[] libraryNames = {"FileHandler", "DateTime", "Caster", "Math"};
-
   private final ArrayList<MarsikPerfectHashMap<String>> libraryMethods = new ArrayList<>(4);
 
   public LibraryDispatch() {
@@ -36,19 +34,26 @@ public class LibraryDispatch {
   }
 
   /**
-   * Checks whether the library and the method is supported in the runtime.
+   * Returns whether the runtime provides the given method for the given library.
    */
-  public void checkLibraryAndMethodExistence(String libraryName, String method) {
-      // Perfect hash function for the 4 library name keys:
-      // "Caster" -> 2, "Math" -> 0, "FileHandler" -> 3, "DateTime" -> 1
-      int idx = libraryName.charAt(0) % 4;
-      if (!libraryName.equals(libraryNames[idx])) {
-        return;
-      }
-      MarsikPerfectHashMap<String> methods = libraryMethods.get(idx);
-      String methodName = methods.get(method);
-      if (methodName == null || !methodName.equals(method)) {
-        throw new RuntimeException("Runtime method " + method + " for " + libraryName + " does not exist");
-      }
+  public boolean isLibraryMethod(String libraryName, String method) {
+    if (libraryName == null || method == null) {
+      return false;
+    }
+
+    int idx = switch (libraryName) {
+      case "Math" -> 0;
+      case "DateTime" -> 1;
+      case "Caster" -> 2;
+      case "FileHandler" -> 3;
+      default -> -1;
+    };
+    if (idx < 0) {
+      return false;
+    }
+
+    MarsikPerfectHashMap<String> methods = libraryMethods.get(idx);
+    String methodName = methods.get(method);
+    return methodName != null && methodName.equals(method);
   }
 }

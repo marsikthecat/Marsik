@@ -1,7 +1,6 @@
 package org.example.compiler;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -34,33 +33,7 @@ public class Utils {
           "isNumericArray"
   );
 
-  public static final Map<String, Set<String>> libraryMethodsLookup = Map.of(
-          "DateTime", Set.of(
-                  "now", "currentDateISO", "currentMillis",
-                  "currentYear", "currentMonth", "currentDay",
-                  "currentHour", "currentMinute", "currentSeconds",
-                  "currentDateTime", "getSeconds", "getMinutes", "getHours", "getDay",
-                  "getMonth", "getYear", "setSeconds", "setMinutes",
-                  "setHours", "setDay", "setMonth", "setYear", "isLeapYear",
-                  "isBefore", "isAfter", "toIsoFormat", "monthName", "dayName"
-          ),
-          "FileHandler", Set.of(
-                  "writeContentToFile", "appendContentToFile", "clearFile",
-                  "doesFileExist", "deleteFile", "readFile", "createFile"
-          ),
-          "Math", Set.of(
-                  "roundBasic", "roundUp", "roundDown", "ln", "logarithm", "ePowX",
-                  "gcd", "scd", "modInverse", "factorial", "fibonacci", "hypotenuse", "hypotenuse3D",
-                  "isEven", "isPrime", "areCongruentModuloM", "calculateCapital", "increasingSum",
-                  "max", "min", "sum", "avg", "median", "randomInt", "randomDouble", "variance", "standardDeviation",
-                  "binomialCoefficient", "squareRoot", "cubeRoot", "toRadians", "toDegrees", "posDifference",
-                  "sine", "cosine", "tangent", "asine", "aconsine", "atangent", "pi", "e", "phi"
-          ),
-          "Caster", Set.of("intToDouble", "intToChar", "intToString",
-                  "booleanToString", "doubleToInt", "doubleToString", "stringToInt", "stringToBoolean",
-                  "stringToDouble", "booleanToInt", "intToBoolean"
-          )
-  );
+  private static final LibraryDispatch libraryDispatch = new LibraryDispatch();
 
   public static boolean multiEquals(String value, String... strings) {
     for (String str : strings) {
@@ -72,8 +45,7 @@ public class Utils {
   }
 
   public static boolean isBuiltInLibraryMethod(String target, String method) {
-    return libraryMethodsLookup.containsKey(target)
-       && libraryMethodsLookup.get(target).contains(method);
+    return libraryDispatch.isLibraryMethod(target, method);
   }
 
   public static boolean isCompatibleLiteral(String declaredType, MarsikParser.TypeContext value) {
@@ -141,10 +113,5 @@ public class Utils {
             std::cin.get();
             return 0;
         }""".formatted(importsAsString, code);
-  }
-
-  static void main() {
-    LibraryDispatch l = new LibraryDispatch();
-    l.checkLibraryAndMethodExistence("Math", "phi");
   }
 }

@@ -87,16 +87,16 @@ public class MarsikPerfectHashMap<E> {
   public void defineKeys(String... keys) {
     boolean mapperResult;
     do {
-      System.out.print("Trying growFactor " + growFactor);
-      mapperResult = hashAll(keys);
-      growFactor++;
       values = (E[]) new Object[initialSize * growFactor];
-      if (growFactor > 64) {
+      mapperResult = hashAll(keys);
+      if (!mapperResult) {
+        growFactor++;
+      }
+      if (growFactor > 64 && !mapperResult) {
         throw new UnsupportedOperationException("Cannot make perfect hashing out of these keys");
-      } else {
-        keySet.addAll(List.of(keys));
       }
     } while (!mapperResult);
+    keySet.addAll(List.of(keys));
   }
 
   /**
