@@ -56,9 +56,6 @@ public class Utils {
                   "binomialCoefficient", "squareRoot", "cubeRoot", "toRadians", "toDegrees", "posDifference",
                   "sine", "cosine", "tangent", "asine", "aconsine", "atangent", "pi", "e", "phi"
           ),
-          "Crypto", Set.of(
-                  "encrypt", "decrypt", "generateKey"
-          ),
           "Caster", Set.of("intToDouble", "intToChar", "intToString",
                   "booleanToString", "doubleToInt", "doubleToString", "stringToInt", "stringToBoolean",
                   "stringToDouble", "booleanToInt", "intToBoolean"

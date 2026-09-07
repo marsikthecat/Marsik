@@ -5,7 +5,6 @@
 - Thread handling no supported
 
 ## Discussion and Ideas:
-- What is with Crypto?
 - BabyInt remove?
 
 ## Open:
@@ -13,8 +12,10 @@
 
 ## In Progress:
 - Feat: Complete tests
+- Feat: Use LibraryDispatch instead of java hashmap
 
 ## Complete
+- Fix: Remove Crypto support
 - Feat: fill method for matrix using Array
 - Feat: enable compilation in CLI
 - Refactor: Compiler, Lookup and Utils

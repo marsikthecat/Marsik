@@ -168,7 +168,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   private String visitBuiltInLibraryMethodCall(MarsikParser.Method_callContext ctx, String target, String method) {
-    if (!Utils.multiEquals(target, "Math", "FileHandler", "DateTime", "Crypto", "Caster")) {
+    if (!Utils.multiEquals(target, "Math", "FileHandler", "DateTime", "Caster")) {
       throw new RuntimeException("Unknown builtin target: " + target);
     }
     imports.add("#include \"../runtime/" + target.toLowerCase() + ".hpp\"\n");                                            
