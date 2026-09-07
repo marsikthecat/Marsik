@@ -29,8 +29,9 @@ bool writeContentToFile(string filepath, string content) {
         runtimeError("Unable to write to file");
         return false;
     }
-    fprintf(file, content.c_str());
+    fprintf(file, "%s", content.c_str());
     fclose(file);
+    return true;
 }
 
 bool appendContentToFile(string filepath, string content) {
@@ -39,7 +40,7 @@ bool appendContentToFile(string filepath, string content) {
         runtimeError("Unable to append content to file");
         return false;
     }
-    fprintf(file, content.c_str());
+    fprintf(file, "%s", content.c_str());
     fclose(file);
     return true;
 }
@@ -50,7 +51,6 @@ bool clearFile(string filepath) {
         runtimeError("Unable to clear file");
         return false;
     }
-    fprintf(file, "");
     fclose(file);
     return true;
 }

@@ -39,7 +39,7 @@ char string_getCharAt(string str, int pos) {
 }
 
 int string_indexOf(string str, char c) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         if (str[i] == c) {
             return i;
         }
@@ -48,7 +48,7 @@ int string_indexOf(string str, char c) {
 }
 
 int string_lastIndexOf(string str, char c) {
-    for(int i = str.length() - 1; i >= 0; i--) {
+    for(size_t i = str.length(); i-- > 0;) {
         if (str[i] == c) {
             return i;
         }
@@ -57,7 +57,7 @@ int string_lastIndexOf(string str, char c) {
 }
 
 bool string_contains(string str, char c) {
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
         if (str[i] == c) {
             return true;
         }
@@ -67,7 +67,7 @@ bool string_contains(string str, char c) {
 
 int string_countOccurrence(string str, char c) {
     int occurrence = 0;
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
         if(str[i] == c) {
             occurrence++;
         }
@@ -76,8 +76,8 @@ int string_countOccurrence(string str, char c) {
 }
 
 void string_reverse(string str) {
-    int length = str.length();
-    for (int i = 0; i < length/2; i++) {
+    size_t length = str.length();
+    for (size_t i = 0; i < length / 2; i++) {
         char tmp = str[i];
         str[i] = str[length - 1 - i];
         str[length - 1 - i] = tmp;
@@ -85,7 +85,8 @@ void string_reverse(string str) {
 }
 
 string string_substring(string str, int start, int end) {
-    if (start < 0 || end > str.length() || start > end) {
+    int length = str.length();
+    if (start < 0 || end < 0 || end > length || start > end) {
         return "";
     }
     return str.substr(start, end - start);
@@ -96,7 +97,7 @@ void string_append(string str, string other) {
 }
 
 string string_toUpperCase(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         char temp = str[i];
         str[i] = toupper(temp);
     }
@@ -104,7 +105,7 @@ string string_toUpperCase(string str) {
 }
 
 string string_toLowerCase(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         char temp = str[i];
         str[i] = tolower(temp);
     }
@@ -115,7 +116,7 @@ bool string_startsWith(string str, string prefix) {
     if (prefix.length() > str.length()) {
         return false;
     }
-    for (int i = 0; i < prefix.length(); i++) {
+    for (size_t i = 0; i < prefix.length(); i++) {
         if (str[i] != prefix[i]) {
             return false;
         }
@@ -124,12 +125,12 @@ bool string_startsWith(string str, string prefix) {
 }
 
 bool string_endsWith(string str, string suffix) {
-    int suffixLength = suffix.length();
-    int strLength = str.length();
+    size_t suffixLength = suffix.length();
+    size_t strLength = str.length();
     if (suffixLength > strLength) {
         return false;
     }
-    for (int i = 0; i < suffixLength; i++) {
+    for (size_t i = 0; i < suffixLength; i++) {
         if (str[strLength - suffixLength + i] != suffix[i]) {
             return false;
         }
@@ -138,7 +139,7 @@ bool string_endsWith(string str, string suffix) {
 }
 
 bool string_isPalindrome(string str) {
-    for(int i = 0; i < str.length() / 2; i++) {
+    for(size_t i = 0; i < str.length() / 2; i++) {
         if (str[i] != str[str.length() - 1 - i]){
             return false;
         }
@@ -148,10 +149,10 @@ bool string_isPalindrome(string str) {
 
 string string_alphabetIndexes(string str) {
     string indexes = "";
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
         indexes[i] = -1;
     }
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
         char c = tolower(str[i]);
         if (c >= 'a' && c <= 'z') {
             int index = c - 'a';
@@ -164,7 +165,7 @@ string string_alphabetIndexes(string str) {
 }
 
 bool string_hasOnlyDigits(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         if (!isdigit(str[i])) {
             return false;
         }
@@ -173,7 +174,7 @@ bool string_hasOnlyDigits(string str) {
 }
 
 bool string_hasDigits(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         if (isdigit(str[i])) {
             return true;
         }
@@ -182,7 +183,7 @@ bool string_hasDigits(string str) {
 }
 
 bool string_hasOnlyLetters(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         if (!isalpha(str[i])) {
             return false;
         }
@@ -191,7 +192,7 @@ bool string_hasOnlyLetters(string str) {
 }
 
 bool string_hasLetters(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         if (isalpha(str[i])) {
             return true;
         }
@@ -200,7 +201,7 @@ bool string_hasLetters(string str) {
 }
 
 bool string_hasWhiteSpace(string str) {
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (isblank(str[i])) {
         return true;
       }
@@ -209,7 +210,7 @@ bool string_hasWhiteSpace(string str) {
 }
 
 bool string_isAlphaNumeric(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         if (!isalnum(str[i])) {
             return false;
         }
@@ -218,7 +219,7 @@ bool string_isAlphaNumeric(string str) {
 }
 
 void string_capitalize(string str) {
-    for(int i = 0; i < str.length(); i++) {
+    for(size_t i = 0; i < str.length(); i++) {
         char temp = str[i];
         str[i] = toupper(temp);
     }
@@ -226,7 +227,7 @@ void string_capitalize(string str) {
 
 
 bool string_isLowercase(string str) {
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (isupper(str[i])) {
         return false;
       }
@@ -235,7 +236,7 @@ bool string_isLowercase(string str) {
 }
 
 bool string_isUppercase(string str) {
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (islower(str[i])) {
         return false;
       }
@@ -244,7 +245,7 @@ bool string_isUppercase(string str) {
 }
 
 bool string_isWhiteSpace(string str) {
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (!isblank(str[i])) {
         return false;
       }
@@ -254,7 +255,7 @@ bool string_isWhiteSpace(string str) {
 
 int string_numberOfWhiteSpaces(string str) {
     int count = 0;
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (isblank(str[i])) {
         count++;
       }
@@ -264,7 +265,7 @@ int string_numberOfWhiteSpaces(string str) {
 
 int string_numberOfVowels(string str) {
     int count = 0;
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (isVowel(tolower(str[i]))) {
         count++;
       }
@@ -274,7 +275,7 @@ int string_numberOfVowels(string str) {
 
 int string_numberOfConsonants(string str) {
     int count = 0;
-    for (int i = 0; i < str.length(); i++) {
+    for (size_t i = 0; i < str.length(); i++) {
       if (!isVowel(tolower(str[i]))) {
         count++;
       }

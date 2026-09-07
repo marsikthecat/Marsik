@@ -83,8 +83,8 @@ static void _genericlist_ensure_string_capacity(GenericList list) {
     if (list.string_size >= list.string_capacity) {
         int new_capacity = list.string_capacity == 0 ? DEFAULT_CAPACITY : list.string_capacity * 2;
         string* new_array = (string*)allocateFromMarsik(new_capacity * sizeof(string));
-        if (list.string_array != NULL) {
-            memcpy(new_array, list.string_array, list.string_size * sizeof(string));
+        for (int i = 0; i < list.string_size; i++) {
+            new_array[i] = list.string_array[i];
         }
         list.string_array = new_array;
         list.string_capacity = new_capacity;

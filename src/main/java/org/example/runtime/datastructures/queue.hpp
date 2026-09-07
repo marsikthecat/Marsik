@@ -25,7 +25,7 @@ Queue<T> init_queue() {
 template<typename T>
 void queue_enqueue(Queue<T> q, const T& value) {
     if (q.size == DEFAULT_QUEUE_SIZE) {
-        fprintf(stderr, "ERROR: Size %d of queue exceeded %p\n", DEFAULT_QUEUE_SIZE, value);
+        fprintf(stderr, "ERROR: Size %d of queue exceeded %d\n", DEFAULT_QUEUE_SIZE, value);
         return;
     }
     q.rear = (q.rear + 1) % DEFAULT_QUEUE_SIZE;

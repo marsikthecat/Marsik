@@ -8,13 +8,13 @@
 - BabyInt remove?
 
 ## Open:
-- Fix: Remove g++ compiler warnings
 - Fix: Key-Value insertion not supported by Compiler (grammar error)
 
 ## In Progress:
 - Feat: Complete tests
 
 ## Complete
+- Fix: Remove g++ compiler warnings
 - Feat: Use LibraryDispatch instead of java hashmap
 - Fix: Remove Crypto support
 - Feat: fill method for matrix using Array

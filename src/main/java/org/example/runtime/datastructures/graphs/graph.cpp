@@ -60,10 +60,10 @@ void graph_print(Graph graph) {
     printf("Graph: %d node(s)\n", graph.numberOfNodes);
     for (int i = 0; i < graph.numberOfNodes; i++) {
         Node node = *graph.nodes[i];
-        printf("  Node %s (%d edge(s))\n", &node.identifier, node.numberOfEdges);
+        printf("  Node %s (%d edge(s))\n", node.identifier.c_str(), node.numberOfEdges);
         for (int j = 0; j < node.numberOfEdges; j++) {
             Edge edge = *node.edges[j];
-            printf("    Edge %s weight=%.2f\n", &edge.identifier, edge.weight);
+            printf("    Edge %s weight=%.2f\n", edge.identifier.c_str(), edge.weight);
         }
     }
 }

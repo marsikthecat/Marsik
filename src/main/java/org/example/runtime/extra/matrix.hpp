@@ -19,8 +19,8 @@ void matrix_fill(Matrix matrix, Array<T> array) {
     if (array.length != matrix.columns * matrix.rows) {
         runtimeError("Number of values from array not compartible with matrix");
     }
-    for (size_t i = 0; i < matrix.rows; i++){
-      for (size_t j = 0; j < matrix.columns; j++){
+    for (int i = 0; i < matrix.rows; i++){
+      for (int j = 0; j < matrix.columns; j++){
         matrix.data[i][j] = array.data[i * matrix.columns + j];
       }
     }   

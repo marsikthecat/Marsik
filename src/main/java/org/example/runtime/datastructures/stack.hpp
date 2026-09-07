@@ -24,7 +24,7 @@ Stack<T> init_stack() {
 template<typename T>
 void stack_push(Stack<T> s, const T& value) {
     if (s.top == DEFAULT_STACK_SIZE - 1) {
-        fprintf(stderr, "ERROR: Size %d of Stack exceeded %p\n", DEFAULT_STACK_SIZE, value);
+        fprintf(stderr, "ERROR: Size %d of Stack exceeded %d\n", DEFAULT_STACK_SIZE, value);
         return;
     }
     s.data[++s.top] = value;

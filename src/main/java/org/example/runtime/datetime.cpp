@@ -167,7 +167,7 @@ string toGermanFormat(string isoDateTime) {
 }
 
 string toIsoUtcFormat(string isoDateTime) {
-    char buffer[20];
+    char buffer[21];
     snprintf(buffer, sizeof(buffer), "%04d-%02d-%02dT%02d:%02d:%02dZ",
             getYear(isoDateTime), getMonth(isoDateTime), getDay(isoDateTime),
             getHours(isoDateTime), getMinutes(isoDateTime), getSeconds(isoDateTime));

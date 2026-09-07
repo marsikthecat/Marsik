@@ -51,7 +51,7 @@ public class Utils {
   public static boolean isCompatibleLiteral(String declaredType, MarsikParser.TypeContext value) {
     return switch (declaredType) {
       case "string" -> value.STRING() != null;
-      case "bool" -> value.BOOLEAN() != null;
+      case "boolean" -> value.BOOLEAN() != null;
       case "int" -> value.INTEGER() != null;
       case "double" -> value.DOUBLE() != null;
       case "char" -> value.CHAR() != null;
