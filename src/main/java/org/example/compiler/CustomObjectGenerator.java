@@ -54,66 +54,75 @@ public class CustomObjectGenerator {
    */
   private static String generateHeaderFile(ObjectHolder customObject) {
     StringBuilder header = new StringBuilder();
-    String guardName = customObject.name.toUpperCase() + "_HPP";
-
-    header.append("#ifndef ").append(guardName).append("\n");
-    header.append("#define ").append(guardName).append("\n\n");
+    header.append("#pragma once\n");
     header.append("#include <stdbool.h>\n");
     header.append("#include <stdint.h>\n");
     header.append("#include <string>\n\n");
+    header.append("using namespace std;\n\n");
+    /*
+      Define struct of custom object with attributes/fields
 
-    // Struct definition
-    header.append("struct ").append(customObject.name).append(" {\n");
+      typedef struct Car {
+         int horsepower;
+         string brand;
+      } Car;
+    */
+    header.append("typedef struct ").append(customObject.name).append(" {\n");
     for (ObjectHolder.Field field : customObject.fields) {
       String cType = mapTypeToCType(field.type);
       header.append("  ").append(cType).append(" ").append(field.name).append(";\n");
     }
-    header.append("};\n\n");
+    header.append("} ").append(customObject.name).append(";\n\n");
 
-    // Initialization function declaration
-    header.append("struct ").append(customObject.name).append(" init_")
+    /*
+      Declare initialization function for the custom object
+
+      Car init_car();
+    */
+    header.append(customObject.name).append(" init_")
             .append(customObject.name.toLowerCase()).append("(");
 
     header.append(");\n\n");
 
-    // Method declarations
+    /*
+      Declare methods for the custom object
+
+      int car_getHorsepower(Car obj);
+      void car_setHorsepower(Car obj, int horsepower);
+    */
     for (ObjectHolder.Method method : customObject.methods) {
       String returnType = mapTypeToCType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
       if (method.returnType == null || method.returnType.equals("void")) {
         returnType = "void";
       }
       header.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
-              .append(method.name).append("(struct ").append(customObject.name).append("* obj");
+              .append(method.name).append("(").append(customObject.name).append(" obj");
       for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
         header.append(", ").append(paramType).append(" ").append(param.name);
       }
       header.append(");\n");
     }
-
-    header.append("\n#endif\n");
     return header.toString();
   }
 
   /**
    * Generate the implementation file content for a custom object.
-   *
-   * @param customObject the custom object definition
-   * @return the implementation file content
    */
   private static String generateImplementationFile(ObjectHolder customObject) {
     StringBuilder impl = new StringBuilder();
 
     impl.append("#include \"").append(customObject.name.toLowerCase()).append(".hpp\"\n");
     impl.append("#include \"../runtime/stringUtils.hpp\"\n");
-    impl.append("#include <iostream>\n\n");
+    impl.append("#include <iostream>\n");
+    impl.append("#include <string>\n\n");
 
     // Initialization function implementation
-    impl.append("struct ").append(customObject.name).append(" init_")
+    impl.append(customObject.name).append(" init_")
             .append(customObject.name.toLowerCase()).append("(");
 
     impl.append(") {\n");
-    impl.append("  struct ").append(customObject.name).append(" obj;\n");
+    impl.append(customObject.name).append(" obj;\n");
 
     for (ObjectHolder.Field field : customObject.fields) {
       String cType = mapTypeToCType(field.type);
@@ -131,7 +140,7 @@ public class CustomObjectGenerator {
         returnType = "void";
       }
       impl.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
-              .append(method.name).append("(struct ").append(customObject.name).append("* obj");
+              .append(method.name).append("(").append(customObject.name).append(" obj");
       for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
         impl.append(", ").append(paramType).append(" ").append(param.name);
@@ -148,8 +157,8 @@ public class CustomObjectGenerator {
   }
 
   /**
-   * Replace field names in method body with obj->fieldname.
-   * This converts `age = value` to `obj->age = value`.
+   * Replace field names in method body with obj.fieldname.
+   * This converts `age = value` to `obj.age = value`.
    *
    * @param body the method body
    * @param customObject the custom object definition
@@ -158,11 +167,11 @@ public class CustomObjectGenerator {
   private static String replaceFieldNamesInBody(String body, ObjectHolder customObject) {
     String result = body;
     for (ObjectHolder.Field field : customObject.fields) {
-      result = result.replaceAll("\\b" + field.name + "\\b", "obj->" + field.name);
+      result = result.replaceAll("\\b" + field.name + "\\b", "obj." + field.name);
     }
     for (ObjectHolder.Field field : customObject.fields) {
       if (!field.type.equals("string") && !field.type.equals("char")) {
-        String fieldAccess = "obj->" + field.name;
+        String fieldAccess = "obj." + field.name;
         result = result.replaceAll("\\+\\s*" + java.util.regex.Pattern.quote(fieldAccess),
                 "+ std::to_string(" + fieldAccess + ")");
       }
@@ -180,7 +189,7 @@ public class CustomObjectGenerator {
     return switch (marsikType) {
       case "int" -> "int";
       case "double" -> "double";
-      case "string" -> "std::string";
+      case "string" -> "string";
       case "char" -> "char";
       case "boolean" -> "bool";
       case "baby_int" -> "uint8_t";
@@ -200,7 +209,7 @@ public class CustomObjectGenerator {
       case "double" -> "0.0";
       case "char" -> "'\\0'";
       case "bool" -> "false";
-      case "std::string" -> "\"\"";
+      case "string" -> "\"\"";
       default -> "NULL";
     };
   }
