@@ -11,7 +11,8 @@
 ## In Progress:
 - Feat: Complete tests
 
-## Complete- Fix: Remove pointers in custom object generation
+## Complete
+- Fix: Remove pointers in custom object generation
 - Fix: Negative numbers bug
 - Fix: Key-Value insertion not supported by Compiler (grammar error)
 - Refactor: Compiler Utils
