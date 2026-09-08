@@ -14,6 +14,7 @@
 - Feat: Complete tests
 
 ## Complete
+- Refactor: Compiler Utils
 - Fix: Remove g++ compiler warnings
 - Feat: Use LibraryDispatch instead of java hashmap
 - Fix: Remove Crypto support

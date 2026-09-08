@@ -16,7 +16,7 @@ class Person {
 }
 
   Method: printInfo( ) {
-    print("Name: " + name + ", Age: " + age)
+    print("Name: ", name", Age: ", age)
 }
 
   Method: boolean isAdult( ) {

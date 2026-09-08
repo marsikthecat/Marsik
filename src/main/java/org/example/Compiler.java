@@ -18,11 +18,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.compiler.CustomObjectGenerator;
-import org.example.compiler.CustomObjectHolder;
-import org.example.compiler.FieldHolder;
+import org.example.compiler.ObjectHolder;
 import org.example.compiler.GeneratedFilesTracker;
-import org.example.compiler.MethodHolder;
-import org.example.compiler.ParamHolder;
 import org.example.compiler.Utils;
 import org.example.compiler.ValueHolder;
 import org.example.compiler.generated.MarsikBaseVisitor;
@@ -35,8 +32,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public final HashMap<String, ValueHolder> constants = new HashMap<>();
   public final StringBuilder code = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
-  public final HashMap<String, CustomObjectHolder> customObjects = new HashMap<>();
-  public CustomObjectHolder currentCustomObject = null;
+  public final HashMap<String, ObjectHolder> customObjects = new HashMap<>();
+  public ObjectHolder currentCustomObject = null;
 
   @Override
   public String visitProgram(MarsikParser.ProgramContext ctx) {
@@ -144,7 +141,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       throw new RuntimeException("Variable " + target + " does not exist");
     }
     String type = targetValue.type;
-    CustomObjectHolder customObject = customObjects.get(type);
+    ObjectHolder customObject = customObjects.get(type);
     if (customObject != null) {
       boolean methodFound = customObject.methods.stream()
               .anyMatch(candidate -> candidate.name.equals(method));
@@ -453,12 +450,12 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public String visitClass_def(MarsikParser.Class_defContext ctx) {
     String className = ctx.NAME().getText();
     // Create custom object holder
-    CustomObjectHolder customObj = new CustomObjectHolder(className);
+    ObjectHolder customObj = new ObjectHolder(className);
     currentCustomObject = customObj;
     // First pass: Process all fields to make them available in the scope
     for (var member : ctx.class_member()) {
       if (member.field_decl() != null) {
-        FieldHolder field = new FieldHolder();
+        ObjectHolder.Field field = new ObjectHolder.Field();
         field.type = member.field_decl().type_label().getText();
         field.name = member.field_decl().NAME().getText();
         field.isPublic = member.field_decl().getText().contains("public");
@@ -474,7 +471,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     code.setLength(0); // Clear main code temporarily
     for (var member : ctx.class_member()) {
       if (member.method_decl() != null) {
-        MethodHolder method = new MethodHolder();
+        ObjectHolder.Method method = new ObjectHolder.Method();
         MarsikParser.Method_declContext methodCtx = member.method_decl();
         method.name = methodCtx.NAME().getText();
         method.returnType = methodCtx.type_label() != null ? methodCtx.type_label().getText() : "void";
@@ -482,7 +479,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
         if (methodCtx.parameters() != null) {
           for (var p : methodCtx.parameters().parameter()) {
-            method.params.add(new ParamHolder(
+            method.parameters.add(new ObjectHolder.Parameter(
                     p.type_label().getText(),
                     p.NAME().getText()
             ));
@@ -495,7 +492,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
         method.body = code.toString();
         code.setLength(0); // Reset for next method
         customObj.methods.add(method);
-        for (ParamHolder param : method.params) {
+        for (ObjectHolder.Parameter param : method.parameters) {
           variables.remove(param.name);
         }
       }
@@ -507,7 +504,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     imports.add("#include \"" + className.toLowerCase() + ".hpp\"\n");
 
     // Clear field variables after processing the class
-    for (FieldHolder field : customObj.fields) {
+    for (ObjectHolder.Field field : customObj.fields) {
       variables.remove(field.name);
     }
     currentCustomObject = null;

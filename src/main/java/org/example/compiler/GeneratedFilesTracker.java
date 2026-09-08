@@ -2,7 +2,6 @@ package org.example.compiler;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.example.compiler.utils.FileHandler;
 
 /**
  * Tracks all generated custom object files (.h and .c) for cleanup.

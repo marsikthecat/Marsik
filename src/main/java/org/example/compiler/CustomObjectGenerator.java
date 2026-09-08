@@ -1,7 +1,5 @@
 package org.example.compiler;
 
-import org.example.compiler.utils.FileHandler;
-
 /**
  * Generates C++ header (.hpp) and implementation (.cpp) files for custom objects.
  * Each custom object gets its own pair of files in the generated objects folder.
@@ -18,7 +16,7 @@ public class CustomObjectGenerator {
    *
    * @param customObject the custom object definition
    */
-  public static void generateCustomObject(CustomObjectHolder customObject) {
+  public static void generateCustomObject(ObjectHolder customObject) {
     try {
       ensureFolderExists();
 
@@ -43,7 +41,6 @@ public class CustomObjectGenerator {
       FileHandler.writeToFile(implPath, implContent);
       GeneratedFilesTracker.registerGeneratedFile(implPath);
 
-      customObject.isGenerated = true;
     } catch (Exception e) {
       System.err.println("Error generating custom object files for " + customObject.name + ": " + e.getMessage());
     }
@@ -55,7 +52,7 @@ public class CustomObjectGenerator {
    * @param customObject the custom object definition
    * @return the header file content
    */
-  private static String generateHeaderFile(CustomObjectHolder customObject) {
+  private static String generateHeaderFile(ObjectHolder customObject) {
     StringBuilder header = new StringBuilder();
     String guardName = customObject.name.toUpperCase() + "_HPP";
 
@@ -67,7 +64,7 @@ public class CustomObjectGenerator {
 
     // Struct definition
     header.append("struct ").append(customObject.name).append(" {\n");
-    for (FieldHolder field : customObject.fields) {
+    for (ObjectHolder.Field field : customObject.fields) {
       String cType = mapTypeToCType(field.type);
       header.append("  ").append(cType).append(" ").append(field.name).append(";\n");
     }
@@ -80,14 +77,14 @@ public class CustomObjectGenerator {
     header.append(");\n\n");
 
     // Method declarations
-    for (MethodHolder method : customObject.methods) {
+    for (ObjectHolder.Method method : customObject.methods) {
       String returnType = mapTypeToCType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
       if (method.returnType == null || method.returnType.equals("void")) {
         returnType = "void";
       }
       header.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
               .append(method.name).append("(struct ").append(customObject.name).append("* obj");
-      for (ParamHolder param : method.params) {
+      for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
         header.append(", ").append(paramType).append(" ").append(param.name);
       }
@@ -104,7 +101,7 @@ public class CustomObjectGenerator {
    * @param customObject the custom object definition
    * @return the implementation file content
    */
-  private static String generateImplementationFile(CustomObjectHolder customObject) {
+  private static String generateImplementationFile(ObjectHolder customObject) {
     StringBuilder impl = new StringBuilder();
 
     impl.append("#include \"").append(customObject.name.toLowerCase()).append(".hpp\"\n");
@@ -118,7 +115,7 @@ public class CustomObjectGenerator {
     impl.append(") {\n");
     impl.append("  struct ").append(customObject.name).append(" obj;\n");
 
-    for (FieldHolder field : customObject.fields) {
+    for (ObjectHolder.Field field : customObject.fields) {
       String cType = mapTypeToCType(field.type);
       String defaultValue = getDefaultValueForType(cType);
       impl.append("  obj.").append(field.name).append(" = ").append(defaultValue).append(";\n");
@@ -128,14 +125,14 @@ public class CustomObjectGenerator {
     impl.append("}\n\n");
 
     // Method implementations
-    for (MethodHolder method : customObject.methods) {
+    for (ObjectHolder.Method method : customObject.methods) {
       String returnType = mapTypeToCType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
       if (method.returnType == null || method.returnType.equals("void")) {
         returnType = "void";
       }
       impl.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
               .append(method.name).append("(struct ").append(customObject.name).append("* obj");
-      for (ParamHolder param : method.params) {
+      for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
         impl.append(", ").append(paramType).append(" ").append(param.name);
       }
@@ -158,12 +155,12 @@ public class CustomObjectGenerator {
    * @param customObject the custom object definition
    * @return the processed body with correct field references
    */
-  private static String replaceFieldNamesInBody(String body, CustomObjectHolder customObject) {
+  private static String replaceFieldNamesInBody(String body, ObjectHolder customObject) {
     String result = body;
-    for (FieldHolder field : customObject.fields) {
+    for (ObjectHolder.Field field : customObject.fields) {
       result = result.replaceAll("\\b" + field.name + "\\b", "obj->" + field.name);
     }
-    for (FieldHolder field : customObject.fields) {
+    for (ObjectHolder.Field field : customObject.fields) {
       if (!field.type.equals("string") && !field.type.equals("char")) {
         String fieldAccess = "obj->" + field.name;
         result = result.replaceAll("\\+\\s*" + java.util.regex.Pattern.quote(fieldAccess),

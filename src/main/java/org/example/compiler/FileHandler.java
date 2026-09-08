@@ -1,10 +1,9 @@
-package org.example.compiler.utils;
+package org.example.compiler;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.System;
 import java.util.Scanner;
 
 /**
