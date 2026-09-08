@@ -311,7 +311,7 @@ public class MarsikParser extends Parser {
 				match(MINUS);
 				setState(102);
 				_la = _input.LA(1);
-				if ( !(((((_la - 66)) & ~0x3f) == 0 && ((1L << (_la - 66)) & 19L) != 0)) ) {
+				if ( !(_la==INTEGER || _la==DOUBLE) ) {
 				_errHandler.recoverInline(this);
 				}
 				else {
@@ -3326,7 +3326,7 @@ public class MarsikParser extends Parser {
 		"(\u0001(\u0001(\u0001)\u0003)\u01da\b)\u0001)\u0001)\u0003)\u01de\b)\u0001"+
 		")\u0001)\u0001)\u0003)\u01e3\b)\u0001)\u0001)\u0001)\u0001)\u0000\u0000"+
 		"*\u0000\u0002\u0004\u0006\b\n\f\u000e\u0010\u0012\u0014\u0016\u0018\u001a"+
-		"\u001c\u001e \"$&(*,.02468:<>@BDFHJLNPR\u0000\u0007\u0002\u0000BCFF\u0001"+
+		"\u001c\u001e \"$&(*,.02468:<>@BDFHJLNPR\u0000\u0007\u0002\u0000BBFF\u0001"+
 		"\u0000<A\u0002\u0000  \"\"\u0002\u0000\u001b\u001c#$\u0001\u0000\u0015"+
 		"\u0016\u0002\u0000\u0017\u0018\u001e\u001e\u0002\u0000\u0004\u0004\u0015"+
 		"\u0016\u0213\u0000[\u0001\u0000\u0000\u0000\u0002g\u0001\u0000\u0000\u0000"+

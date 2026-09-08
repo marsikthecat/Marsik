@@ -4,7 +4,7 @@ program: (stmt* | class_def) EOF;
 
 // All data types
 type: BABY_INTEGER | INTEGER | CHAR | BOOLEAN | STRING | DOUBLE
-    | '-' (BABY_INTEGER | INTEGER | DOUBLE);
+    | '-' (INTEGER | DOUBLE);
 
 // Data-Type declaration
 type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY_INT_TYPE;
