@@ -22,7 +22,7 @@ printLine(Math.roundDown(e))
 printLine(Math.cubeRoot(125))
 printLine(Math.factorial(b))
 
-double[6] dArray = [4.3, 6.5, 3.3, 22.54, 11249.4, 6.0]
+double[6] dArray = [-4.3, 6.5, 3.3, 22.54, 11249.4, 6.0]
 
 printLine("Average of Array: ", Math.avg(dArray))
 printLine("Sum of Array: ", Math.sum(dArray))

@@ -2,7 +2,7 @@
   Works fine, no issues found so far
 */
 
-int[5] intArray = [1,2,3,4,5]
+int[5] intArray = [1,2,3,-4,5]
 print("Here I have an Array: ")
 intArray.printArray()
 int a = scan("Type in an integer:")
