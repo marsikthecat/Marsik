@@ -90,8 +90,12 @@ public class Compiler extends MarsikBaseVisitor<String> {
       return null;
     }
 
-    boolean isTyped = registerBuiltInObject(objectType, ctx.type_label());
-    String type = isTyped ? "<" + ctx.type_label().getText() + ">" : "";
+        List<MarsikParser.Type_labelContext> typeLabels =
+          ctx.getRuleContexts(MarsikParser.Type_labelContext.class);
+        boolean isTyped = registerBuiltInObject(objectType, !typeLabels.isEmpty());
+        String type = isTyped
+          ? "<" + typeLabels.stream().map(ParseTree::getText).collect(java.util.stream.Collectors.joining(", ")) + ">"
+          : "";
     appendObjectInitialization(objectType, variable, type, parameters);
     return null;
   }
@@ -103,10 +107,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
             .append(parameters).append(");\n");
   }
 
-  private boolean registerBuiltInObject(String objectType,
-                                        MarsikParser.Type_labelContext typeLabel) {
+  private boolean registerBuiltInObject(String objectType, boolean hasTypeLabel) {
     if (Utils.buildInTypedObjects.contains(objectType)) {
-      if (typeLabel == null) {
+      if (!hasTypeLabel) {
         throw new RuntimeException("Type is not specified");
       }
       String subdirectory = Utils.multiEquals(objectType, "AvlTree", "BinaryTree", "TreeNode")

@@ -1,19 +1,20 @@
 # Task Overview
 
 ## Problems:
-- Can't handle negative numbers in static array (grammar error)
 - Thread handling no supported
 
 ## Discussion and Ideas:
 - BabyInt remove?
 
 ## Open:
-- Fix: Key-Value insertion not supported by Compiler (grammar error)
+- Fix: Remove pointers in custom object generation
+- Fix: Negative numbers bug
 
 ## In Progress:
 - Feat: Complete tests
 
 ## Complete
+- Fix: Key-Value insertion not supported by Compiler (grammar error)
 - Refactor: Compiler Utils
 - Fix: Remove g++ compiler warnings
 - Feat: Use LibraryDispatch instead of java hashmap

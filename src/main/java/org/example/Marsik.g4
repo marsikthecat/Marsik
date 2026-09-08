@@ -17,7 +17,7 @@ stmt: (var_decl | const_decl | assign_stmt | method_call | if_stmt | while_stmt 
 method_call: NAME '.' NAME ('(' arguments? ')' | '()');
 
 // initializing Objects
-object_stmt: NAME ('<' type_label '>')? NAME EQUAL NEW NAME ('(' arguments? ')' | '()');
+object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME EQUAL NEW NAME ('(' arguments? ')' | '()');
 
 // Declare Variables
 var_decl: type_label NAME (EQUAL (type | scan_stmt | method_call | expr))? NEWLINE?;

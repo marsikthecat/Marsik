@@ -1,8 +1,8 @@
 /*
-  A lot of errors, some of them look ugly
+  Works fine, no issues found so far
 */
 
-HashMap<int> numbers = new HashMap(4)
+HashMap<int, int> numbers = new HashMap(4)
 numbers.put(1, 10)
 numbers.put(5, 50)
 print("Value for key 1: ", numbers.get(1))

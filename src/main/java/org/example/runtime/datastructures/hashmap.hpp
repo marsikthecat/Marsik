@@ -123,7 +123,7 @@ template<typename K, typename V>
 V hashmap_get(HashMap<K, V> map, K key) {
     int index = _hashmap_find_entry(map, key);
     if (index == -1) {
-        return NULL;
+        return V();
     }
     return map.entries[index].value;
 }
