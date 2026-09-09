@@ -10,10 +10,10 @@ public class LibraryDispatch {
     libraryMethods.add(new MarsikPerfectHashMap<>(
                    "roundBasic", "roundUp", "roundDown", "ln", "logarithm", "ePowX",
                    "gcd", "scd", "modInverse", "factorial", "fibonacci", "hypotenuse", "hypotenuse3D",
-                   "isEven", "isPrime", "areCongruentModuloM", "calculateCapital", "increasingSum",
+                   "isEven", "isNegative", "isPrime", "areCongruentModuloM", "calculateCapital", "increasingSum",
                    "max", "min", "sum", "avg", "median", "randomInt", "randomDouble", "variance",
                    "standardDeviation", "binomialCoefficient", "squareRoot", "cubeRoot", "toRadians",
-                   "toDegrees", "posDifference", "sine", "cosine", "tangent", "asine", "aconsine",
+                   "toDegrees", "posDifference", "sine", "cosine", "tangent", "asine", "acosine",
                    "atangent", "pi", "e", "phi"));
                    
     libraryMethods.add(new MarsikPerfectHashMap<>(

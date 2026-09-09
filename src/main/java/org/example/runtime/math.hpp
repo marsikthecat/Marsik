@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <math.h>
 #include "datastructures/array.hpp"
 
 #define PI 3.14159265358979323846

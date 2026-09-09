@@ -2,29 +2,93 @@
   Works fine, no issues found so far
 */
 
-int a = 7
-double aa = Caster.intToDouble(a)
-printLine(Math.squareRoot(aa))
+printLine("pi", Math.pi())
+printLine("e", Math.e())
+printLine("phi", Math.phi())
 
-int b = 5
-int c = 8
-int d = 3
+printLine("roundBasic positive", Math.roundBasic(2.5))
+printLine("roundBasic negative", Math.roundBasic(-2.5))
+printLine("roundUp", Math.roundUp(2.1))
+printLine("roundDown", Math.roundDown(2.9))
 
-double e = 3.4
+printLine("ln", Math.ln(Math.e()))
+printLine("logarithm", Math.logarithm(100))
+printLine("ePowX", Math.ePowX(0))
 
-printLine(Math.max(b, c, d))
-printLine(Math.isEven(b))
-printLine(Math.min(b, c, d))
-printLine(Math.isPrime(b))
-printLine(Math.posDifference(b, c))
-printLine(Math.roundUp(e))
-printLine(Math.roundDown(e))
-printLine(Math.cubeRoot(125))
-printLine(Math.factorial(b))
+printLine("squareRoot zero", Math.squareRoot(0))
+printLine("squareRoot", Math.squareRoot(16))
+printLine("cubeRoot zero", Math.cubeRoot(0))
+printLine("cubeRoot", Math.cubeRoot(125))
+printLine("cubeRoot negative", Math.cubeRoot(-8))
 
-double[6] dArray = [-4.3, 6.5, 3.3, 22.54, 11249.4, 6.0]
+printLine("toRadians", Math.toRadians(180))
+printLine("toDegrees", Math.toDegrees(Math.pi()))
+printLine("sine", Math.sine(0))
+printLine("cosine", Math.cosine(0))
+printLine("tangent", Math.tangent(0))
+printLine("asine", Math.asine(0))
+printLine("acosine", Math.acosine(1))
+printLine("atangent", Math.atangent(0))
+printLine("posDifference negative", Math.posDifference(-9, 4))
+printLine("posDifference reversed", Math.posDifference(4, -9))
 
-printLine("Average of Array: ", Math.avg(dArray))
-printLine("Sum of Array: ", Math.sum(dArray))
-printLine("Biggest Element: ", Math.max(dArray))
-printLine("Smallest Element: ", Math.min(dArray))
+printLine("gcd", Math.gcd(48, 18))
+printLine("gcd negative", Math.gcd(-48, -18))
+printLine("scd", Math.scd(4, 6))
+printLine("modInverse", Math.modInverse(3, 11))
+
+printLine("factorial zero", Math.factorial(0))
+printLine("factorial", Math.factorial(5))
+printLine("factorial negative", Math.factorial(-1))
+printLine("fibonacci zero", Math.fibonacci(0))
+printLine("fibonacci one", Math.fibonacci(1))
+printLine("fibonacci", Math.fibonacci(10))
+
+printLine("hypotenuse", Math.hypotenuse(3, 4))
+printLine("hypotenuse3D", Math.hypotenuse3D(2, 3, 6))
+
+printLine("isEven positive", Math.isEven(4))
+printLine("isEven negative", Math.isEven(-3))
+printLine("isNegative", Math.isNegative(-1))
+printLine("isNegative zero", Math.isNegative(0))
+printLine("isPrime two", Math.isPrime(2))
+printLine("isPrime one", Math.isPrime(1))
+printLine("isPrime composite", Math.isPrime(25))
+printLine("isPrime negative", Math.isPrime(-7))
+
+printLine("areCongruentModuloM true", Math.areCongruentModuloM(14, 5, 3))
+printLine("areCongruentModuloM false", Math.areCongruentModuloM(14, 6, 3))
+printLine("calculateCapital", Math.calculateCapital(1000, 5, 2))
+printLine("increasingSum", Math.increasingSum(3, 5))
+printLine("increasingSum reversed", Math.increasingSum(5, 3))
+
+printLine("binomialCoefficient", Math.binomialCoefficient(5, 2))
+printLine("binomialCoefficient zero", Math.binomialCoefficient(5, 0))
+printLine("binomialCoefficient too large", Math.binomialCoefficient(5, 6))
+printLine("binomialCoefficient negative", Math.binomialCoefficient(5, -1))
+
+printLine("max integers", Math.max(-2, 5))
+printLine("max three integers", Math.max(1, 8, 3))
+printLine("min integers", Math.min(-2, 5))
+printLine("min three integers", Math.min(1, 8, 3))
+printLine("max doubles", Math.max(-2.5, 5.5))
+printLine("max three doubles", Math.max(1.1, 8.8, 3.3))
+printLine("min doubles", Math.min(-2.5, 5.5))
+printLine("min three doubles", Math.min(1.1, 8.8, 3.3))
+
+double[6] values = [-4.3, 6.5, 3.3, 22.54, 11249.4, 6.0]
+printLine("array max", Math.max(values))
+printLine("array min", Math.min(values))
+printLine("array sum", Math.sum(values))
+printLine("array average", Math.avg(values))
+printLine("array median", Math.median(values))
+printLine("array variance", Math.variance(values))
+printLine("array standardDeviation", Math.standardDeviation(values))
+
+double[4] ordered = [1.0, 2.0, 3.0, 4.0]
+printLine("even median", Math.median(ordered))
+printLine("even variance", Math.variance(ordered))
+printLine("even standardDeviation", Math.standardDeviation(ordered))
+printLine("random integer fixed", Math.randomInt(4, 4))
+printLine("random integer reversed", Math.randomInt(7, 5))
+printLine("random double fixed", Math.randomDouble(2.5, 2.5))

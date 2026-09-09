@@ -69,14 +69,14 @@ double atangent(double num) {
 }
 
 double squareRoot(double num) {
-  return sqrt(num);
-}
-
-double cubeRoot(double num) {
   if (num < 0) {
     runtimeWarning("This Math runtime does not extend beyond real numbers!");
     return -1.0;
   }
+  return sqrt(num);
+}
+
+double cubeRoot(double num) {
   return cbrt(num);
 }
 
