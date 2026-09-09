@@ -5,35 +5,60 @@
 int a = 5
 string b = Caster.intToString(a)
 printLine(b)
+printLine("intToString zero: ", Caster.intToString(0))
+printLine("intToString negative: ", Caster.intToString(-42))
 
 char c = Caster.intToChar(a)
 printLine("Char: ", c)
+printLine("Char zero: ", Caster.intToChar(0))
 
 double z = Caster.intToDouble(a)
+printLine("intToDouble: ", z)
+printLine("intToDouble negative: ", Caster.intToDouble(-42))
 
-boolean bbb = intToBoolean(0)
-printLine(bbb)
+boolean bbb = Caster.intToBoolean(0)
+printLine("intToBoolean zero: ", bbb)
+printLine("intToBoolean positive: ", Caster.intToBoolean(1))
+printLine("intToBoolean negative: ", Caster.intToBoolean(-1))
 
 boolean d = true
 string e = Caster.booleanToString(d)
 print(e)
 int zz = Caster.booleanToInt(d)
+printLine("booleanToInt true: ", zz)
+printLine("booleanToString false: ", Caster.booleanToString(false))
+printLine("booleanToInt false: ", Caster.booleanToInt(false))
 
 double f = 3.15
 int g = Caster.doubleToInt(f)
 printLine(g)
+printLine("doubleToInt negative: ", Caster.doubleToInt(-3.99))
+printLine("doubleToInt zero: ", Caster.doubleToInt(0.0))
 
 string fs = Caster.doubleToString(f)
 print(fs)
+printLine("doubleToString whole: ", Caster.doubleToString(2.0))
+printLine("doubleToString negative: ", Caster.doubleToString(-0.5))
 
 string s = "55"
 string s2 = "true"
+string zeroString = "0"
+string falseString = "false"
+string decimalString = "3.75"
+string invalidString = "not a number"
 
 int si = Caster.stringToInt(s)
 printLine(si)
+printLine("stringToInt zero: ", Caster.stringToInt(zeroString))
+printLine("stringToInt invalid: ", Caster.stringToInt(invalidString))
 
 double sd = Caster.stringToDouble(s)
 printLine(sd)
+printLine("stringToDouble decimal: ", Caster.stringToDouble(decimalString))
+printLine("stringToDouble invalid: ", Caster.stringToDouble(invalidString))
 
 boolean sb = Caster.stringToBoolean(s2)
 printLine(sb)
+printLine("stringToBoolean false: ", Caster.stringToBoolean(falseString))
+printLine("stringToBoolean one: ", Caster.stringToBoolean("1"))
+printLine("stringToBoolean zero: ", Caster.stringToBoolean(zeroString))
