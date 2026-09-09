@@ -4,9 +4,16 @@
 
 string newFileName = "file.txt"
 string newFileContent = "Hello World!"
-FileHandler.createFile(newFileName)
+string replacementContent = "Replaced content."
+string appendedContent = " Appended content."
+string emptyContent = ""
+
+printLine("Exists before create: ", FileHandler.doesFileExist(newFileName))
+printLine("Create file: ", FileHandler.createFile(newFileName))
+printLine("Create existing file: ", FileHandler.createFile(newFileName))
 FileHandler.appendContentToFile(newFileName, newFileContent)
 printLine("Wrote content to file: ", newFileName)
+printLine("Append content: ", FileHandler.appendContentToFile(newFileName, appendedContent))
 
 if (FileHandler.doesFileExist(newFileName)) {
   printLine("File ", newFileName, "exists")
@@ -14,13 +21,20 @@ if (FileHandler.doesFileExist(newFileName)) {
 string fileContent = FileHandler.readFile(newFileName)
 printLine("Content read from file: ", fileContent)
 
-FileHandler.clearFile(newFileName)
+printLine("Write replacement: ", FileHandler.writeContentToFile(newFileName, replacementContent))
+printLine("Replacement read: ", FileHandler.readFile(newFileName))
+
+printLine("Clear file: ", FileHandler.clearFile(newFileName))
 
 string emptyFileContent = FileHandler.readFile(newFileName)
 
 printLine("Content after clearing: ", emptyFileContent)
+printLine("Append empty content: ", FileHandler.appendContentToFile(newFileName, emptyContent))
 
 string a = newFileContent
-FileHandler.writeContentToFile(newFileName, a)
+printLine("Write original content: ", FileHandler.writeContentToFile(newFileName, a))
+printLine("Original content read: ", FileHandler.readFile(newFileName))
 
-FileHandler.deleteFile("file.txt")
+printLine("Delete file: ", FileHandler.deleteFile(newFileName))
+printLine("Exists after delete: ", FileHandler.doesFileExist(newFileName))
+printLine("Delete missing file: ", FileHandler.deleteFile(newFileName))
