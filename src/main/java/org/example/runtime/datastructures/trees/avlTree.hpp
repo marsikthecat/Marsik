@@ -1,220 +1,164 @@
-#include "treeNode.hpp"
-#include "../../allocator/allocator.hpp"
-#include "../../error/error.hpp"
+#pragma once
+
+#include "treenode.hpp"
+#include <algorithm>
+#include <iostream>
 
 using namespace std;
 
 template <typename T>
-struct AVLTree {
-    TreeNode<T> root;
+struct AvlTree {
+    TreeNode<T>* root;
     int numberOfNodes;
     int capacity;
 };
 
 template <typename T>
-AVLTree<T> avlTree_init() {
-    AVLTree<T> tree;
+AvlTree<T> init_avltree() {
+    AvlTree<T> tree{};
+    tree.root = nullptr;
     tree.numberOfNodes = 0;
-    tree.root = NULL;
     tree.capacity = 10;
     return tree;
 }
 
 template <typename T>
-int avlTree_balance(TreeNode<T> node) {
-    return node == NULL ? 0 : avlTree_getHeight(node.right)
-        - avlTree_getHeight(node.left);
+int avltree_getHeight(TreeNode<T>* node) { return node == nullptr ? 0 : node->height; }
+
+template <typename T>
+void avltree_updateHeight(TreeNode<T>* node) {
+    if (node != nullptr) node->height = max(avltree_getHeight(node->left), avltree_getHeight(node->right)) + 1;
 }
 
 template <typename T>
-void avlTree_updateHeight(TreeNode<T> node) {
-    int heightOfLeft = avlTree_getHeight(node.left);
-    int heightOfRight = avlTree_getHeight(node.right);
-    node.height = max(heightOfLeft, heightOfRight) + 1;
-}
-
+int avltree_balance(TreeNode<T>* node) { return node == nullptr ? 0 : avltree_getHeight(node->right) - avltree_getHeight(node->left); }
 
 template <typename T>
-TreeNode<T> avlTree_rotateLeft(TreeNode<T> node) {
-    TreeNode<T> n1 = node.right;
-    TreeNode<T> n2 = n1.left;
-    n1.left = node;
-    node.right = n2;
-    avlTree_updateHeight(node);
-    avlTree_updateHeight(n1);
-    return n1;
+TreeNode<T>* avltree_rotateLeft(TreeNode<T>* node) {
+    TreeNode<T>* replacement = node->right;
+    node->right = replacement->left;
+    replacement->left = node;
+    avltree_updateHeight(node);
+    avltree_updateHeight(replacement);
+    return replacement;
 }
 
 template <typename T>
-TreeNode<T> avlTree_rotateRight(TreeNode<T> node) {
-    TreeNode<T> n1 = node.left;
-    TreeNode<T> n2 = n1.right;
-    n1.right = node;
-    node.left = n2;
-    avlTree_updateHeight(node);
-    avlTree_updateHeight(n1);
-    return n1;
+TreeNode<T>* avltree_rotateRight(TreeNode<T>* node) {
+    TreeNode<T>* replacement = node->left;
+    node->left = replacement->right;
+    replacement->right = node;
+    avltree_updateHeight(node);
+    avltree_updateHeight(replacement);
+    return replacement;
 }
 
 template <typename T>
-TreeNode<T> avlTree_bringTreeToBalance(TreeNode<T> root) {
-    avlTree_updateHeight(root);
-    int balance = avlTree_balance(root);
+TreeNode<T>* avltree_balanceNode(TreeNode<T>* node) {
+    if (node == nullptr) return nullptr;
+    avltree_updateHeight(node);
+    int balance = avltree_balance(node);
     if (balance > 1) {
-        if (avlTree_balance(root.right) < 0) {
-            root.right = avlTree_rotateRight(root.right);
-        }
-        return avlTree_rotateLeft(root);
+        if (avltree_balance(node->right) < 0) node->right = avltree_rotateRight(node->right);
+        return avltree_rotateLeft(node);
     }
     if (balance < -1) {
-        if (avlTree_balance(root.left) > 0) {
-            root.left = avlTree_rotateLeft(root.left);
-        }
-        return avlTree_rotateRight(root);
+        if (avltree_balance(node->left) > 0) node->left = avltree_rotateLeft(node->left);
+        return avltree_rotateRight(node);
     }
+    return node;
+}
+
+template <typename T>
+TreeNode<T>* avltree_insertNode(TreeNode<T>* root, TreeNode<T>* node) {
+    if (root == nullptr) return node;
+    if (node->data < root->data) root->left = avltree_insertNode(root->left, node);
+    else root->right = avltree_insertNode(root->right, node);
+    return avltree_balanceNode(root);
+}
+
+template <typename T>
+void avltree_insert(AvlTree<T>& tree, T data) {
+    tree.root = avltree_insertNode(tree.root, new TreeNode<T>(init_treeNode(data)));
+    tree.numberOfNodes++;
+}
+
+template <typename T>
+TreeNode<T>* avltree_findNode(TreeNode<T>* root, T data) {
+    if (root == nullptr || root->data == data) return root;
+    return data < root->data ? avltree_findNode(root->left, data) : avltree_findNode(root->right, data);
+}
+
+template <typename T>
+TreeNode<T>* avltree_minNode(TreeNode<T>* root) {
+    while (root != nullptr && root->left != nullptr) root = root->left;
     return root;
 }
 
 template <typename T>
-TreeNode<T> avlTree_bstInsert(TreeNode<T> root, TreeNode<T> node) {
-    if (root == NULL) {
-        return node;
+TreeNode<T>* avltree_removeNode(TreeNode<T>* root, T data) {
+    if (root == nullptr) return nullptr;
+    if (data < root->data) root->left = avltree_removeNode(root->left, data);
+    else if (data > root->data) root->right = avltree_removeNode(root->right, data);
+    else if (root->left == nullptr) return root->right;
+    else if (root->right == nullptr) return root->left;
+    else {
+        TreeNode<T>* successor = avltree_minNode(root->right);
+        root->data = successor->data;
+        root->right = avltree_removeNode(root->right, successor->data);
     }
-    if (node.data < root.data) {
-        root.left = avlTree_bstInsert(root.left, node);
-    } else {
-        root.right = avlTree_bstInsert(root.right, node);
-    }
-    return avlTree_bringTreeToBalance(root);
+    return avltree_balanceNode(root);
 }
 
 template <typename T>
-void avlTree_insert(AVLTree<T>* tree, TreeNode<T> node) {
-    if (node == NULL) {
-        return;
-    }
-    tree->root = avlTree_bstInsert(tree->root, node);
-    tree->numberOfNodes++;
-}
-
-template <typename T>
-TreeNode<T> avlTree_successor(TreeNode<T> root) {
-    return root.left == NULL ? root : avlTree_successor(root.left);
-}
-
-template <typename T>
-TreeNode<T> avlTree_remove(TreeNode<T> root, T data) {
-    if (root == NULL) {
-        return NULL;
-    }
-    if (data < root.data) {
-        root.left = avlTree_remove(root.left, data);
-    } else if (data > root.data) {
-        root.right = avlTree_remove(root.right, data);
-    } else {
-        if (root.right == NULL) {
-            root = root.left;
-        } else if (root.left == NULL) {
-            root = root.right;
-        } else {
-            TreeNode<T> n = avlTree_successor(root.right);
-            root.data = n.data;
-            root.right = avlTree_remove(root.right, root.data );
-        }
-    }
-    if (root == NULL) {
-        return NULL;
-    }
-    return avlTree_bringTreeToBalance(root);
-}
-
-template <typename T>
-void avlTree_delete(AVLTree<T>* tree, T data) {
-    if (avlTree_search(tree, data) != NULL) {
-        tree->root = avlTree_remove(tree->root, data);
-        tree->numberOfNodes--;
+void avltree_delete(AvlTree<T>& tree, T data) {
+    if (avltree_findNode(tree.root, data) != nullptr) {
+        tree.root = avltree_removeNode(tree.root, data);
+        tree.numberOfNodes--;
     }
 }
 
 template <typename T>
-TreeNode<T> avlTree_findNode(TreeNode<T> root, T data) {
-    if (root == NULL || data == root.data) {
-        return root;
-    }
-    return data < root.data ? avlTree_findNode(root.left, data)
-        : avlTree_findNode(root.right, data);
+TreeNode<T> avltree_search(AvlTree<T> tree, T data) {
+    TreeNode<T>* node = avltree_findNode(tree.root, data);
+    return node == nullptr ? init_treeNode(T{}) : *node;
 }
 
 template <typename T>
-TreeNode<T> avlTree_search( AVLTree<T>* tree, T data) {
-    return avlTree_findNode(tree->root, data);
+bool avltree_contains(AvlTree<T> tree, T data) { return avltree_findNode(tree.root, data) != nullptr; }
+
+template <typename T>
+int avltree_height(AvlTree<T> tree) { return avltree_getHeight(tree.root); }
+
+template <typename T>
+void avltree_inorderNode(TreeNode<T>* node) {
+    if (node == nullptr) return;
+    avltree_inorderNode(node->left);
+    cout << node->data << " ";
+    avltree_inorderNode(node->right);
 }
 
 template <typename T>
-bool avlTree_contains(AVLTree<T>* tree, T data) {
-    return avlTree_search(tree, data) != NULL;
+void avltree_inorder(AvlTree<T> tree) { avltree_inorderNode(tree.root); }
+
+template <typename T>
+void avltree_preorderNode(TreeNode<T>* node) {
+    if (node == nullptr) return;
+    cout << node->data << " ";
+    avltree_preorderNode(node->left);
+    avltree_preorderNode(node->right);
 }
 
 template <typename T>
-int avlTree_height(AVLTree<T>* tree) {
-    return avlTree_getHeight(tree->root);
+void avltree_preorder(AvlTree<T> tree) { avltree_preorderNode(tree.root); }
+
+template <typename T>
+void avltree_postorderNode(TreeNode<T>* node) {
+    if (node == nullptr) return;
+    avltree_postorderNode(node->left);
+    avltree_postorderNode(node->right);
+    cout << node->data << " ";
 }
 
 template <typename T>
-void avlTree_inorder(TreeNode<T> root) {
-    if (root == NULL) {
-        return;
-    }
-    avlTree_inorder(root.left);
-    cout << root.data << " ";
-    avlTree_inorder(root.right);
-}
-
-template <typename T>
-void avlTree_inorder(AVLTree<T>* tree) {
-    if (tree->root == NULL) {
-        runtimeWarning("Tree does not have any nodes");
-        return;
-    }
-    avlTree_inorder(tree->root);
-}
-
-
-template <typename T>
-void avlTree_preorder(TreeNode<T> root) {
-    if (root == NULL) {
-        return;
-    }
-    cout << root.data << " ";
-    avlTree_preorder(root.left);
-    avlTree_preorder(root.right);
-}
-
-template <typename T>
-void avlTree_preorder(AVLTree<T>* tree) {
-    if (tree->root == NULL) {
-        runtimeWarning("Tree does not have any nodes");
-        return;
-    }
-
-    avlTree_preorder(tree->root);
-}
-
-template <typename T>
-void avlTree_postorder(TreeNode<T> root) {
-    if (root == NULL) {
-        return;
-    }
-    avlTree_postorder(root.left);
-    avlTree_postorder(root.right);
-    cout << root.data << " ";
-}
-
-template <typename T>
-void avlTree_postorder(AVLTree<T>* tree) {
-    if (tree->root == NULL) {
-        runtimeWarning("Tree does not have any nodes");
-        return;
-    }
-    avlTree_postorder(tree->root);
-}
+void avltree_postorder(AvlTree<T> tree) { avltree_postorderNode(tree.root); }

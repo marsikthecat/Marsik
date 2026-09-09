@@ -20,16 +20,20 @@ struct Array {
 };
 
 template<typename T>
-void array_removeAt(Array<T> arr, int index) {
+void array_removeAt(Array<T>& arr, int index) {
     if (index < 0 || index >= arr.length) {
         runtimeError("Index out of bounds");
         return;
     }
-    arr.data[index] = NULL;
+    for (int i = index; i < arr.length - 1; i++) {
+        arr.data[i] = arr.data[i + 1];
+    }
+    arr.data[arr.length - 1] = T();
+    arr.length--;
 }
 
 template<typename T>
-void array_set(Array<T> arr, int index, const T& element) {
+void array_set(Array<T>& arr, int index, const T& element) {
     if (index < 0 || index >= arr.length) {
         runtimeError("Index out of bounds");
         return;
@@ -38,7 +42,7 @@ void array_set(Array<T> arr, int index, const T& element) {
 }
 
 template<typename T>
-T array_get(Array<T> arr, int index) {
+T array_get(const Array<T>& arr, int index) {
     if (index < 0 || index >= arr.length) {
         runtimeError("Index out of bounds");
         return T();
@@ -47,27 +51,27 @@ T array_get(Array<T> arr, int index) {
 }
 
 template<typename T>
-int array_length(const Array<T> arr) {
+int array_length(const Array<T>& arr) {
     return arr.length;
 }
 
 template<typename T>
-int array_memorySize(const Array<T> arr) {
+int array_memorySize(const Array<T>& arr) {
     return sizeof(T) * arr.length;
 }
 
 template<typename T>
-bool array_isEmpty(const Array<T> arr) {
+bool array_isEmpty(const Array<T>& arr) {
     return arr.length == 0;
 }
 
 template<typename T>
-bool array_contains(const Array<T> arr, const T& element) {
+bool array_contains(const Array<T>& arr, const T& element) {
     return array_indexOf(arr, element) != -1;
 }
 
 template<typename T>
-int array_indexOf(const Array<T> arr, const T& element) {
+int array_indexOf(const Array<T>& arr, const T& element) {
     for (int i = 0; i < arr.length; i++) {
         if (arr.data[i] == element) {
             return i;
@@ -77,7 +81,7 @@ int array_indexOf(const Array<T> arr, const T& element) {
 }
 
 template<typename T>
-T array_getRandomElement(const Array<T> arr) {
+T array_getRandomElement(const Array<T>& arr) {
     if (arr.length == 0) {
         runtimeError("Array is empty");
         return T();
@@ -92,23 +96,24 @@ T array_getRandomElement(const Array<T> arr) {
 }
 
 template<typename T>
-Array<T> array_slice(const Array<T> arr, int start, int end) {
+Array<T> array_slice(const Array<T>& arr, int start, int end) {
     if (start < 0 || end > arr.length || start >= end) {
         runtimeError("Invalid arguments for array slice");
-        return Array<T>{nullptr, 0, 0};
+        return Array<T>{T(), 0, 0};
     }
     int newLength = end - start;
-
-    T* newData = new T[newLength];
+    Array<T> result{};
+    result.length = newLength;
+    result.type = arr.type;
 
     for (int i = 0; i < newLength; i++) {
-        newData[i] = arr.data[start + i];
+        result.data[i] = arr.data[start + i];
     }
-    return Array<T>{newData, newLength, newLength};
+    return result;
 }
 
 template<typename T>
-void array_reverse(Array<T> arr) {
+void array_reverse(Array<T>& arr) {
     for (int i = 0; i < arr.length / 2; i++) {
         T temp = arr.data[i];
         arr.data[i] = arr.data[arr.length - 1 - i];
@@ -117,7 +122,7 @@ void array_reverse(Array<T> arr) {
 }
 
 template<typename T>
-void array_removeDuplicates(Array<T> arr) {
+void array_removeDuplicates(Array<T>& arr) {
     for (int i = 0; i < arr.length; i++) {
         for (int j = i + 1; j < arr.length; j++) {
             if (arr.data[i] == arr.data[j]) {
@@ -129,7 +134,7 @@ void array_removeDuplicates(Array<T> arr) {
 }
 
 template<typename T>
-void array_removeDuplicateOf(Array<T> arr, const T& element) {
+void array_removeDuplicateOf(Array<T>& arr, const T& element) {
     for (int i = 0; i < arr.length; i++) {
         if (arr.data[i] == element) {
             array_removeAt(arr, i);
@@ -139,7 +144,7 @@ void array_removeDuplicateOf(Array<T> arr, const T& element) {
 }
 
 template<typename T>
-void array_sort(Array<T> arr) {
+void array_sort(Array<T>& arr) {
     for (int i = 0; i < arr.length - 1; i++) {
         for (int j = 0; j < arr.length - i - 1; j++) {
             if (arr.data[j + 1] < arr.data[j]) {
@@ -152,11 +157,10 @@ void array_sort(Array<T> arr) {
 }
 
 template<typename T>
-Array<T> array_clone(const Array<T> arr) {
-    Array<T> copy;
+Array<T> array_clone(const Array<T>& arr) {
+    Array<T> copy{};
     copy.length = arr.length;
-    copy.capacity = arr.length;
-    copy.data = new T[arr.length];
+    copy.type = arr.type;
     for (int i = 0; i < arr.length; i++) {
         copy.data[i] = arr.data[i];
     }
@@ -164,7 +168,7 @@ Array<T> array_clone(const Array<T> arr) {
 }
 
 template<typename T>
-T array_mostAppearingElement(const Array<T> arr) {
+T array_mostAppearingElement(const Array<T>& arr) {
     if (arr.length == 0) {
         return T();
     }
@@ -188,7 +192,7 @@ T array_mostAppearingElement(const Array<T> arr) {
 }
 
 template<typename T>
-void array_printArray(Array<T> arr) {
+void array_printArray(Array<T>& arr) {
     printf("[");
     for (int i = 0; i < arr.length; i++) {
         printf("%d", arr.data[i]);
@@ -200,7 +204,7 @@ void array_printArray(Array<T> arr) {
 }
 
 template<typename T>
-void array_shuffle(Array<T> arr) {
+void array_shuffle(Array<T>& arr) {
     static int seeded = 0;
     if (!seeded) {
         srand((unsigned int)time(NULL));
@@ -215,6 +219,6 @@ void array_shuffle(Array<T> arr) {
 }
 
 template<typename T>
-bool arr_isNumericArray(Array<T> arr) {
+bool array_isNumericArray(Array<T>& arr) {
     return arr.type == "int" ||  arr.type == "double";
 }

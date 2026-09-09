@@ -15,7 +15,7 @@ struct TreeNode {
 };
 
 template <typename T>
-TreeNode<T> treeNode_init(T data) {
+TreeNode<T> init_treenode(T data) {
    TreeNode<T> node; 
    node.height = 1;
    node.data = data;
@@ -25,21 +25,21 @@ TreeNode<T> treeNode_init(T data) {
 } 
 
 template <typename T>
-T treeNode_getData(TreeNode<T> node) {
+T treenode_getData(TreeNode<T> node) {
     return node.data;
 } 
 
 template <typename T>
-void treeNode_setData(TreeNode<T> node, T data) {
+void treenode_setData(TreeNode<T> node, T data) {
     node.data = data;
 } 
 
 template <typename T>
-TreeNode<T> treeNode_getLeft(TreeNode<T> node) {
+TreeNode<T> treenode_getLeft(TreeNode<T> node) {
     return node.left;
 } 
 
 template <typename T>
-TreeNode<T> treeNode_getRight(TreeNode<T> node) {
+TreeNode<T> treenode_getRight(TreeNode<T> node) {
     return node.right;
 } 

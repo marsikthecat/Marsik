@@ -22,7 +22,7 @@ Stack<T> init_stack() {
 }
 
 template<typename T>
-void stack_push(Stack<T> s, const T& value) {
+void stack_push(Stack<T>& s, const T& value) {
     if (s.top == DEFAULT_STACK_SIZE - 1) {
         fprintf(stderr, "ERROR: Size %d of Stack exceeded %d\n", DEFAULT_STACK_SIZE, value);
         return;
@@ -31,7 +31,7 @@ void stack_push(Stack<T> s, const T& value) {
 }
 
 template<typename T>
-T stack_peek(Stack<T> s) {
+T stack_peek(Stack<T>& s) {
     if (s.top == -1) {
         runtimeError("Stack is empty");
         return T{};
@@ -40,7 +40,7 @@ T stack_peek(Stack<T> s) {
 }
 
 template<typename T>
-T stack_pop(Stack<T> s) {
+T stack_pop(Stack<T>& s) {
     if (s.top == -1) {
         runtimeError("Stack is empty");
         return T{};
@@ -49,16 +49,16 @@ T stack_pop(Stack<T> s) {
 }
 
 template<typename T>
-bool stack_isFull(Stack<T> s) {
+bool stack_isFull(Stack<T>& s) {
     return s.top == DEFAULT_STACK_SIZE - 1;
 }
 
 template<typename T>
-bool stack_isEmpty(Stack<T> s) {
+bool stack_isEmpty(Stack<T>& s) {
     return s.top == -1;
 }
 
 template<typename T>
-int stack_size(Stack<T> s) {
+int stack_size(Stack<T>& s) {
     return s.top + 1;
 }

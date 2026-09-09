@@ -13,9 +13,9 @@ struct Edge {
 
 Edge init_edge(string identifier);
 
-void edge_setWeight(Edge edge, double weight);
+void edge_setWeight(Edge& edge, double weight);
 
-void edge_setDestination(Edge edge, Node node);
+void edge_setDestination(Edge& edge, Node& node);
 
 Node edge_getDestination(Edge edge);
 

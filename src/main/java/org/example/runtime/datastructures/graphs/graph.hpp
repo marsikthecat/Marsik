@@ -11,9 +11,9 @@ typedef struct Graph {
 
 Graph init_graph();
 
-void graph_addNode(Graph graph, Node node);
+void graph_addNode(Graph& graph, Node& node);
 
-void graph_removeNode(Graph graph, Node node);
+void graph_removeNode(Graph& graph, Node& node);
 
 bool graph_containsNode(Graph graph, string identifier);
 

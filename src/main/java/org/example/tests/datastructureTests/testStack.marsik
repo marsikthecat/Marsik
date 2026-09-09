@@ -3,6 +3,9 @@
 */
 
 Stack<int> stack = new Stack()
+print("Initially empty: ", stack.isEmpty())
+print("Initially full: ", stack.isFull())
+print("Initial size: ", stack.size())
 stack.push(10)
 stack.push(20)
 print("Top: ", stack.peek())
@@ -10,3 +13,5 @@ print("Pop 1: ", stack.pop())
 print("Pop 2: ", stack.pop())
 print("Empty after pops: ", stack.isEmpty())
 print("Size: ", stack.size())
+print("Peek empty: ", stack.peek())
+print("Pop empty: ", stack.pop())

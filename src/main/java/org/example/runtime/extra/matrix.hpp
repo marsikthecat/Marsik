@@ -12,7 +12,7 @@ typedef struct Matrix {
 Matrix init_matrix(int rows, int columns);
 
 template<typename T>
-void matrix_fill(Matrix matrix, Array<T> array) {
+void matrix_fill(Matrix& matrix, Array<T> array) {
     if (array.type != "int") {
         runtimeError("Values from array must be integers");
     }
@@ -28,7 +28,7 @@ void matrix_fill(Matrix matrix, Array<T> array) {
 
 int matrix_get(Matrix matrix, int row, int column);
 
-void matrix_set(Matrix matrix, int row, int column, int value);
+void matrix_set(Matrix& matrix, int row, int column, int value);
 
 int matrix_numberOfRows(Matrix matrix);
 

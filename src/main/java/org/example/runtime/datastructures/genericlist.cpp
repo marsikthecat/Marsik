@@ -7,7 +7,7 @@
 
 #define DEFAULT_CAPACITY 10
 
-static void _genericlist_ensure_capacity(GenericList list) {
+static void _genericlist_ensure_capacity(GenericList& list) {
     if (list.size >= list.capacity) {
         int new_capacity = list.capacity == 0 ? DEFAULT_CAPACITY : list.capacity * 2;
         PositionInfo* new_positions = (PositionInfo*)allocateFromMarsik(new_capacity * sizeof(PositionInfo));
@@ -19,7 +19,7 @@ static void _genericlist_ensure_capacity(GenericList list) {
     }
 }
 
-static void _genericlist_ensure_int_capacity(GenericList list) {
+static void _genericlist_ensure_int_capacity(GenericList& list) {
     if (list.int_size >= list.int_capacity) {
         int new_capacity = list.int_capacity == 0 ? DEFAULT_CAPACITY : list.int_capacity * 2;
         int* new_array = (int*)allocateFromMarsik(new_capacity * sizeof(int));
@@ -31,7 +31,7 @@ static void _genericlist_ensure_int_capacity(GenericList list) {
     }
 }
 
-static void _genericlist_ensure_float_capacity(GenericList list) {
+static void _genericlist_ensure_float_capacity(GenericList& list) {
     if (list.float_size >= list.float_capacity) {
         int new_capacity = list.float_capacity == 0 ? DEFAULT_CAPACITY : list.float_capacity * 2;
         float* new_array = (float*)allocateFromMarsik(new_capacity * sizeof(float));
@@ -43,7 +43,7 @@ static void _genericlist_ensure_float_capacity(GenericList list) {
     }
 }
 
-static void _genericlist_ensure_double_capacity(GenericList list) {
+static void _genericlist_ensure_double_capacity(GenericList& list) {
     if (list.double_size >= list.double_capacity) {
         int new_capacity = list.double_capacity == 0 ? DEFAULT_CAPACITY : list.double_capacity * 2;
         double* new_array = (double*)allocateFromMarsik(new_capacity * sizeof(double));
@@ -55,7 +55,7 @@ static void _genericlist_ensure_double_capacity(GenericList list) {
     }
 }
 
-static void _genericlist_ensure_char_capacity(GenericList list) {
+static void _genericlist_ensure_char_capacity(GenericList& list) {
     if (list.char_size >= list.char_capacity) {
         int new_capacity = list.char_capacity == 0 ? DEFAULT_CAPACITY : list.char_capacity * 2;
         char* new_array = (char*)allocateFromMarsik(new_capacity * sizeof(char));
@@ -67,7 +67,7 @@ static void _genericlist_ensure_char_capacity(GenericList list) {
     }
 }
 
-static void _genericlist_ensure_bool_capacity(GenericList list) {
+static void _genericlist_ensure_bool_capacity(GenericList& list) {
     if (list.bool_size >= list.bool_capacity) {
         int new_capacity = list.bool_capacity == 0 ? DEFAULT_CAPACITY : list.bool_capacity * 2;
         bool* new_array = (bool*)allocateFromMarsik(new_capacity * sizeof(bool));
@@ -79,7 +79,7 @@ static void _genericlist_ensure_bool_capacity(GenericList list) {
     }
 }
 
-static void _genericlist_ensure_string_capacity(GenericList list) {
+static void _genericlist_ensure_string_capacity(GenericList& list) {
     if (list.string_size >= list.string_capacity) {
         int new_capacity = list.string_capacity == 0 ? DEFAULT_CAPACITY : list.string_capacity * 2;
         string* new_array = (string*)allocateFromMarsik(new_capacity * sizeof(string));
@@ -121,7 +121,7 @@ GenericList init_genericlist(void) {
     return list;
 }
 
-void genericlist_addInt(GenericList list, int value) {
+void genericlist_addInt(GenericList& list, int value) {
     _genericlist_ensure_capacity(list);
     _genericlist_ensure_int_capacity(list);
 
@@ -133,7 +133,7 @@ void genericlist_addInt(GenericList list, int value) {
     list.size++;
 }
 
-void genericlist_addFloat(GenericList list, float value) {
+void genericlist_addFloat(GenericList& list, float value) {
     _genericlist_ensure_capacity(list);
     _genericlist_ensure_float_capacity(list);
 
@@ -145,7 +145,7 @@ void genericlist_addFloat(GenericList list, float value) {
     list.size++;
 }
 
-void genericlist_addDouble(GenericList list, double value) {
+void genericlist_addDouble(GenericList& list, double value) {
     _genericlist_ensure_capacity(list);
     _genericlist_ensure_double_capacity(list);
 
@@ -157,7 +157,7 @@ void genericlist_addDouble(GenericList list, double value) {
     list.size++;
 }
 
-void genericlist_addChar(GenericList list, char value) {
+void genericlist_addChar(GenericList& list, char value) {
     _genericlist_ensure_capacity(list);
     _genericlist_ensure_char_capacity(list);
 
@@ -169,7 +169,7 @@ void genericlist_addChar(GenericList list, char value) {
     list.size++;
 }
 
-void genericlist_addBool(GenericList list, bool value) {
+void genericlist_addBool(GenericList& list, bool value) {
     _genericlist_ensure_capacity(list);
     _genericlist_ensure_bool_capacity(list);
 
@@ -181,7 +181,7 @@ void genericlist_addBool(GenericList list, bool value) {
     list.size++;
 }
 
-void genericlist_addString(GenericList list, string value) {
+void genericlist_addString(GenericList& list, string value) {
     _genericlist_ensure_capacity(list);
     _genericlist_ensure_string_capacity(list);
 
@@ -226,7 +226,7 @@ GenericType genericlist_getType(GenericList list, int index) {
     return list.positions[index].type;
 }
 
-void genericlist_remove(GenericList list, int index) {
+void genericlist_remove(GenericList& list, int index) {
     if (index < 0 || index >= list.size) {
         fprintf(stderr, "ERROR: Index %d out of bounds (size: %d)\n", index, list.size);
         return;
@@ -280,7 +280,7 @@ bool genericlist_isEmpty(GenericList list) {
     return list.size == 0;
 }
 
-void genericlist_clear(GenericList list) {
+void genericlist_clear(GenericList& list) {
     list.int_size = 0;
     list.float_size = 0;
     list.double_size = 0;

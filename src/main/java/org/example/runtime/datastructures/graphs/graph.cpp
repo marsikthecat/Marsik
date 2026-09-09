@@ -15,20 +15,23 @@ Graph init_graph() {
     return graph;
 }
 
-static void graph_ensureCapacity(Graph graph) {
+static void graph_ensureCapacity(Graph& graph) {
     if (graph.numberOfNodes >= graph.nodesCapacity) {
         graph.nodesCapacity *= 2;
         Node** resized = (Node**)allocateFromMarsik(sizeof(Node*) * graph.nodesCapacity);
+        for (int i = 0; i < graph.numberOfNodes; i++) {
+            resized[i] = graph.nodes[i];
+        }
         graph.nodes = resized;
     }
 }
 
-void graph_addNode(Graph graph, Node node) {
+void graph_addNode(Graph& graph, Node& node) {
     graph_ensureCapacity(graph);
     graph.nodes[graph.numberOfNodes++] = &node;
 }
 
-void graph_removeNode(Graph graph, Node node) {
+void graph_removeNode(Graph& graph, Node& node) {
     int index = -1;
     for (int i = 0; i < graph.numberOfNodes; i++) {
         if (string_equals(graph.nodes[i]->identifier, node.identifier)) {

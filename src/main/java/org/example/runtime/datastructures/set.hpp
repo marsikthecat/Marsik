@@ -27,7 +27,7 @@ Set<T> init_set(int capacity) {
 }
 
 template<typename T>
-bool set_add(Set<T> set, const T& value) {
+bool set_add(Set<T>& set, const T& value) {
     if (set_contains(set, value)) {
         return false;
     }
@@ -40,7 +40,7 @@ bool set_add(Set<T> set, const T& value) {
 }
 
 template<typename T>
-bool set_remove(Set<T> set, const T& value) {
+bool set_remove(Set<T>& set, const T& value) {
     for (int i = 0; i < set.size; i++) {
         if (set.data[i] == value) {
             for (int j = i; j < set.size - 1; j++) {
@@ -54,7 +54,7 @@ bool set_remove(Set<T> set, const T& value) {
 }
 
 template<typename T>
-bool set_contains(Set<T> set, const T& value) {
+bool set_contains(Set<T>& set, const T& value) {
     for (int i = 0; i < set.size; i++) {
         if (set.data[i] == value) {
             return true;
@@ -64,21 +64,21 @@ bool set_contains(Set<T> set, const T& value) {
 }
 
 template<typename T>
-bool set_isEmpty(Set<T> set) {
+bool set_isEmpty(Set<T>& set) {
     return set.size == 0;
 }
 
 template<typename T>
-int set_size(Set<T> set) {
+int set_size(Set<T>& set) {
     return set.size;
 }
 
 template<typename T>
-int set_capacity(Set<T> set) {
+int set_capacity(Set<T>& set) {
     return set.capacity;
 }
 
 template<typename T>
-void set_clear(Set<T> set) {
+void set_clear(Set<T>& set) {
     set.size = 0;
 }

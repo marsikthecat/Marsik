@@ -18,8 +18,8 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.compiler.CustomObjectGenerator;
-import org.example.compiler.ObjectHolder;
 import org.example.compiler.GeneratedFilesTracker;
+import org.example.compiler.ObjectHolder;
 import org.example.compiler.Utils;
 import org.example.compiler.ValueHolder;
 import org.example.compiler.generated.MarsikBaseVisitor;
@@ -162,8 +162,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     List<String> args = renderArgumentList(ctx.arguments());
 
     String joinedArgs = String.join(", ", args);
-    String targetArgument = customObject != null ? "&" + target : target;
-    return type.toLowerCase() + "_" + method + "(" + targetArgument
+    return type.toLowerCase() + "_" + method + "(" + target
             + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
   }
 
@@ -202,23 +201,29 @@ public class Compiler extends MarsikBaseVisitor<String> {
   @Override
   public String visitVar_decl(MarsikParser.Var_declContext ctx) {
     String name = ctx.NAME().getText();
+    String declaredType = ctx.type_label().getText();
+    String runtimeType = declaredType.contains("<")
+            ? declaredType.substring(0, declaredType.indexOf('<')) : declaredType;
     if (variables.containsKey(name)) {
       throw new RuntimeException("Variable " + name + " already exists");
     }
-    String type = Utils.toCppType(ctx.type_label().getText(), imports);
+    if (ctx.type_label().NAME() != null && !customObjects.containsKey(runtimeType)) {
+      registerBuiltInObject(runtimeType, declaredType.contains("<"));
+    }
+    String type = Utils.toCppType(declaredType, imports);
     if (ctx.scan_stmt() != null) {
       appendScanDeclaration(ctx.scan_stmt(), type, name);
-      variables.put(name, new ValueHolder(type, true));
+      variables.put(name, new ValueHolder(runtimeType, true));
       return "";
     }
 
     String init = renderInitializer(ctx);
     if (init != null) {
       code.append(type).append(" ").append(name).append(" = ").append(init).append(";\n");
-      variables.put(name, new ValueHolder(type, true));
+      variables.put(name, new ValueHolder(runtimeType, true));
     } else {
       code.append(type).append(" ").append(name).append(";\n");
-      variables.put(name, new ValueHolder(type, false));
+      variables.put(name, new ValueHolder(runtimeType, false));
     }
     return null;
   }
@@ -289,16 +294,25 @@ public class Compiler extends MarsikBaseVisitor<String> {
   @Override
   public String visitArray_decl(MarsikParser.Array_declContext ctx) {
     int size = Integer.parseInt(ctx.INTEGER().getText());
+    String typeLabel = ctx.type_label().getText();
+    String name = ctx.NAME().getText();
+    imports.add("#include \"../runtime/datastructures/array.hpp\"\n");
+
+    if (ctx.method_call() != null) {
+      variables.put(name, new ValueHolder("array", true));
+      code.append("struct Array<").append(typeLabel).append("> ").append(name)
+              .append(" = ").append(visit(ctx.method_call())).append(";\n");
+      return null;
+    }
+
     if (ctx.type().size() > size) {
       throw new RuntimeException("Array size " + size + " does not match number of elements");
     }
-    String typeLabel = ctx.type_label().getText();
     for (MarsikParser.TypeContext value : ctx.type()) {
       if (!Utils.isCompatibleLiteral(typeLabel, value)) {
         throw new RuntimeException("Array element " + value.getText() + " does not match " + typeLabel);
       }
     }
-    String name = ctx.NAME().getText();
     variables.put(name, new ValueHolder("array", true));
 
     StringBuilder compoundLiteral = new StringBuilder();
@@ -311,7 +325,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     compoundLiteral.append("}");
 
-    imports.add("#include \"../runtime/datastructures/array.hpp\"\n");
     code.append("struct Array<").append(typeLabel).append("> ").append(name).append(" = {")
             .append(compoundLiteral).append(", ").append(size).append(", \"")
             .append(typeLabel).append("\"}").append(";\n");

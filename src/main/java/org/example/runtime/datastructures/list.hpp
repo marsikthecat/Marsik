@@ -22,7 +22,11 @@ template <typename T>
 static void _list_ensure_capacity(List<T> list) {
     if (list.size >= list.capacity) {
         int new_capacity = list.capacity == 0 ? DEFAULT_CAPACITY : list.capacity * 2;
-        list.data = (T*)allocateFromMarsik(new_capacity * sizeof(T));
+        T* resized = (T*)allocateFromMarsik(new_capacity * sizeof(T));
+        if (list.size > 0) {
+            memcpy(resized, list.data, list.size * sizeof(T));
+        }
+        list.data = resized;
         list.capacity = new_capacity;
     }
 }
@@ -40,13 +44,13 @@ List<T> init_list(int capacity) {
 }
 
 template <typename T>
-void list_add(List<T> list, const T& value) {
+void list_add(List<T>& list, const T& value) {
     _list_ensure_capacity(list);
     list.data[list.size++] = value;
 }
 
 template <typename T>
-void list_addAt(List<T> list, int index, const T& value) {
+void list_addAt(List<T>& list, int index, const T& value) {
     if (index < 0 || index > list.size) {
         fprintf(stderr, "ERROR: Index %d out of bounds (size: %d)\n", index, list.size);
         return;
@@ -69,7 +73,7 @@ T list_get(List<T> list, int index) {
 }
 
 template <typename T>
-void list_set(List<T> list, int index, const T& value) {
+void list_set(List<T>& list, int index, const T& value) {
     if (index < 0 || index >= list.size) {
         fprintf(stderr, "ERROR: Index %d out of bounds (size: %d)\n", index, list.size);
         return;
@@ -78,7 +82,7 @@ void list_set(List<T> list, int index, const T& value) {
 }
 
 template <typename T>
-void list_removeAt(List<T> list, int index) {
+void list_removeAt(List<T>& list, int index) {
     if (index < 0 || index >= list.size) {
         fprintf(stderr, "ERROR: Index %d out of bounds (size: %d)\n", index, list.size);
         return;
@@ -90,7 +94,7 @@ void list_removeAt(List<T> list, int index) {
 }
 
 template <typename T>
-bool list_remove(List<T> list, const T& value) {
+bool list_remove(List<T>& list, const T& value) {
     int index = list_indexOf(list, value);
     if (index == -1) {
         return false;
@@ -100,12 +104,10 @@ bool list_remove(List<T> list, const T& value) {
 }
 
 template <typename T>
-void list_removeAll(List<T> list, const T& value) {
-    int removed_count = 0;
+void list_removeAll(List<T>& list, const T& value) {
     for (int i = 0; i < list.size; i++) {
         if (list.data[i] == value) {
             list_removeAt(list, i);
-            removed_count++;
             i--;
         }
     }
@@ -152,12 +154,12 @@ bool list_isEmpty(List<T> list) {
 }
 
 template <typename T>
-void list_clear(List<T> list) {
+void list_clear(List<T>& list) {
     list.size = 0;
 }
 
 template <typename T>
-void list_resize(List<T> list, int new_capacity) {
+void list_resize(List<T>& list, int new_capacity) {
     if (new_capacity < 0) {
         runtimeError("Capacity cannot be negative");
         return;
@@ -165,7 +167,12 @@ void list_resize(List<T> list, int new_capacity) {
     if (new_capacity == list.capacity) {
         return;
     }
-    list.data = allocateFromMarsik(new_capacity * sizeof(T));
+    T* resized = (T*)allocateFromMarsik(new_capacity * sizeof(T));
+    int copiedSize = list.size < new_capacity ? list.size : new_capacity;
+    if (copiedSize > 0) {
+        memcpy(resized, list.data, copiedSize * sizeof(T));
+    }
+    list.data = resized;
     list.capacity = new_capacity;
     if (list.size > new_capacity) {
         list.size = new_capacity;
@@ -173,7 +180,7 @@ void list_resize(List<T> list, int new_capacity) {
 }
 
 template <typename T>
-void list_trim(List<T> list) {
+void list_trim(List<T>& list) {
     if (list.size == 0) {
         list_resize(list, 0);
     } else if (list.size < list.capacity) {
@@ -182,7 +189,16 @@ void list_trim(List<T> list) {
 }
 
 template <typename T>
-void list_removeDuplicateOf(List<T> list, const T& value) {
+void list_reverse(List<T>& list) {
+    for (int i = 0; i < list.size / 2; i++) {
+        T temp = list.data[i];
+        list.data[i] = list.data[list.size - 1 - i];
+        list.data[list.size - 1 - i] = temp;
+    }
+}
+
+template <typename T>
+void list_removeDuplicateOf(List<T>& list, const T& value) {
     int first_index = list_indexOf(list, value);
     if (first_index == -1) {
         return;
@@ -219,7 +235,7 @@ List<T> list_clone(List<T> list) {
 }
 
 template <typename T>
-void list_sort(List<T> list) {
+void list_sort(List<T>& list) {
     qsort(list.data, list.size, sizeof(T), [](const void* a, const void* b) -> int {
         const T* elem_a = (const T*)a;
         const T* elem_b = (const T*)b;

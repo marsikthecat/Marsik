@@ -31,7 +31,7 @@ int matrix_get(Matrix matrix, int row, int column) {
     return matrix.data[row][column];
 }
 
-void matrix_set(Matrix matrix, int row, int column, int value) {
+void matrix_set(Matrix& matrix, int row, int column, int value) {
     if (row < 0 || row > matrix.rows) {
         runtimeError("Row does not match matrix");
         return;
@@ -185,7 +185,7 @@ double matrix_getDeterminant(Matrix matrix) {
     } 
 }
 
-bool matrix_isInvertable(Matrix matrix) {
+bool matrix_isInvertible(Matrix matrix) {
     return matrix_getDeterminant(matrix) == 0.0;
 }
 

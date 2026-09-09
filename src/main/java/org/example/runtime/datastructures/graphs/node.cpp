@@ -4,6 +4,7 @@
 #include "node.hpp"
 #include "edge.hpp"
 #include "../../allocator/allocator.hpp"
+#include "../../error/error.hpp"
 
 Node init_node(string identifier) {
     Node node;
@@ -22,20 +23,23 @@ int node_getNumberOfEdges(Node node) {
     return node.numberOfEdges;
 }
 
-static void node_ensureCapacity(Node node) {
+static void node_ensureCapacity(Node& node) {
     if (node.numberOfEdges >= node.edgesCapacity) {
         node.edgesCapacity *= 2;
         Edge** resized = (Edge**)allocateFromMarsik(sizeof(Edge*) * node.edgesCapacity);
+        for (int i = 0; i < node.numberOfEdges; i++) {
+            resized[i] = node.edges[i];
+        }
         node.edges = resized;
     }
 }
 
-void node_addEdge(Node node, Edge edge) {
+void node_addEdge(Node& node, Edge& edge) {
     node_ensureCapacity(node);
     node.edges[node.numberOfEdges++] = &edge;
 }
 
-void node_removeEdge(Node node, Edge edge) {
+void node_removeEdge(Node& node, Edge& edge) {
     int index = -1;
     for (int i = 0; i < node.numberOfEdges; i++) {
         Edge temp_edge = *node.edges[i];
@@ -47,6 +51,7 @@ void node_removeEdge(Node node, Edge edge) {
         }
     }
     if (index < 0) {
+        runtimeWarning("Edge to remove not found");
         return;
     }
     for (int i = index; i < node.numberOfEdges - 1; i++) {

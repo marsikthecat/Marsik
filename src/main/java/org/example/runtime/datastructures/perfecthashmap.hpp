@@ -68,7 +68,7 @@ bool perfecthashmap_put(PerfectHashMap<V>& map, const string& key, V value) {
 }
 
 template<typename V>
-V perfecthashmap_get(const PerfectHashMap<V>& map, const string& key) {
+V perfecthashmap_get(PerfectHashMap<V>& map, const string& key) {
     int index = _perfecthashmap_hash(key, map.keysetSize);
     if (!set_contains(map.usedIndices, index) || map.entries[index].key != key) {
         return V();
@@ -90,7 +90,7 @@ bool perfecthashmap_remove(PerfectHashMap<V>& map, const string& key) {
 }
 
 template<typename V>
-bool perfecthashmap_containsKey(const PerfectHashMap<V>& map, const string& key) {
+bool perfecthashmap_containsKey(PerfectHashMap<V>& map, const string& key) {
     int index = _perfecthashmap_hash(key, map.keysetSize);
     return set_contains(map.usedIndices, index) && map.entries[index].key == key;
 }

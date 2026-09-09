@@ -3,16 +3,6 @@
 */
 
 int[5] intArray = [1,2,3,-4,5]
-print("Here I have an Array: ")
-intArray.printArray()
-int a = scan("Type in an integer:")
-boolean b = intArray.contains(a)
-if (b) {
-  print("Array contains ", a)
-} else {
-  print("Array does not contain ", a)
-}
-
 print("Here another Array of chars: ")
 char[2] arr = ['a','b']
 arr.printArray()
@@ -21,3 +11,33 @@ print("Array after setting b to c: ")
 arr.printArray()
 print("First Element of Array", arr.get(0))
 print("Does it contain the letter c? ", arr.contains('c'))
+
+print("Integer array length: ", intArray.length())
+print("Integer array memory: ", intArray.memorySize())
+print("Integer array index of 3: ", intArray.indexOf(3))
+print("Integer array index of missing: ", intArray.indexOf(99))
+print("Integer array get last: ", intArray.get(4))
+print("Integer array is empty: ", intArray.isEmpty())
+print("Integer array random element: ", intArray.getRandomElement())
+print("Integer array numeric: ", intArray.isNumericArray())
+int[2] slicedArray = intArray.slice(1, 3)
+print("Array slice: ")
+slicedArray.printArray()
+int[3] duplicateArray = [3,1,3]
+duplicateArray.removeDuplicates()
+print("After removing duplicates: ")
+duplicateArray.printArray()
+duplicateArray.removeDuplicateOf(3)
+print("After removing value 3: ")
+duplicateArray.printArray()
+duplicateArray.sort()
+duplicateArray.reverse()
+print("After sort and reverse: ")
+duplicateArray.printArray()
+int[2] clonedArray = duplicateArray.clone()
+print("Cloned array: ")
+clonedArray.printArray()
+print("Most appearing value: ", intArray.mostAppearingElement())
+intArray.shuffle()
+print("After shuffle: ")
+intArray.printArray()

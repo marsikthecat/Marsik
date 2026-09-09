@@ -1,0 +1,42 @@
+/*
+  Works fine, no issues found so far
+*/
+
+AvlTree<int> tree = new AvlTree()
+print("Empty height: ", tree.height())
+print("Contains missing: ", tree.contains(99))
+tree.inorder()
+tree.preorder()
+tree.postorder()
+
+tree.insert(30)
+tree.insert(20)
+tree.insert(10)
+print("After right rotation height: ", tree.height())
+print("Contains 20: ", tree.contains(20))
+print("Contains missing: ", tree.contains(99))
+
+tree.insert(25)
+tree.insert(28)
+tree.insert(40)
+tree.insert(50)
+tree.insert(5)
+tree.insert(20)
+
+print("Height after rotations: ", tree.height())
+print("Inorder: ")
+tree.inorder()
+print("Preorder: ")
+tree.preorder()
+print("Postorder: ")
+tree.postorder()
+
+tree.delete(5)
+print("After deleting leaf: ", tree.height())
+tree.delete(40)
+print("After deleting one-child node: ", tree.height())
+tree.delete(20)
+print("After deleting node with children: ", tree.height())
+tree.delete(99)
+print("After deleting missing value: ", tree.height())
+print("Contains deleted value: ", tree.contains(20))

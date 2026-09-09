@@ -1,17 +1,18 @@
 # Task Overview
 
 ## Problems:
-- Thread handling no supported
+- If you call a variable mutable it is a cpp keyword
 
 ## Discussion and Ideas:
 - BabyInt remove?
+- No Thread-support?
 
 ## Open:
 
 ## In Progress:
-- Feat: Complete tests
 
 ## Complete
+- Feat: Complete tests
 - Fix: Remove pointers in custom object generation
 - Fix: Negative numbers bug
 - Fix: Key-Value insertion not supported by Compiler (grammar error)

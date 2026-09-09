@@ -3,6 +3,9 @@
 */
 
 Queue<int> queue = new Queue()
+print("Initially empty: ", queue.isEmpty())
+print("Initially full: ", queue.isFull())
+print("Initial size: ", queue.size())
 queue.enqueue(10)
 queue.enqueue(20)
 print("Front: ", queue.peek())
@@ -10,3 +13,5 @@ print("Dequeue 1: ", queue.dequeue())
 print("Dequeue 2: ", queue.dequeue())
 print("Empty after dequeues: ", queue.isEmpty())
 print("Size: ", queue.size())
+print("Peek empty: ", queue.peek())
+print("Dequeue empty: ", queue.dequeue())

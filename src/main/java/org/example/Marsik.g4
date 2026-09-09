@@ -7,7 +7,8 @@ type: BABY_INTEGER | INTEGER | CHAR | BOOLEAN | STRING | DOUBLE
     | '-' (INTEGER | DOUBLE);
 
 // Data-Type declaration
-type_label: INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY_INT_TYPE;
+type_label: (INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY_INT_TYPE | NAME)
+            ('<' type_label (',' type_label)? '>')?;
 
 // statements
 stmt: (var_decl | const_decl | assign_stmt | method_call | if_stmt | while_stmt | return_stmt
@@ -36,7 +37,7 @@ inc_stmt: NAME PLUSPLUS INTEGER?;
 dec_stmt: NAME MINUSMINUS INTEGER?;
 
 // Static Array
-array_decl: type_label '[' INTEGER ']' NAME EQUAL '[' (type (',' type)*)? ']';
+array_decl: type_label '[' INTEGER ']' NAME EQUAL ('[' (type (',' type)*)? ']' | method_call);
 
 // Functions
 funcdef: FUNCTION NAME LPAR parameters? RPAR NEWLINE* block;

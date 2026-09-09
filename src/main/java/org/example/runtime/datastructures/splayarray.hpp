@@ -31,22 +31,22 @@ SplayArray<T> init_splayarray() {
 }
 
 template<typename T>
-void updateVisited(SplayArray<T> arr, int index) {
+void updateVisited(SplayArray<T>& arr, int index) {
     arr.visited[index]++;
 }
 
 template<typename T>
-void splayarray_removeAt(SplayArray<T> arr, int index) {
+void splayarray_removeAt(SplayArray<T>& arr, int index) {
     if (index < 0 || index >= arr.length) {
         runtimeError("Index out of bounds");
         return;
     }
-    arr.data[index] = NULL;
+    arr.data[index] = T();
     arr.visited[index] = 0;
 }
 
 template<typename T>
-void splayarray_set(SplayArray<T> arr, int index, const T& element) {
+void splayarray_set(SplayArray<T>& arr, int index, const T& element) {
     if (index < 0 || index >= arr.length) {
         runtimeError("Index out of bounds");
         return;
@@ -66,27 +66,27 @@ T splayarray_get(SplayArray<T> arr, int index) {
 }
 
 template<typename T>
-int splayarray_length(const SplayArray<T> arr) {
+int splayarray_length(SplayArray<T> arr) {
     return arr.length;
 }
 
 template<typename T>
-int splayarray_memorySize(const SplayArray<T> arr) {
+int splayarray_memorySize(SplayArray<T> arr) {
     return sizeof(T) * arr.length;
 }
 
 template<typename T>
-bool splayarray_isEmpty(const SplayArray<T> arr) {
+bool splayarray_isEmpty(SplayArray<T> arr) {
     return arr.length == 0;
 }
 
 template<typename T>
-bool splayarray_contains(const SplayArray<T> arr, const T& element) {
+bool splayarray_contains(SplayArray<T> arr, const T& element) {
     return splayarray_indexOf(arr, element) != -1;
 }
 
 template<typename T>
-int splayarray_indexOf(const SplayArray<T> arr, const T& element) {
+int splayarray_indexOf(SplayArray<T> arr, const T& element) {
     for (int i = 0; i < arr.length; i++) {
         if (arr.data[i] == element) {
             updateVisited(arr, i);
@@ -97,7 +97,7 @@ int splayarray_indexOf(const SplayArray<T> arr, const T& element) {
 }
 
 template<typename T>
-T splayarray_getRandomElement(const SplayArray<T> arr) {
+T splayarray_getRandomElement(SplayArray<T> arr) {
     if (arr.length == 0) {
         runtimeError("Array is empty");
         return T();
@@ -113,10 +113,10 @@ T splayarray_getRandomElement(const SplayArray<T> arr) {
 }
 
 template<typename T>
-SplayArray<T> splayarray_slice(const SplayArray<T> arr, int start, int end) {
+SplayArray<T> splayarray_slice(SplayArray<T> arr, int start, int end) {
     if (start < 0 || end > arr.length || start >= end) {
         runtimeError("Invalid arguments for splayarray slice");
-        return SplayArray<T>{nullptr, 0, 0};
+        return SplayArray<T>{T(), 0, 0};
     }
     int newLength = end - start;
 
@@ -125,11 +125,11 @@ SplayArray<T> splayarray_slice(const SplayArray<T> arr, int start, int end) {
     for (int i = 0; i < newLength; i++) {
         newData[i] = arr.data[start + i];
     }
-    return SplayArray<T>{newData, newLength, newLength};
+    return SplayArray<T>{*newData, newLength, newLength};
 }
 
 template<typename T>
-void splayarray_reverse(SplayArray<T> arr) {
+void splayarray_reverse(SplayArray<T>& arr) {
     for (int i = 0; i < arr.length / 2; i++) {
         T temp = arr.data[i];
         arr.data[i] = arr.data[arr.length - 1 - i];
@@ -138,7 +138,7 @@ void splayarray_reverse(SplayArray<T> arr) {
 }
 
 template<typename T>
-void splayarray_removeDuplicates(SplayArray<T> arr) {
+void splayarray_removeDuplicates(SplayArray<T>& arr) {
     for (int i = 0; i < arr.length; i++) {
         for (int j = i + 1; j < arr.length; j++) {
             if (arr.data[i] == arr.data[j]) {
@@ -150,7 +150,7 @@ void splayarray_removeDuplicates(SplayArray<T> arr) {
 }
 
 template<typename T>
-void splayarray_removeDuplicateOf(SplayArray<T> arr, const T& element) {
+void splayarray_removeDuplicateOf(SplayArray<T>& arr, const T& element) {
     for (int i = 0; i < arr.length; i++) {
         if (arr.data[i] == element) {
             splayarray_removeAt(arr, i);
@@ -160,7 +160,7 @@ void splayarray_removeDuplicateOf(SplayArray<T> arr, const T& element) {
 }
 
 template<typename T>
-void splayarray_sort(SplayArray<T> arr) {
+void splayarray_sort(SplayArray<T>& arr) {
     for (int i = 0; i < arr.length - 1; i++) {
         for (int j = 0; j < arr.length - i - 1; j++) {
             if (arr.data[j + 1] < arr.data[j]) {
@@ -173,19 +173,12 @@ void splayarray_sort(SplayArray<T> arr) {
 }
 
 template<typename T>
-SplayArray<T> splayarray_clone(const SplayArray<T> arr) {
-    SplayArray<T> copy;
-    copy.length = arr.length;
-    copy.capacity = arr.length;
-    copy.data = new T[arr.length];
-    for (int i = 0; i < arr.length; i++) {
-        copy.data[i] = arr.data[i];
-    }
-    return copy;
+SplayArray<T> splayarray_clone(SplayArray<T> arr) {
+    return arr;
 }
 
 template<typename T>
-T splayarray_mostAppearingElement(const SplayArray<T> arr) {
+T splayarray_mostAppearingElement(SplayArray<T> arr) {
     if (arr.length == 0) {
         return T();
     }
@@ -209,7 +202,7 @@ T splayarray_mostAppearingElement(const SplayArray<T> arr) {
 }
 
 template<typename T>
-void splayarray_printArray(const SplayArray<T> arr) {
+void splayarray_printArray(SplayArray<T> arr) {
     printf("[");
     for (int i = 0; i < arr.length; i++) {
         printf("%d", arr.data[i]);
@@ -221,7 +214,7 @@ void splayarray_printArray(const SplayArray<T> arr) {
 }
 
 template<typename T>
-void splayarray_shuffle(SplayArray<T> arr) {
+void splayarray_shuffle(SplayArray<T>& arr) {
     static int seeded = 0;
     if (!seeded) {
         srand((unsigned int)time(NULL));
@@ -236,12 +229,12 @@ void splayarray_shuffle(SplayArray<T> arr) {
 }
 
 template<typename T>
-bool splayarray_isNumericArray(const SplayArray<T> arr) {
+bool splayarray_isNumericArray(SplayArray<T> arr) {
     return arr.type == "int" ||  arr.type == "double";
 }
 
 template<typename T>
-void splayarray_rearrange(SplayArray<T> arr) {
+void splayarray_rearrange(SplayArray<T>& arr) {
     for (int i = 0; i < arr.length - 1; i++) {
         for (int j = 0; j < arr.length - i - 1; j++) {
             if (arr.visited[j + 1] > arr.visited[j]) {
