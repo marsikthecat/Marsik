@@ -15,6 +15,9 @@ printLine("Current day: ", day)
 printLine("Current hour: ", hour)
 printLine("Current minute: ", minute)
 printLine("Current second: ", second)
+printLine("Current milliseconds: ", DateTime.currentMillis())
+printLine("Current day of week: ", DateTime.currentDayOfWeek())
+printLine("Current clock string: ", DateTime.now())
 
 string dn = DateTime.monthName(month)
 
@@ -30,3 +33,49 @@ printLine(msg)
 
 string currentDate = DateTime.currentDateTime()
 printLine(DateTime.getSeconds(currentDate))
+
+string fixedDate = "2024-02-29 12:34:56"
+string earlierDate = "2024-02-28 12:34:56"
+string laterDate = "2024-03-01 12:34:56"
+
+printLine("Fixed seconds: ", DateTime.getSeconds(fixedDate))
+printLine("Fixed minutes: ", DateTime.getMinutes(fixedDate))
+printLine("Fixed hours: ", DateTime.getHours(fixedDate))
+printLine("Fixed day: ", DateTime.getDay(fixedDate))
+printLine("Fixed month: ", DateTime.getMonth(fixedDate))
+printLine("Fixed year: ", DateTime.getYear(fixedDate))
+
+printLine("Before true: ", DateTime.isBefore(earlierDate, laterDate))
+printLine("Before false: ", DateTime.isBefore(laterDate, earlierDate))
+printLine("After true: ", DateTime.isAfter(laterDate, earlierDate))
+printLine("After false: ", DateTime.isAfter(earlierDate, laterDate))
+
+printLine("German format: ", DateTime.toGermanFormat(fixedDate))
+printLine("UTC format: ", DateTime.toIsoUtcFormat(fixedDate))
+
+printLine("January: ", DateTime.monthName(1))
+printLine("February: ", DateTime.monthName(2))
+printLine("December: ", DateTime.monthName(12))
+printLine("Sunday: ", DateTime.dayName(1))
+printLine("Saturday: ", DateTime.dayName(7))
+printLine("Current month name: ", DateTime.getCurrentMonthName())
+printLine("Current day name: ", DateTime.getCurrentDayName())
+
+printLine("Leap 2000: ", DateTime.isLeapYear(2000))
+printLine("Leap 1900: ", DateTime.isLeapYear(1900))
+printLine("Leap 2024: ", DateTime.isLeapYear(2024))
+printLine("Leap 2023: ", DateTime.isLeapYear(2023))
+
+string mutableDate = "2000-01-02 03:04:05"
+DateTime.setSeconds(mutableDate, 59)
+DateTime.setMinutes(mutableDate, 58)
+DateTime.setHours(mutableDate, 17)
+DateTime.setDay(mutableDate, 28)
+DateTime.setMonth(mutableDate, 11)
+DateTime.setYear(mutableDate, 2024)
+printLine("Updated seconds: ", DateTime.getSeconds(mutableDate))
+printLine("Updated minutes: ", DateTime.getMinutes(mutableDate))
+printLine("Updated hours: ", DateTime.getHours(mutableDate))
+printLine("Updated day: ", DateTime.getDay(mutableDate))
+printLine("Updated month: ", DateTime.getMonth(mutableDate))
+printLine("Updated year: ", DateTime.getYear(mutableDate))

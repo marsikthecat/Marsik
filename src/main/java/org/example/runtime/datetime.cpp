@@ -90,7 +90,7 @@ int getYear(string dt) {
     return stoi(dt.substr(0, 4));
 }
 
-void setSeconds(string dt, int seconds) {
+void setSeconds(string& dt, int seconds) {
     if (seconds < 0 || seconds > 59) {
         runtimeError("Invalid number of seconds");
         return;
@@ -99,7 +99,7 @@ void setSeconds(string dt, int seconds) {
     dt[18] = '0' + seconds % 10;
 }
 
-void setMinutes(string dt, int minutes) {
+void setMinutes(string& dt, int minutes) {
     if (minutes < 0 || minutes > 59) {
         runtimeError("Invalid number of minutes");
         return;
@@ -108,7 +108,7 @@ void setMinutes(string dt, int minutes) {
     dt[15] = '0' + minutes % 10;
 }
 
-void setHours(string dt, int hours) {
+void setHours(string& dt, int hours) {
     if (hours < 0 || hours > 23) {
         runtimeError("Invalid number of hours");
         return;
@@ -117,7 +117,7 @@ void setHours(string dt, int hours) {
     dt[12] = '0' + hours % 10;
 }
 
-void setDay(string dt, int day) {
+void setDay(string& dt, int day) {
     if (day < 1 || day > 31) {
         runtimeError("Invalid number of days");
         return;
@@ -126,7 +126,7 @@ void setDay(string dt, int day) {
     dt[9] = '0' + day % 10;
 }
 
-void setMonth(string dt, int month) {
+void setMonth(string& dt, int month) {
     if (month < 1 || month > 12) {
         runtimeError("Invalid number of months");
         return;
@@ -135,7 +135,7 @@ void setMonth(string dt, int month) {
     dt[6] = '0' + month % 10;
 }
 
-void setYear(string dt, int year) {
+void setYear(string& dt, int year) {
     if (year < 1900 || year > 2100) {
         runtimeError("Years out of range for Marsik the year-cat");
         return;

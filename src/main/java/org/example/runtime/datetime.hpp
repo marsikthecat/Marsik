@@ -38,17 +38,17 @@ int getMonth(string dt);
 
 int getYear(string dt);
 
-void setSeconds(string dt, int seconds);
+void setSeconds(string& dt, int seconds);
 
-void setMinutes(string dt, int minutes);
+void setMinutes(string& dt, int minutes);
 
-void setHours(string dt, int hours);
+void setHours(string& dt, int hours);
 
-void setDay(string dt, int day);
+void setDay(string& dt, int day);
 
-void setMonth(string dt, int month);
+void setMonth(string& dt, int month);
 
-void setYear(string dt, int year);
+void setYear(string& dt, int year);
 
 bool isLeapYear(int year);
 
@@ -63,3 +63,7 @@ string getCurrentMonthName();
 string dayName(int day);
 
 string getCurrentDayName();
+
+string toGermanFormat(string isoDateTime);
+
+string toIsoUtcFormat(string isoDateTime);

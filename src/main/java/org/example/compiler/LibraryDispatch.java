@@ -18,10 +18,11 @@ public class LibraryDispatch {
                    
     libraryMethods.add(new MarsikPerfectHashMap<>(
                     "now", "currentDateISO", "currentMillis", "currentYear", "currentMonth",
-                    "currentDay", "currentHour", "currentMinute", "currentSeconds", "currentDateTime",
+                    "currentDay", "currentDayOfWeek", "currentHour", "currentMinute", "currentSeconds", "currentDateTime",
                     "getSeconds", "getMinutes", "getHours", "getDay", "getMonth", "getYear", "setSeconds",
                     "setMinutes", "setHours", "setDay", "setMonth", "setYear", "isLeapYear",
-                    "isBefore", "isAfter", "toIsoFormat", "monthName", "dayName"));
+                    "isBefore", "isAfter", "toGermanFormat", "toIsoUtcFormat", "monthName", "getCurrentMonthName",
+                    "dayName", "getCurrentDayName"));
                     
     libraryMethods.add(new MarsikPerfectHashMap<>(
                     "intToDouble", "intToChar", "intToString", "booleanToString",
