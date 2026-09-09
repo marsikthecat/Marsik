@@ -11,7 +11,7 @@ int string_hash(string str);
 
 int string_length(string str);
 
-void string_setCharAt(string str, int pos, char c);
+void string_setCharAt(string& str, int pos, char c);
 
 char string_getCharAt(string str, int pos);
 
@@ -23,11 +23,11 @@ bool string_contains(string str, char c);
 
 int string_countOccurrence(string str, char c);
 
-void string_reverse(string str);
+void string_reverse(string& str);
 
 string string_substring(string str, int start, int end);
 
-void string_append(string str, string other);
+void string_append(string& str, string other);
 
 string string_toUpperCase(string str);
 
@@ -53,7 +53,7 @@ bool string_hasWhiteSpace(string str);
 
 bool string_isAlphaNumeric(string str);
 
-void string_capitalize(string str);
+void string_capitalize(string& str);
 
 bool string_isLowercase(string str);
 

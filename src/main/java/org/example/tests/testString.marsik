@@ -2,46 +2,59 @@
   Works fine, no issues found so far
 */
 
-string s1 = "racecar"
-printLine(s1.isPalindrome())
+string empty = ""
+string text = "Racecar 123"
+string lower = "hello world"
+string upper = "HELLO WORLD"
+string whitespace = "  \t"
+string palindromeRacecar = "racecar"
+string palindromeA = "A"
+string palindromeAb = "ab"
+string alphabetInput = "Cabba"
+string digitsOnly = "12345"
+string digitsMixed = "12a"
+string digitsPresent = "a12"
+string lettersOnly = "abc"
+string lettersMixed = "ab1"
+string lettersPresent = "1ab"
+string noLetters = "123"
+string spaced = "a b"
+string noSpace = "abc"
+string alphanumeric = "abc123"
+string notAlphanumeric = "abc-123"
+string vowelsAndConsonants = "aEiOUxyz"
+string countedSpaces = "a b  c"
+string singleSpace = " "
+string mixedSpace = "a "
 
-string s2 = "Hell"
-string c = "l"
-s2.append(c)
-s2.append("o")
-printLine(s2)
-printLine(s2.length())
-printLine(s2.getCharAt(1))
-printLine(s2)
+printLine("equals", text.equals("Racecar 123"), text.equals(lower))
+printLine("hash", text.hash(), text.hash())
+printLine("length", empty.length(), text.length())
+printLine("getCharAt", text.getCharAt(0), text.getCharAt(text.length() - 1))
+printLine("index", text.indexOf('a'), text.indexOf('z'))
+printLine("lastIndex", text.lastIndexOf('a'), text.lastIndexOf('z'))
+printLine("contains", text.contains('a'), text.contains('z'))
+printLine("count", text.countOccurrence('a'), text.countOccurrence('z'))
 
-string a = "Hello"
-string b = " World"
-a.append(b)
-printLine(a)
-a.reverse()
-printLine(a)
+printLine("substring", text.substring(0, 4), text.substring(4, 4), text.substring(-1, 3), text.substring(3, 2), text.substring(0, 100))
+printLine("upper", lower.toUpperCase())
+printLine("lower", upper.toLowerCase())
+printLine("starts", text.startsWith("Race"), text.startsWith("race"), text.startsWith(""), text.startsWith("Racecar 1234"))
+printLine("ends", text.endsWith("123"), text.endsWith("1234"), text.endsWith(""), text.endsWith("Racecar"))
+printLine("palindrome", palindromeRacecar.isPalindrome(), palindromeA.isPalindrome(), palindromeAb.isPalindrome(), empty.isPalindrome())
+printLine("alphabetIndexes", alphabetInput.alphabetIndexes())
 
-string nums = "12345"
-printLine(nums.hasOnlyDigits())
-printLine(nums.hasDigits())
+printLine("digits", digitsOnly.hasOnlyDigits(), empty.hasOnlyDigits(), digitsMixed.hasOnlyDigits(), digitsPresent.hasDigits(), lettersOnly.hasDigits())
+printLine("letters", lettersOnly.hasOnlyLetters(), empty.hasOnlyLetters(), lettersMixed.hasOnlyLetters(), lettersPresent.hasLetters(), noLetters.hasLetters())
+printLine("whitespace", whitespace.hasWhiteSpace(), spaced.hasWhiteSpace(), noSpace.hasWhiteSpace())
+printLine("alphanumeric", alphanumeric.isAlphaNumeric(), notAlphanumeric.isAlphaNumeric(), empty.isAlphaNumeric())
+printLine("case", lower.isLowercase(), upper.isLowercase(), upper.isUppercase(), lower.isUppercase(), empty.isLowercase(), empty.isUppercase())
+printLine("onlyWhitespace", whitespace.isWhiteSpace(), singleSpace.isWhiteSpace(), mixedSpace.isWhiteSpace(), empty.isWhiteSpace())
+printLine("counts", vowelsAndConsonants.numberOfVowels(), vowelsAndConsonants.numberOfConsonants(), countedSpaces.numberOfWhiteSpaces())
 
-string mixed = "abc123"
-printLine(mixed.hasDigits())
-printLine(mixed.hasOnlyLetters())
-
-string letters = "abc"
-printLine(letters.hasOnlyLetters())
-
-string spaced = "a b c"
-printLine(spaced.hasWhiteSpace())
-printLine(spaced)
-
-char aaaaa = 'l'
-printLine(a.indexOf(aaaaa))
-printLine(a.lastIndexOf('l'))
-printLine(a.countOccurrence('l'))
-
-a.capitalize()
-printLine(a)
-
-printLine(a.equals(b))
+string mutablestr = "hello"
+mutablestr.setCharAt(1, 'a')
+mutablestr.append(" world")
+mutablestr.reverse()
+mutablestr.capitalize()
+printLine("void methods", mutablestr)

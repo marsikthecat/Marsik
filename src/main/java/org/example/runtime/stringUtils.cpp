@@ -30,7 +30,7 @@ int string_length(string str) {
     return str.length();
 }
 
-void string_setCharAt(string str, int pos, char c) {
+void string_setCharAt(string& str, int pos, char c) {
     str[pos] = c;
 }
 
@@ -75,7 +75,7 @@ int string_countOccurrence(string str, char c) {
     return occurrence;
 }
 
-void string_reverse(string str) {
+void string_reverse(string& str) {
     size_t length = str.length();
     for (size_t i = 0; i < length / 2; i++) {
         char tmp = str[i];
@@ -92,7 +92,7 @@ string string_substring(string str, int start, int end) {
     return str.substr(start, end - start);
 }
 
-void string_append(string str, string other) {
+void string_append(string& str, string other) {
     str.append(other);
 }
 
@@ -218,7 +218,7 @@ bool string_isAlphaNumeric(string str) {
     return true;
 }
 
-void string_capitalize(string str) {
+void string_capitalize(string& str) {
     for(size_t i = 0; i < str.length(); i++) {
         char temp = str[i];
         str[i] = toupper(temp);

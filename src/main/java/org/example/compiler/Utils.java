@@ -17,13 +17,13 @@ public class Utils {
           "BitSet", "GapBuffer", "GenericList", "Node", "Edge", "Graph", "Matrix");
 
   public static final Set<String> stringMethods = Set.of(
-          "setCharAt", "allIndexOf", "lastIndexOf", "length", "substring", "contains",
+          "hash", "setCharAt", "lastIndexOf", "length", "substring", "contains",
           "count", "reverse", "append", "capitalize", "indexOf", "equals",
-          "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "replacePart", "hasWhiteSpace",
+          "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "hasWhiteSpace",
           "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric",
-          "numberOfVowels", "numberOfConsonants", "isOnlyLowerCase", "isOnlyUpperCase",
-          "isOnlyWhiteSpace", "numberOfWhiteSpaces", "stringLength", "getCharAt",
-          "toUpperCase", "toLowerCase", "trim", "countOccurrence");
+          "numberOfVowels", "numberOfConsonants", "isLowercase", "isUppercase",
+          "isWhiteSpace", "numberOfWhiteSpaces", "getCharAt", "toUpperCase",
+          "toLowerCase", "startsWith", "endsWith", "countOccurrence");
 
   public static final Set<String> arrayMethods = Set.of(
           "set", "get", "length", "memorySize", "isEmpty",
