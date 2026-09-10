@@ -1,0 +1,34 @@
+/*
+  Works fine, no issues found so far
+*/
+
+SparseArray<int> values = new SparseArray(4)
+values.set(0, 10)
+values.set(3, 30)
+values.set(6, 60)
+print("Size: ", values.size())
+print("Max index: ", values.maxIndex())
+print("Hole count: ", values.holeCount())
+print("Value at index 3: ", values.get(3))
+print("Has index 3: ", values.has(3))
+print("Has hole at index 2: ", values.has(2))
+print("Contains 60: ", values.contains(60))
+print("Index of 30: ", values.indexOf(30))
+print("Missing index: ", values.indexOf(99))
+
+values.remove(3)
+print("Hole count after remove: ", values.holeCount())
+values.set(3, 35)
+print("Hole count after filling: ", values.holeCount())
+print("Updated value at index 3: ", values.get(3))
+
+values.pushfromStart(5)
+values.pushfromEnd(70)
+print("After pushing values: ")
+values.printArray()
+int[4] compactValues = values.toArray()
+print("Array size: ", compactValues.length())
+print("Random element: ", values.getRandomElement())
+
+values.clear()
+print("Empty after clear: ", values.isEmpty())

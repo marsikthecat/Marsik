@@ -8,6 +8,7 @@
 #include "set.hpp"
 #include "../allocator/allocator.hpp"
 #include "../error/error.hpp"
+#include "array.hpp"
 
 #define DEFAULT_CAPACITY 10
 
@@ -101,6 +102,17 @@ bool list_remove(List<T>& list, const T& value) {
     }
     list_removeAt(list, index);
     return true;
+}
+
+template <typename T>
+T list_removeRetrieve(List<T>& list, int index) {
+    if (index < 0 || index >= list.size) {
+        fprintf(stderr, "ERROR: Index %d out of bounds (size: %d)\n", index, list.size);
+        return T();
+    }
+    T removedValue = list.data[index];
+    list_removeAt(list, index);
+    return removedValue;
 }
 
 template <typename T>
@@ -212,6 +224,18 @@ void list_removeDuplicateOf(List<T>& list, const T& value) {
 }
 
 template <typename T>
+void list_removeDuplicates(List<T>& list) {
+    for (int i = 0; i < list.size; i++) {
+        for (int j = i + 1; j < list.size; j++) {
+            if (list.data[i] == list.data[j]) {
+                list_removeAt(list, j);
+                j--;
+            }
+        }
+    }
+}
+
+template <typename T>
 List<T> list_withoutDuplicates(List<T> list) {
     List<T> new_list = init_list<T>(list.size);
     for (int i = 0; i < list.size; i++) {
@@ -302,6 +326,22 @@ T list_randomElement(List<T> list) {
 }
 
 template <typename T>
+T list_randomElementInRange(List<T> list, int start, int end) {
+    if (start < 0 || end > list.size || start >= end) {
+        runtimeError("Invalid range for random element selection");
+        return T();
+    }
+    static int seeded = 0;
+    if (!seeded) {
+        srand((unsigned int)time(nullptr));
+        seeded = 1;
+    }
+    int random_index = start + (rand() % (end - start));
+    return list.data[random_index];
+}
+
+
+template <typename T>
 void list_printList(List<T> list) {
     printf("[");
     for (int i = 0; i < list.size; i++) {
@@ -320,4 +360,13 @@ Set<T> list_toSet(List<T> list) {
         set_add(set, list.data[i]);
     }
     return set;
+}
+
+template <typename T>
+Array<T> list_toArray(List<T> list) {
+    Array<T> arr = init_array<T>(list.size);
+    for (int i = 0; i < list.size; i++) {
+        array_set(arr, i, list.data[i]);
+    }
+    return arr;
 }

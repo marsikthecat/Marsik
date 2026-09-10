@@ -10,7 +10,7 @@ import org.example.compiler.generated.MarsikParser;
 public class Utils {
 
   public static final Set<String> buildInTypedObjects = Set.of(
-          "HashMap", "List", "PerfectHashMap", "Queue", "Set", "SplayArray", "Stack",
+          "HashMap", "List", "PerfectHashMap", "Queue", "Set", "SparseArray", "SplayArray", "Stack",
           "AvlTree", "BinaryTree", "TreeNode");
 
   public static final Set<String> getBuildInUnTypedObjects = Set.of(
@@ -28,7 +28,7 @@ public class Utils {
   public static final Set<String> arrayMethods = Set.of(
           "set", "get", "length", "memorySize", "isEmpty",
           "contains", "indexOf", "getRandomElement", "slice",
-          "reverse", "removeDuplicates", "removeDuplicateOf", "sort",
+          "reverse", "sort",
           "clone", "mostAppearingElement", "printArray", "shuffle",
           "isNumericArray"
   );
