@@ -4,14 +4,18 @@
 - If you call a variable mutable it is a cpp keyword
 
 ## Discussion and Ideas:
-- BabyInt remove?
-- No Thread-support?
+- Put sparseArray features in array.hpp? Or with flag?
+- Splay feature in list.hpp or/and array.hpp?
+- Compiler flags e.g "#heapsize:100" in mb 
+- "list_unionwith", "list_intersectionwith" -> list should offer more methods than array
 
 ## Open:
 
 ## In Progress:
 
+
 ## Complete
+- Feat: No Thread-support
 - Feat: Complete tests
 - Fix: Remove pointers in custom object generation
 - Fix: Negative numbers bug
