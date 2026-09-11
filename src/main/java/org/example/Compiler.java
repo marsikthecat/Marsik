@@ -82,6 +82,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (!objectType.equals(newObjectName)) {
       throw new RuntimeException("Object " + objectType + " and " + newObjectName + " do not match");
     }
+    if (Utils.isForbiddenName(variable)) {
+      throw new RuntimeException("Name " + variable + " is forbidden for variable names");
+    }
 
     variables.put(variable, new ValueHolder(objectType, true));
     String parameters = renderArguments(ctx.arguments());
@@ -204,6 +207,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String declaredType = ctx.type_label().getText();
     String runtimeType = declaredType.contains("<")
             ? declaredType.substring(0, declaredType.indexOf('<')) : declaredType;
+    if (Utils.isForbiddenName(name)) {
+      throw new RuntimeException("Name " + name + " is forbidden for variable names");
+    }
     if (variables.containsKey(name)) {
       throw new RuntimeException("Variable " + name + " already exists");
     }
@@ -259,6 +265,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String name = ctx.NAME().getText();
     if (constants.containsKey(name)) {
       throw new RuntimeException("Constant " + name + " already exists");
+    }
+    if (Utils.isForbiddenName(name)) {
+      throw new RuntimeException("Name " + name + " is forbidden for variable names");
     }
     String type = Utils.toCppType(ctx.type_label().getText(), imports);
     String value = ctx.type().getText();
@@ -356,6 +365,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public String visitParameter(MarsikParser.ParameterContext ctx) {
     String type = visit(ctx.type_label());
     String name = ctx.NAME().getText();
+    if (Utils.isForbiddenName(name)) {
+      throw new RuntimeException("Name " + name + " is forbidden for variable names");
+    }
     return type + " " + name;
   }
 

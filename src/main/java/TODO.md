@@ -1,17 +1,17 @@
 # Task Overview
 
 ## Problems:
-- If you call a variable mutable it is a cpp keyword
 
 ## Discussion and Ideas:
 - Compiler flags e.g "#heapsize:100" in mb 
-- Catch gcc Compiler output and translate it
 
 ## Open:
 
 ## In Progress:
+- Feat: Add translation layour for gcc compiler warnings/errors
 
 ## Complete
+- Fix: Prevent variable names to be cpp keywords
 - Fix: array consistency with more methods
 - Feat: No Thread-support
 - Feat: Complete tests
