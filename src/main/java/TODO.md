@@ -8,9 +8,9 @@
 ## Open:
 
 ## In Progress:
-- Feat: Add translation layour for gcc compiler warnings/errors
 
 ## Complete
+- Feat: Edit gcc compiler warnings/errors
 - Fix: Prevent variable names to be cpp keywords
 - Fix: array consistency with more methods
 - Feat: No Thread-support

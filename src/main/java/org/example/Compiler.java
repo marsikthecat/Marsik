@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -693,14 +695,36 @@ public class Compiler extends MarsikBaseVisitor<String> {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
-        System.out.println(line);
+        String regex = "^(.*?):(\\d+):(\\d+):\\s+(error|warning|note):\\s+(.*)$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(line);
+        if (matcher.matches()) {
+          int lineNumber = Integer.parseInt(matcher.group(2));
+          String severity = matcher.group(4);
+          String message = matcher.group(5);
+          Pattern optionPattern = Pattern.compile("\\[([^]]+)]$");
+          Matcher optionMatcher = optionPattern.matcher(message);
+          if (optionMatcher.find()) {
+            message = message.substring(0, optionMatcher.start()).trim();
+          }
+          switch (severity) {
+              case "error" -> {
+                  Utils.printError("[ERROR] a fatal error happened: " + message + " in Line: " + lineNumber);
+                  System.out.println("Check out " + cppFile.getAbsolutePath() + " for intermediate representation");
+              }
+              case "warning" -> {
+                  Utils.printWarning("[WARNING] marsik needs to tell you something: " + message + " in Line: " + lineNumber);
+                  System.out.println("Check out " + cppFile.getAbsolutePath() + " for intermediate representation");
+              }
+           }
+        }
       }
     }
     int exitCode = process.waitFor();
     if (exitCode == 0) {
-      System.out.println("Compilation successful!");
+      Utils.printSuccess("Compilation successful!");
     } else {
-      System.out.println("Compilation failed! Exit code: " + exitCode);
+      Utils.printError("Compilation failed! Exit code: " + exitCode);
     }
   }
 

@@ -138,4 +138,16 @@ public class Utils {
             return 0;
         }""".formatted(importsAsString, code);
   }
+
+  public static void printError(String s) {
+    System.out.println("\u001B[31m" + s + "\u001B[0m");
+  }
+
+  public static void printWarning(String s) {
+    System.out.println("\u001B[33m" + s + "\u001B[0m");
+  }
+
+  public static void printSuccess(String s) {
+    System.out.println("\u001B[32m" + s + "\u001B[0m");
+  }
 }
