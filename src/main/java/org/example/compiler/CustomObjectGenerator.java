@@ -96,7 +96,7 @@ public class CustomObjectGenerator {
         returnType = "void";
       }
       header.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
-              .append(method.name).append("(").append(customObject.name).append(" obj");
+              .append(method.name).append("(").append(customObject.name).append("& obj");
       for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
         header.append(", ").append(paramType).append(" ").append(param.name);
@@ -140,7 +140,7 @@ public class CustomObjectGenerator {
         returnType = "void";
       }
       impl.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
-              .append(method.name).append("(").append(customObject.name).append(" obj");
+              .append(method.name).append("(").append(customObject.name).append("& obj");
       for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
         impl.append(", ").append(paramType).append(" ").append(param.name);

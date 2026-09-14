@@ -3,13 +3,15 @@
 ## Problems:
 
 ## Discussion and Ideas:
-- Compiler flags e.g "#heapsize:100" in mb 
+- Compiler flags e.g "#heapsize:100" in mb
 
 ## Open:
 
 ## In Progress:
+- Fix: Prevent generation of executable of class file
 
 ## Complete
+- Feat: Filewalk and store all existing headerfiles 
 - Feat: Edit gcc compiler warnings/errors
 - Fix: Prevent variable names to be cpp keywords
 - Fix: array consistency with more methods

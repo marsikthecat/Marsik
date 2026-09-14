@@ -6,14 +6,18 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -32,6 +36,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   public final HashMap<String, ValueHolder> variables = new HashMap<>();
   public final HashMap<String, ValueHolder> constants = new HashMap<>();
+  public Path projectRoot = Path.of("").toAbsolutePath();
+  private final Map<String, Path> availableHeadersForImports = new HashMap<>();
   public final StringBuilder code = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, ObjectHolder> customObjects = new HashMap<>();
@@ -95,12 +101,11 @@ public class Compiler extends MarsikBaseVisitor<String> {
       return null;
     }
 
-        List<MarsikParser.Type_labelContext> typeLabels =
-          ctx.getRuleContexts(MarsikParser.Type_labelContext.class);
-        boolean isTyped = registerBuiltInObject(objectType, !typeLabels.isEmpty());
-        String type = isTyped
-          ? "<" + typeLabels.stream().map(ParseTree::getText).collect(java.util.stream.Collectors.joining(", ")) + ">"
-          : "";
+    List<MarsikParser.Type_labelContext> typeLabels =
+        ctx.getRuleContexts(MarsikParser.Type_labelContext.class);
+    boolean isTyped = registerObject(objectType, !typeLabels.isEmpty());
+    String type = isTyped ? "<" + typeLabels.stream().map(ParseTree::getText)
+      .collect(java.util.stream.Collectors.joining(", ")) + ">" : "";
     appendObjectInitialization(objectType, variable, type, parameters);
     return null;
   }
@@ -112,28 +117,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
             .append(parameters).append(");\n");
   }
 
-  private boolean registerBuiltInObject(String objectType, boolean hasTypeLabel) {
-    if (Utils.buildInTypedObjects.contains(objectType)) {
-      if (!hasTypeLabel) {
+  private boolean registerObject(String objectType, boolean hasTypeLabel) {
+    Path header = availableHeadersForImports.get(objectType.toLowerCase());
+    if (header == null) {
+        throw new RuntimeException("Unable to find compiled implementation of object: "
+         + objectType);
+    }
+    if (Utils.buildInTypedObjects.contains(objectType) && !hasTypeLabel) {
         throw new RuntimeException("Type is not specified");
-      }
-      String subdirectory = Utils.multiEquals(objectType, "AvlTree", "BinaryTree", "TreeNode")
-              ? "trees/" : "";
-      imports.add("#include \"../runtime/datastructures/" + subdirectory
-              + objectType.toLowerCase() + ".hpp\"\n");
-      return true;
     }
-    if (Utils.getBuildInUnTypedObjects.contains(objectType)) {
-      String normalizedObjectType = Objects.requireNonNull(objectType);
-      String subdirectory = switch (objectType) {
-        case "Edge", "Graph", "Node" -> "../runtime/datastructures/graphs/";
-        case "Matrix" -> "../runtime/extra/";
-        default -> "../runtime/datastructures/";
-      };
-      imports.add("#include \"" + subdirectory + normalizedObjectType.toLowerCase() + ".hpp\"\n");
-      return false;
-    }
-    throw new RuntimeException("Unknown Type of Elements detected");
+    imports.add("#include \"" + header.toString().replace("\\", "/") + "\"\n");
+    return Utils.buildInTypedObjects.contains(objectType);
   }
 
   @Override
@@ -216,7 +210,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       throw new RuntimeException("Variable " + name + " already exists");
     }
     if (ctx.type_label().NAME() != null && !customObjects.containsKey(runtimeType)) {
-      registerBuiltInObject(runtimeType, declaredType.contains("<"));
+      registerObject(runtimeType, declaredType.contains("<"));
     }
     String type = Utils.toCppType(declaredType, imports);
     if (ctx.scan_stmt() != null) {
@@ -631,12 +625,13 @@ public class Compiler extends MarsikBaseVisitor<String> {
     return Utils.generateC(imports, code.toString());
   }
 
-  private static void compile(String srcPath, String outDir) throws IOException, InterruptedException {
+  private void compile(String srcPath, String outDir) throws IOException, InterruptedException {
     File sourceFile = new File(srcPath);
     File outputDir = new File(outDir);
     if (!outputDir.exists()) {
       outputDir.mkdirs();
     }
+    Utils.addAllHeaderFiles(this.projectRoot, this.availableHeadersForImports);
     // ----------------------------
     // 1. PARSE + C/CPP CODEGEN
     // ----------------------------
@@ -645,10 +640,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     CommonTokenStream tokens = new CommonTokenStream(lexer);
     MarsikParser parser = new MarsikParser(tokens);
     ParseTree tree = parser.program();
-    Compiler compiler = new Compiler();
     CustomObjectGenerator.setOutputFolder(outputDir.getAbsolutePath());
-    compiler.visit(tree);
-    String cppCode = compiler.generateC();
+    this.visit(tree);
+    String cppCode = this.generateC();
     File cppFile = new File(outputDir, "generated.cpp");
     if (cppFile.exists()) {
       cppFile.delete();
@@ -675,6 +669,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
       addUsedRuntimeSources(runtimeDir, usedIncludes, command);
       command.add("-I" + runtimeDir.getAbsolutePath());
     }
+    try (Stream<Path> paths = Files.walk(outputDir.toPath())) {
+      paths
+        .filter(Files::isRegularFile)
+        .filter(p -> p.toString().endsWith(".cpp"))
+        .filter(p -> !p.toFile().equals(cppFile))
+        .forEach(p -> {
+          if (!command.contains(p.toString())) {
+            command.add(p.toString());
+          }
+        });
+    }
     addGeneratedObjectSources(command);
     command.add("-I" + outputDir.getAbsolutePath());
     command.add("-std=gnu++17");
@@ -695,6 +700,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
       String line;
       while ((line = reader.readLine()) != null) {
+        System.out.println(line);
         String regex = "^(.*?):(\\d+):(\\d+):\\s+(error|warning|note):\\s+(.*)$";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(line);
@@ -768,7 +774,10 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private static void addGeneratedObjectSources(List<String> command) {
     for (String generatedFile : GeneratedFilesTracker.getGeneratedFilesSnapshot()) {
       if (generatedFile.endsWith(".cpp") || generatedFile.endsWith(".c")) {
-        command.add(new File(generatedFile).getAbsolutePath());
+        String absolutePath = new File(generatedFile).getAbsolutePath();
+        if (!command.contains(absolutePath)) {
+          command.add(absolutePath);
+        }
       }
     }
   }
@@ -805,7 +814,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
    * gradle.bat -p C:\Marsik\MarsikLang run --args="src/main/java/org/example/tests/datastructureTests/testMatrix.marsik"
    * Choose the file you want to compile and optionally specify the output directory.
    */
-  static void main(String[] args) throws IOException, InterruptedException {
+  void main(String[] args) throws IOException, InterruptedException {
     if (args.length == 0 || args.length > 2) {
       System.out.println("Usage: Compiler <input.marsik> [output-directory]");
       return;

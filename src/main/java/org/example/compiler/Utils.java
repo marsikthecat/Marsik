@@ -1,8 +1,13 @@
 package org.example.compiler;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.compiler.generated.MarsikParser;
@@ -149,5 +154,19 @@ public class Utils {
 
   public static void printSuccess(String s) {
     System.out.println("\u001B[32m" + s + "\u001B[0m");
+  }
+
+  public static void addAllHeaderFiles(Path projectRoot, Map<String, Path> headerFiles) {
+    try (Stream<Path> paths = Files.walk(projectRoot)) {
+        paths.filter(Files::isRegularFile)
+            .filter(path -> path.toString().endsWith(".hpp"))
+            .forEach(path -> {
+                String fileName = path.getFileName().toString();
+                String objectType = fileName.substring( 0, fileName.length() - 4);
+                headerFiles.put(objectType.toLowerCase(), path);
+            });
+    } catch (IOException e) {
+        throw new RuntimeException("Failed to index project headers", e);
+    }
   }
 }
