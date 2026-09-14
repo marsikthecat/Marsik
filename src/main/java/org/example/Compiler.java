@@ -42,6 +42,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, ObjectHolder> customObjects = new HashMap<>();
   public ObjectHolder currentCustomObject = null;
+  public boolean isObjectFile = false;
 
   @Override
   public String visitProgram(MarsikParser.ProgramContext ctx) {
@@ -532,6 +533,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       variables.remove(field.name);
     }
     currentCustomObject = null;
+    isObjectFile = true;
     return null;
   }
 
@@ -650,6 +652,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     try (FileWriter writer = new FileWriter(cppFile)) {
       writer.write(cppCode);
     }
+    if (isObjectFile) return; // No executable for object files
     // ----------------------------
     // 2. BUILD CPP COMMAND
     // ----------------------------

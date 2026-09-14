@@ -8,9 +8,9 @@
 ## Open:
 
 ## In Progress:
-- Fix: Prevent generation of executable of class file
 
 ## Complete
+- Fix: Prevent generation of executable of class file
 - Feat: Filewalk and store all existing headerfiles 
 - Feat: Edit gcc compiler warnings/errors
 - Fix: Prevent variable names to be cpp keywords
