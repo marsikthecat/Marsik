@@ -19,7 +19,7 @@ stmt: (var_decl | const_decl | assign_stmt | method_call | if_stmt | while_stmt 
 method_call: NAME '.' NAME ('(' arguments? ')' | '()');
 
 // initializing Objects
-object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME EQUAL NEW NAME ('(' arguments? ')' | '()');
+object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME? EQUAL NEW NAME ('(' arguments? ')' | '()');
 
 // Declare Variables
 var_decl: type_label NAME (EQUAL (type | scan_stmt | method_call | expr))? NEWLINE?;
@@ -47,7 +47,7 @@ parameter: type_label NAME;
 // Control Flows
 if_stmt: IF '(' expr ')' block (ELSE block)?;
 while_stmt: WHILE '(' expr ')' NEWLINE* block;
-block: '{' stmt* NEWLINE '}';
+block: '{' NEWLINE* stmt* '}';
 for_stmt: FOR '(' for_init? ';' expr? ';' for_update? ')' block;
 for_init: var_decl | assign_stmt;
 for_update: inc_stmt | dec_stmt;
@@ -75,9 +75,10 @@ atom_expr : method_call | NAME | INTEGER | BABY_INTEGER | CHAR
           | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
 
 class_def: 'class' NAME '{' class_member* '}';
-class_member: (field_decl | method_decl) NEWLINE*;
+class_member: (field_decl | method_decl | constructor_decl) NEWLINE*;
 field_decl: ('public')? 'const'? type_label NAME;
 method_decl: ('internal')? 'Method:' (type_label)? NAME '(' parameters? ')' block;
+constructor_decl: 'Constructor' '(' parameters? ')' block;
 
 PLUSPLUS         : '++';
 MINUSMINUS       : '--';

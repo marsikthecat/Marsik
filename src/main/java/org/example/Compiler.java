@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -85,30 +84,72 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
-    String objectType = Objects.requireNonNull(ctx.NAME(0).getText());
-    String variable = Objects.requireNonNull(ctx.NAME(1).getText());
-    String newObjectName = Objects.requireNonNull(ctx.NAME(2).getText());
-    if (!objectType.equals(newObjectName)) {
-      throw new RuntimeException("Object " + objectType + " and " + newObjectName + " do not match");
-    }
-    if (Utils.isForbiddenName(variable)) {
-      throw new RuntimeException("Name " + variable + " is forbidden for variable names");
+    boolean isAssignment = ctx.NAME().size() == 2;
+    String variable;
+    String objectType;
+    String type = "";
+    if (isAssignment) {
+      variable = ctx.NAME(0).getText();
+      objectType = ctx.NAME(1).getText();
+      if (constants.containsKey(variable)) {
+        throw new RuntimeException("Cannot assign to const: " + variable);
+      }
+      ValueHolder target = variables.get(variable);
+      if (target == null) {
+        throw new RuntimeException("Variable " + variable + " does not exist");
+      }
+      String declaredType = target.type;
+      int genericStart = declaredType.indexOf('<');
+      String declaredObjectType = genericStart < 0 ? declaredType : declaredType.substring(0, genericStart);
+      if (!declaredObjectType.equals(objectType)) {
+        throw new RuntimeException("Cannot assign " + objectType + " to " + declaredType);
+      }
+      if (genericStart >= 0) {
+        type = declaredType.substring(genericStart);
+      }
+    } else {
+      int newObjectIndex = ctx.NAME().size() - 1;
+      variable = ctx.NAME(newObjectIndex - 1).getText();
+      objectType = ctx.NAME(newObjectIndex).getText();
+      type = ctx.getRuleContexts(MarsikParser.Type_labelContext.class).isEmpty()
+              ? "" : "<" + ctx.getRuleContexts(MarsikParser.Type_labelContext.class).stream()
+                      .map(ParseTree::getText).collect(java.util.stream.Collectors.joining(", ")) + ">";
+      if (!ctx.NAME(0).getText().equals(objectType)) {
+        throw new RuntimeException("Object " + ctx.NAME(0).getText() + " and " + objectType + " do not match");
+      }
+      if (Utils.isForbiddenName(variable)) {
+        throw new RuntimeException("Name " + variable + " is forbidden for variable names");
+      }
     }
 
-    variables.put(variable, new ValueHolder(objectType, true));
     String parameters = renderArguments(ctx.arguments());
-    if (customObjects.containsKey(objectType)) {
-      appendObjectInitialization(objectType, variable, "", parameters);
+    String initializer = renderObjectInitializer(objectType, type, ctx.arguments());
+    if (isAssignment) {
+      code.append(variable).append(" = ").append(initializer).append(";\n");
       return null;
     }
 
-    List<MarsikParser.Type_labelContext> typeLabels =
-        ctx.getRuleContexts(MarsikParser.Type_labelContext.class);
-    boolean isTyped = registerObject(objectType, !typeLabels.isEmpty());
-    String type = isTyped ? "<" + typeLabels.stream().map(ParseTree::getText)
-      .collect(java.util.stream.Collectors.joining(", ")) + ">" : "";
+    variables.put(variable, new ValueHolder(objectType + type, true));
     appendObjectInitialization(objectType, variable, type, parameters);
     return null;
+  }
+
+  private String renderObjectInitializer(String objectType, String type,
+                                         MarsikParser.ArgumentsContext argumentsContext) {
+    String arguments = renderArguments(argumentsContext);
+    ObjectHolder customObject = customObjects.get(objectType);
+    if (customObject != null) {
+      int expectedArguments = customObject.hasConstructor
+              ? customObject.constructorParameters.size() : 0;
+      int actualArguments = argumentsContext == null ? 0 : argumentsContext.expr().size();
+      if (actualArguments != expectedArguments) {
+        throw new RuntimeException("Constructor for " + objectType + " expects "
+                + expectedArguments + " arguments, got " + actualArguments);
+      }
+    } else {
+      registerObject(objectType, !type.isEmpty());
+    }
+    return "init_" + objectType.toLowerCase() + type + "(" + arguments + ")";
   }
 
   private void appendObjectInitialization(String objectType, String variable,
@@ -144,7 +185,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
       throw new RuntimeException("Variable " + target + " does not exist");
     }
     String type = targetValue.type;
-    ObjectHolder customObject = customObjects.get(type);
+    String baseType = type.contains("<") ? type.substring(0, type.indexOf('<')) : type;
+    ObjectHolder customObject = customObjects.get(baseType);
     if (customObject != null) {
       boolean methodFound = customObject.methods.stream()
               .anyMatch(candidate -> candidate.name.equals(method));
@@ -152,17 +194,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
         throw new RuntimeException("Method " + method + " not found in class " + customObject.name);
       }
     } else {
-      if (type.equals("string") && !Utils.stringMethods.contains(method)) {
+      if (baseType.equals("string") && !Utils.stringMethods.contains(method)) {
         throw new RuntimeException("Unknown method " + method + " for String: " + target);
       }
-      if (type.equals("array") && !Utils.arrayMethods.contains(method)) {
+      if (baseType.equals("array") && !Utils.arrayMethods.contains(method)) {
         throw new RuntimeException("Unknown method " + method + " for Array: " + target);
       }
     }
     List<String> args = renderArgumentList(ctx.arguments());
 
     String joinedArgs = String.join(", ", args);
-    return type.toLowerCase() + "_" + method + "(" + target
+    return baseType.toLowerCase() + "_" + method + "(" + target
             + (joinedArgs.isEmpty() ? "" : ", " + joinedArgs) + ")";
   }
 
@@ -521,6 +563,39 @@ public class Compiler extends MarsikBaseVisitor<String> {
           variables.remove(param.name);
         }
       }
+      if (member.constructor_decl() != null) {
+        if (customObj.hasConstructor) {
+          throw new RuntimeException("Class " + className + " can only have one constructor");
+        }
+        customObj.hasConstructor = true;
+        MarsikParser.Constructor_declContext constructorCtx = member.constructor_decl();
+        if (constructorCtx.parameters() != null) {
+          for (var parameter : constructorCtx.parameters().parameter()) {
+            String parameterName = parameter.NAME().getText();
+            if (Utils.isForbiddenName(parameterName)) {
+              throw new RuntimeException("Name " + parameterName + " is forbidden for constructor parameters");
+            }
+            if (customObj.fields.stream().anyMatch(field -> field.name.equals(parameterName))) {
+              throw new RuntimeException("Constructor parameter " + parameterName
+                      + " must have a different name from every field in " + className);
+            }
+            if (customObj.constructorParameters.stream()
+                    .anyMatch(existing -> existing.name.equals(parameterName))) {
+              throw new RuntimeException("Duplicate constructor parameter: " + parameterName);
+            }
+            customObj.constructorParameters.add(new ObjectHolder.Parameter(
+                    parameter.type_label().getText(), parameterName));
+            variables.put(parameterName, new ValueHolder(
+                    Utils.toCppType(parameter.type_label().getText(), imports), true));
+          }
+        }
+        visitBlock(constructorCtx.block());
+        customObj.constructorBody = code.toString();
+        code.setLength(0);
+        for (ObjectHolder.Parameter parameter : customObj.constructorParameters) {
+          variables.remove(parameter.name);
+        }
+      }
     }
     code.append(tempCodeStorage); // Restore main code
 
@@ -725,7 +800,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
                   Utils.printWarning("[WARNING] marsik needs to tell you something: " + message + " in Line: " + lineNumber);
                   System.out.println("Check out " + cppFile.getAbsolutePath() + " for intermediate representation");
               }
-           }
+          }
         }
       }
     }

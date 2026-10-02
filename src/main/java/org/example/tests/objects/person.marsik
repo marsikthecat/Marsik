@@ -2,6 +2,20 @@ class Person {
   public string name
   public int age
   public string address
+  public List<string> hobbies
+  public BitSet set
+
+  Constructor(string personName, int personAge) {
+    name = personName
+    if (personAge < 0) {
+      printLine("Age of person cannot be negative")
+      personAge = 0
+    }
+    age = personAge
+    address = ""
+    hobbies = new List(10)
+    set = new BitSet()
+}
 
   Method: int getAge( ) {
     return age
@@ -27,5 +41,9 @@ class Person {
     string reversedName = name
     name.reverse()
     return reversedName
+}
+
+  Method: addHobby(string hobby) {
+    hobbies.add(hobby)
 }
 }

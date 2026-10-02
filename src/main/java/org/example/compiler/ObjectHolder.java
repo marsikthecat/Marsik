@@ -7,6 +7,9 @@ public class ObjectHolder {
   public String name;
   public List<Field> fields = new ArrayList<>();
   public List<Method> methods = new ArrayList<>();
+  public List<Parameter> constructorParameters = new ArrayList<>();
+  public String constructorBody;
+  public boolean hasConstructor;
 
   public ObjectHolder(String name) {
     this.name = name;

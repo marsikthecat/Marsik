@@ -262,4 +262,10 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitMethod_decl(MarsikParser.Method_declContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MarsikParser#constructor_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitConstructor_decl(MarsikParser.Constructor_declContext ctx);
 }

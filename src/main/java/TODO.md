@@ -3,13 +3,14 @@
 ## Problems:
 
 ## Discussion and Ideas:
-- Compiler flags e.g "#heapsize:100" in mb
 
 ## Open:
 
 ## In Progress:
 
 ## Complete
+- Feat: Introduce constructor for initializing objects
+- Fix: handle fields in objects that are nonprimitive
 - Fix: Prevent generation of executable of class file
 - Feat: Filewalk and store all existing headerfiles 
 - Feat: Edit gcc compiler warnings/errors

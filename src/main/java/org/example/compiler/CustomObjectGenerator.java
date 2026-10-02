@@ -1,5 +1,9 @@
 package org.example.compiler;
 
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Generates C++ header (.hpp) and implementation (.cpp) files for custom objects.
  * Each custom object gets its own pair of files in the generated objects folder.
@@ -53,12 +57,17 @@ public class CustomObjectGenerator {
    * @return the header file content
    */
   private static String generateHeaderFile(ObjectHolder customObject) {
+    Path projectRoot = Path.of("").toAbsolutePath();
+    Map<String, Path> availableHeadersForImports = new HashMap<>();
+    Utils.addAllHeaderFiles(projectRoot, availableHeadersForImports);
+    StringBuilder headerImports = new StringBuilder();
+    StringBuilder headerContent = new StringBuilder();
     StringBuilder header = new StringBuilder();
-    header.append("#pragma once\n");
-    header.append("#include <stdbool.h>\n");
-    header.append("#include <stdint.h>\n");
-    header.append("#include <string>\n\n");
-    header.append("using namespace std;\n\n");
+    headerImports.append("#pragma once\n");
+    headerImports.append("#include <stdbool.h>\n");
+    headerImports.append("#include <stdint.h>\n");
+    headerImports.append("#include <string>\n");
+    headerContent.append("using namespace std;\n\n");
     /*
       Define struct of custom object with attributes/fields
 
@@ -67,22 +76,26 @@ public class CustomObjectGenerator {
          string brand;
       } Car;
     */
-    header.append("typedef struct ").append(customObject.name).append(" {\n");
+    headerContent.append("typedef struct ").append(customObject.name).append(" {\n");
     for (ObjectHolder.Field field : customObject.fields) {
       String cType = mapTypeToCType(field.type);
-      header.append("  ").append(cType).append(" ").append(field.name).append(";\n");
+      String includeString = getIncludePathOfObject(cType, availableHeadersForImports);
+      if (!includeString.isEmpty()) {
+        headerImports.append(includeString);
+      }
+      headerContent.append("  ").append(cType).append(" ").append(field.name).append(";\n");
     }
-    header.append("} ").append(customObject.name).append(";\n\n");
+    headerContent.append("} ").append(customObject.name).append(";\n\n");
 
     /*
       Declare initialization function for the custom object
 
       Car init_car();
     */
-    header.append(customObject.name).append(" init_")
+    headerContent.append(customObject.name).append(" init_")
             .append(customObject.name.toLowerCase()).append("(");
-
-    header.append(");\n\n");
+        appendConstructorParameters(headerContent, customObject);
+    headerContent.append(");\n\n");
 
     /*
       Declare methods for the custom object
@@ -95,14 +108,16 @@ public class CustomObjectGenerator {
       if (method.returnType == null || method.returnType.equals("void")) {
         returnType = "void";
       }
-      header.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
+      headerContent.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
               .append(method.name).append("(").append(customObject.name).append("& obj");
       for (ObjectHolder.Parameter param : method.parameters) {
         String paramType = mapTypeToCType(param.type);
-        header.append(", ").append(paramType).append(" ").append(param.name);
+        headerContent.append(", ").append(paramType).append(" ").append(param.name);
       }
-      header.append(");\n");
+      headerContent.append(");\n");
     }
+    headerImports.append("\n");
+    header.append(headerImports).append(headerContent);
     return header.toString();
   }
 
@@ -120,14 +135,25 @@ public class CustomObjectGenerator {
     // Initialization function implementation
     impl.append(customObject.name).append(" init_")
             .append(customObject.name.toLowerCase()).append("(");
-
+        appendConstructorParameters(impl, customObject);
     impl.append(") {\n");
-    impl.append(customObject.name).append(" obj;\n");
+    
 
-    for (ObjectHolder.Field field : customObject.fields) {
+   /*  for (ObjectHolder.Field field : customObject.fields) {
       String cType = mapTypeToCType(field.type);
       String defaultValue = getDefaultValueForType(cType);
       impl.append("  obj.").append(field.name).append(" = ").append(defaultValue).append(";\n");
+    }*/
+
+    if (customObject.constructorBody != null) {
+      impl.append(customObject.name).append(" obj;\n");
+      String constructorBody = customObject.constructorBody;
+      int bodyStart = constructorBody.indexOf('{');
+      int bodyEnd = constructorBody.lastIndexOf('}');
+      if (bodyStart >= 0 && bodyEnd > bodyStart) {
+        constructorBody = constructorBody.substring(bodyStart + 1, bodyEnd);
+      }
+      impl.append(replaceFieldNamesInBody(constructorBody, customObject));
     }
 
     impl.append("  return obj;\n");
@@ -147,7 +173,7 @@ public class CustomObjectGenerator {
       }
       impl.append(") ");
 
-      // Process method body: replace field names with obj->fieldname
+      // Process method body: replace field names with obj.fieldname
       String body = method.body != null ? method.body : "{\n}\n";
       body = replaceFieldNamesInBody(body, customObject);
       impl.append(body);
@@ -156,9 +182,20 @@ public class CustomObjectGenerator {
     return impl.toString();
   }
 
+  private static void appendConstructorParameters(StringBuilder output, ObjectHolder customObject) {
+    for (int i = 0; i < customObject.constructorParameters.size(); i++) {
+      ObjectHolder.Parameter parameter = customObject.constructorParameters.get(i);
+      if (i > 0) {
+        output.append(", ");
+      }
+      output.append(mapTypeToCType(parameter.type)).append(" ").append(parameter.name);
+    }
+  }
+
   /**
    * Replace field names in method body with obj.fieldname.
    * This converts `age = value` to `obj.age = value`.
+   * Also it removes <Type> so it fits to the method
    *
    * @param body the method body
    * @param customObject the custom object definition
@@ -168,6 +205,18 @@ public class CustomObjectGenerator {
     String result = body;
     for (ObjectHolder.Field field : customObject.fields) {
       result = result.replaceAll("\\b" + field.name + "\\b", "obj." + field.name);
+    }
+    for (ObjectHolder.Field field : customObject.fields) {
+      int genericStart = field.type.indexOf('<');
+      if (genericStart < 0) {
+        continue;
+      }
+      String objectType = field.type.substring(0, genericStart).trim();
+      String genericArguments = field.type.substring(genericStart);
+      String initializer = "obj." + field.name + " = init_" + objectType.toLowerCase() + "(";
+      String typedInitializer = "obj." + field.name + " = init_" + objectType.toLowerCase()
+              + genericArguments + "(";
+      result = result.replace(initializer, typedInitializer);
     }
     for (ObjectHolder.Field field : customObject.fields) {
       if (!field.type.equals("string") && !field.type.equals("char")) {
@@ -187,30 +236,9 @@ public class CustomObjectGenerator {
    */
   private static String mapTypeToCType(String marsikType) {
     return switch (marsikType) {
-      case "int" -> "int";
-      case "double" -> "double";
-      case "string" -> "string";
-      case "char" -> "char";
       case "boolean" -> "bool";
       case "baby_int" -> "uint8_t";
-      default -> "void*";
-    };
-  }
-
-  /**
-   * Get the default initial value for a C type.
-   *
-   * @param cType the C type name
-   * @return the default value
-   */
-  private static String getDefaultValueForType(String cType) {
-    return switch (cType) {
-      case "int", "uint8_t" -> "0";
-      case "double" -> "0.0";
-      case "char" -> "'\\0'";
-      case "bool" -> "false";
-      case "string" -> "\"\"";
-      default -> "NULL";
+      default -> marsikType;
     };
   }
 
@@ -228,5 +256,19 @@ public class CustomObjectGenerator {
       }
     }
   }
-}
 
+  /*
+    Retrieves the include strings necessary for fields from runtime or custom fields.
+    If no hpp for the field is found it is supposed to be a primitive field.
+  */
+  private static String getIncludePathOfObject(String object, Map<String, Path> availableHeaders) {
+    // Remove the <...> from the object e.g List<string> -> List to search possible hpp file
+    String cleanObject = object.contains("<") 
+      ? object.substring(0, object.indexOf("<")) : object;
+    Path header = availableHeaders.get(cleanObject.toLowerCase());
+    if (header == null) {
+       return "";
+    }
+    return "#include \"" + header.toString().replace("\\", "/") + "\"\n";
+  }
+}
