@@ -361,12 +361,3 @@ Set<T> list_toSet(List<T> list) {
     }
     return set;
 }
-
-template <typename T>
-Array<T> list_toArray(List<T> list) {
-    Array<T> arr = init_array<T>(list.size);
-    for (int i = 0; i < list.size; i++) {
-        array_set(arr, i, list.data[i]);
-    }
-    return arr;
-}

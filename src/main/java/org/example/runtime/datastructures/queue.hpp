@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <cstdio>
 #include "../error/error.hpp"
 
 #define DEFAULT_QUEUE_SIZE 100

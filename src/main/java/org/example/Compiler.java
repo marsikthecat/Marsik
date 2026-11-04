@@ -743,7 +743,22 @@ public class Compiler extends MarsikBaseVisitor<String> {
       runtimeDir = new File("src/main/java/org/example/runtime");
     }
     if (runtimeDir.exists()) {
-      Set<String> usedIncludes = extractUsedIncludes(cppFile);
+      List<File> translationUnits = new ArrayList<>();
+      translationUnits.add(cppFile);
+      try (Stream<Path> paths = Files.walk(outputDir.toPath())) {
+        paths
+          .filter(Files::isRegularFile)
+          .filter(p -> p.toString().endsWith(".cpp"))
+          .filter(p -> !p.toFile().equals(cppFile))
+          .map(Path::toFile)
+          .forEach(translationUnits::add);
+      }
+      for (String generatedFile : GeneratedFilesTracker.getGeneratedFilesSnapshot()) {
+        if (generatedFile.endsWith(".cpp")) {
+          translationUnits.add(new File(generatedFile));
+        }
+      }
+      Set<String> usedIncludes = extractUsedIncludes(translationUnits, runtimeDir, outputDir);
       addUsedRuntimeSources(runtimeDir, usedIncludes, command);
       command.add("-I" + runtimeDir.getAbsolutePath());
     }
@@ -812,9 +827,25 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
   }
 
-  private static Set<String> extractUsedIncludes(File cppFile) throws IOException {
+  private static Set<String> extractUsedIncludes(
+      List<File> sourceFiles, File runtimeDir, File outputDir) throws IOException {
     Set<String> includes = new HashSet<>();
-    try (BufferedReader reader = new BufferedReader(new FileReader(cppFile))) {
+    Set<Path> scannedFiles = new HashSet<>();
+    for (File sourceFile : sourceFiles) {
+      collectUsedIncludes(sourceFile, runtimeDir, outputDir, includes, scannedFiles);
+    }
+    return includes;
+  }
+
+  private static void collectUsedIncludes(
+      File sourceFile, File runtimeDir, File outputDir, Set<String> includes, Set<Path> scannedFiles)
+      throws IOException {
+    Path sourcePath = sourceFile.toPath().toAbsolutePath().normalize();
+    if (!scannedFiles.add(sourcePath) || !sourceFile.isFile()) {
+      return;
+    }
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(sourceFile))) {
       String line;
       while ((line = reader.readLine()) != null) {
         if (line.contains("#include")) {
@@ -823,11 +854,29 @@ public class Compiler extends MarsikBaseVisitor<String> {
           if (startQuote >= 0 && endQuote > startQuote) {
             String include = line.substring(startQuote + 1, endQuote);
             includes.add(include);
+            File includedFile = resolveInclude(include, sourceFile.getParentFile(), runtimeDir, outputDir);
+            if (includedFile != null) {
+              collectUsedIncludes(includedFile, runtimeDir, outputDir, includes, scannedFiles);
+            }
           }
         }
       }
     }
-    return includes;
+  }
+
+  private static File resolveInclude(String include, File includingDirectory, File runtimeDir, File outputDir) {
+    File[] candidates = {
+        new File(includingDirectory, include),
+        new File(include),
+        new File(runtimeDir, include),
+        new File(outputDir, include)
+    };
+    for (File candidate : candidates) {
+      if (candidate.isFile()) {
+        return candidate;
+      }
+    }
+    return null;
   }
 
   private static void addUsedRuntimeSources(File runtimeDir, Set<String> usedIncludes, List<String> command) {
@@ -839,7 +888,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
     
     // Add sources for all included headers
     for (String include : usedIncludes) {
-      String headerName = include.contains("/") ? include.substring(include.lastIndexOf("/") + 1) : include;
+      String normalizedInclude = include.replace('\\', '/');
+      String headerName = normalizedInclude.substring(normalizedInclude.lastIndexOf('/') + 1);
       String sourceFileName = headerName.replace(".hpp", ".cpp").replace(".h", ".c");
       
       File sourceFile = findSourceFile(runtimeDir, sourceFileName);
