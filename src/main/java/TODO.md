@@ -5,8 +5,12 @@
 ## Discussion and Ideas:
 
 ## Open:
+- Feat: Define generic Value
+- Feat: Change Runtime
+- Feat: Operator-insertion for numberic values
 
 ## In Progress:
+- Feat: Change Grammar to untyped
 
 ## Complete
 - Feat: Introduce constructor for initializing objects
