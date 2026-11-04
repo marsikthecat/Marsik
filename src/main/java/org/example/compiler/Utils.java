@@ -125,6 +125,10 @@ public class Utils {
   }
 
   public static String generateC(Set<String> imports, String code) {
+    return generateC(imports, code, "");
+  }
+
+  public static String generateC(Set<String> imports, String code, String declarations) {
     StringBuilder importsAsString = new StringBuilder();
     for (String anImport : imports) {
       importsAsString.append(anImport);
@@ -135,13 +139,14 @@ public class Utils {
         #include <string>
         #include "stringUtils.hpp"
         %s
+        %s
 
         int main() {
             %s
             std::cout << "Press ENTER to exit...";
             std::cin.get();
             return 0;
-        }""".formatted(importsAsString, code);
+        }""".formatted(importsAsString, declarations, code);
   }
 
   public static void printError(String s) {

@@ -3,12 +3,15 @@
 ## Problems:
 
 ## Discussion and Ideas:
+- Feat: Rewrite runtime in marsik, not in c
+- Feat: import statements of marsik files
 
 ## Open:
 
 ## In Progress:
 
 ## Complete
+- Feat: Implement support for static functions
 - Feat: Introduce constructor for initializing objects
 - Fix: handle fields in objects that are nonprimitive
 - Fix: Prevent generation of executable of class file

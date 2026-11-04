@@ -11,12 +11,13 @@ type_label: (INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY
             ('<' type_label (',' type_label)? '>')?;
 
 // statements
-stmt: (var_decl | const_decl | assign_stmt | method_call | if_stmt | while_stmt | return_stmt
+stmt: (var_decl | const_decl | assign_stmt | method_call | function_call | if_stmt | while_stmt | return_stmt
     | funcdef | for_stmt | array_decl | inc_stmt | dec_stmt
     | object_stmt | print_stmt | println_stmt | exit_stmt | expr) NEWLINE*;
 
 // For Strings and Objects: Calling methods
 method_call: NAME '.' NAME ('(' arguments? ')' | '()');
+function_call: NAME '(' arguments? ')';
 
 // initializing Objects
 object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME? EQUAL NEW NAME ('(' arguments? ')' | '()');
@@ -40,7 +41,7 @@ dec_stmt: NAME MINUSMINUS INTEGER?;
 array_decl: type_label '[' INTEGER ']' NAME EQUAL ('[' (type (',' type)*)? ']' | method_call);
 
 // Functions
-funcdef: FUNCTION NAME LPAR parameters? RPAR NEWLINE* block;
+funcdef: FUNCTION NAME (COLON type_label)? LPAR parameters? RPAR NEWLINE* block;
 parameters: parameter (COMMA parameter)*;
 parameter: type_label NAME;
 
@@ -71,7 +72,7 @@ additive_expr : multiplicative_expr (('+'|'-') multiplicative_expr)* ;
 multiplicative_expr : unary_expr (('*'|'/'|'%') unary_expr)* ;
 unary_expr : ('+'|'-'|'not') unary_expr | power_expr ;
 power_expr : atom_expr ('**' unary_expr)? ;
-atom_expr : method_call | NAME | INTEGER | BABY_INTEGER | CHAR
+atom_expr : method_call | function_call | NAME | INTEGER | BABY_INTEGER | CHAR
           | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
 
 class_def: 'class' NAME '{' class_member* '}';

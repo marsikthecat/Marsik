@@ -38,6 +38,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   public Path projectRoot = Path.of("").toAbsolutePath();
   private final Map<String, Path> availableHeadersForImports = new HashMap<>();
   public final StringBuilder code = new StringBuilder();
+  private final StringBuilder functionDefinitions = new StringBuilder();
+  private final StringBuilder functionDeclarations = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, ObjectHolder> customObjects = new HashMap<>();
   public ObjectHolder currentCustomObject = null;
@@ -61,6 +63,11 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   @Override
+  public String visitFunction_call(MarsikParser.Function_callContext ctx) {
+    return ctx.NAME().getText() + "(" + renderArguments(ctx.arguments()) + ")";
+  }
+
+  @Override
   public String visitType_label(MarsikParser.Type_labelContext ctx) {
     return Utils.toCppType(ctx.getText(), imports);
   }
@@ -78,6 +85,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     if (ctx.method_call() != null) {
       code.append(visit(ctx.method_call())).append(";\n");
+    }
+    if (ctx.function_call() != null) {
+      code.append(visit(ctx.function_call())).append(";\n");
     }
     return super.visitStmt(ctx);
   }
@@ -382,12 +392,24 @@ public class Compiler extends MarsikBaseVisitor<String> {
   @Override
   public String visitFuncdef(MarsikParser.FuncdefContext ctx) {
     String name = ctx.NAME().getText();
-    code.append("static void ").append(name).append("(");
-    if (ctx.parameters() != null) {
-      code.append(visit(ctx.parameters()));
+    StringBuilder mainCode = new StringBuilder(code);
+    code.setLength(0);
+    try {
+      String functionReturnType = ctx.type_label() != null ?
+       ctx.type_label().getText() + " " : "void ";
+      code.append("static ").append(functionReturnType)
+          .append(name).append("(");
+      if (ctx.parameters() != null) {
+        code.append(visit(ctx.parameters()));
+      }
+      code.append(") ");
+      functionDeclarations.append(code, 0, code.length() - 1).append(";\n");
+      visit(ctx.block());
+      functionDefinitions.append(code).append('\n');
+    } finally {
+      code.setLength(0);
+      code.append(mainCode);
     }
-    code.append(") ");
-    visit(ctx.block());
     return null;
   }
 
@@ -407,7 +429,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (Utils.isForbiddenName(name)) {
       throw new RuntimeException("Name " + name + " is forbidden for variable names");
     }
-    return type + " " + name;
+    return type + "& " + name;
   }
 
   @Override
@@ -671,6 +693,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (ctx.method_call() != null) {
       return visit(ctx.method_call());
     }
+    if (ctx.function_call() != null) {
+      return visit(ctx.function_call());
+    }
     if (ctx.NAME() != null) {
       return ctx.NAME().getText();
     }
@@ -699,7 +724,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   public String generateC() {
-    return Utils.generateC(imports, code.toString());
+    return Utils.generateC(imports, code.toString(), functionDeclarations.toString())
+        + "\n" + functionDefinitions;
   }
 
   private void compile(String srcPath, String outDir) throws IOException, InterruptedException {

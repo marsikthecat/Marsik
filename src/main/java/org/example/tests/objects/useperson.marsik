@@ -1,2 +1,8 @@
 Person person = new Person("Bob", 21)
-printLine(person.getAge())
+makePersonOlder(person)
+printLine("Age: ", person.getAge())
+
+function makePersonOlder: int(Person person) {
+    person.increaseAge()
+    return person.getAge()
+} 
