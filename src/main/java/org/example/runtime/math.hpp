@@ -81,7 +81,7 @@ T max(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -100,7 +100,7 @@ T min(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -119,7 +119,7 @@ T sum(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -135,7 +135,7 @@ T avg(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -147,7 +147,7 @@ T median(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -160,7 +160,7 @@ T variance(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }
@@ -178,7 +178,7 @@ T standardDeviation(Array<T> nums) {
   if (nums.length == 0) {
     return -1;
   }
-  if (!arr_isNumericArray(nums)) {
+  if (!array_isNumericArray(nums)) {
     runtimeError("Array is not Numeric!");
     return -1;
   }

@@ -79,7 +79,7 @@ TreeNode<T>* avltree_insertNode(TreeNode<T>* root, TreeNode<T>* node) {
 
 template <typename T>
 void avltree_insert(AvlTree<T>& tree, T data) {
-    tree.root = avltree_insertNode(tree.root, new TreeNode<T>(init_treeNode(data)));
+    tree.root = avltree_insertNode(tree.root, new TreeNode<T>(init_treenode(data)));
     tree.numberOfNodes++;
 }
 
