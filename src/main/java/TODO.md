@@ -7,12 +7,13 @@
 
 ## Open:
 - Feat: Rewrite runtime in marsik, not in c
+- Fix: static functions only in modules
 
 ## In Progress:
 - Refactor: Compiler
-- Feat: import statements of marsik files
 
 ## Complete
+- Feat: import statements of marsik files
 - Feat: Add modules and static function-support
 - Feat: Implement support for static functions
 - Feat: Introduce constructor for initializing objects

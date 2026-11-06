@@ -7,8 +7,7 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- * Utility class for basic file operations.
- * Provides methods for creating, writing, reading, deleting
+ * Utility class for basic file operations: creating, writing, reading, deleting
  * and checking the existence of files using String paths.
  */
 public class FileHandler {
@@ -68,7 +67,7 @@ public class FileHandler {
    * Reads the content of a file.
    *
    * @param pathWithFileName full path including file name
-   * @return file content as a MarsikString (empty if file could not be read)
+   * @return file content as a String
    */
   public static String readFile(String pathWithFileName) {
     StringBuilder builder = new StringBuilder();

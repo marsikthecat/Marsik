@@ -17,6 +17,18 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitProgram(MarsikParser.ProgramContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MarsikParser#import_decl}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitImport_decl(MarsikParser.Import_declContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MarsikParser#imports}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitImports(MarsikParser.ImportsContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MarsikParser#type}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

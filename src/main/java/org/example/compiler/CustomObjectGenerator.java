@@ -1,12 +1,12 @@
 package org.example.compiler;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Generates C++ header (.hpp) and implementation (.cpp) files for custom objects.
- * Each custom object gets its own pair of files in the generated objects folder.
  */
 public class CustomObjectGenerator {
   private static String objectsFolder = "src/main/java/org/example/out";
@@ -24,14 +24,13 @@ public class CustomObjectGenerator {
     try {
       ensureFolderExists();
 
-      String headerContent = generateHeaderFile(customObject);
       String implContent = generateImplementationFile(customObject);
 
-      String basePath = new java.io.File(objectsFolder).getAbsolutePath() + java.io.File.separator;
+      String basePath = new File(objectsFolder).getAbsolutePath() + File.separator;
       String headerPath = basePath + customObject.name.toLowerCase() + ".hpp";
       String implPath = basePath + customObject.name.toLowerCase() + ".cpp";
 
-      // Create and write header file
+      String headerContent = generateHeaderFile(customObject);
       if (!FileHandler.doesFileExist(headerPath)) {
         FileHandler.createNewFile(headerPath);
       }
@@ -54,7 +53,7 @@ public class CustomObjectGenerator {
    * Generate the header file content for a custom object.
    *
    * @param customObject the custom object definition
-   * @return the header file content
+   * @return the hpp file content
    */
   private static String generateHeaderFile(ObjectHolder customObject) {
     Path projectRoot = Path.of("").toAbsolutePath();
@@ -68,36 +67,34 @@ public class CustomObjectGenerator {
     headerImports.append("#include <stdint.h>\n");
     headerImports.append("#include <string>\n");
     headerContent.append("using namespace std;\n\n");
-    if (!customObject.isModule) {
-      /*
-        Define struct of custom object with attributes/fields
+    /*
+      Define struct of custom object with attributes/fields
 
-        typedef struct Car {
-           int horsepower;
-           string brand;
-        } Car;
-      */
-      headerContent.append("typedef struct ").append(customObject.name).append(" {\n");
-      for (ObjectHolder.Field field : customObject.fields) {
-        String cType = Utils.toCppType(field.type);
-        String includeString = getIncludePathOfObject(cType, availableHeadersForImports);
-        if (!includeString.isEmpty()) {
-          headerImports.append(includeString);
-        }
-        headerContent.append("  ").append(cType).append(" ").append(field.name).append(";\n");
+      typedef struct Car {
+         int horsepower;
+         string brand;
+      } Car;
+    */
+    headerContent.append("typedef struct ").append(customObject.name).append(" {\n");
+    for (ObjectHolder.Field field : customObject.fields) {
+      String cType = Utils.toCppType(field.type);
+      String includeString = getIncludePathOfObject(cType, availableHeadersForImports);
+      if (!includeString.isEmpty()) {
+        headerImports.append(includeString);
       }
-      headerContent.append("} ").append(customObject.name).append(";\n\n");
-
-      /*
-        Declare initialization function for the custom object
-
-        Car init_car(string brand, int hoursePower);
-      */
-      headerContent.append(customObject.name).append(" init_")
-              .append(customObject.name.toLowerCase()).append("(");
-        appendConstructorParameters(headerContent, customObject);
-      headerContent.append(");\n\n");
+      headerContent.append("  ").append(cType).append(" ").append(field.name).append(";\n");
     }
+    headerContent.append("} ").append(customObject.name).append(";\n\n");
+
+    /*
+      Declare initialization function for the custom object
+
+      Car init_car(string brand, int hoursePower);
+    */
+    headerContent.append(customObject.name).append(" init_")
+            .append(customObject.name.toLowerCase()).append("(");
+      appendConstructorParameters(headerContent, customObject);
+    headerContent.append(");\n\n");
 
     /*
       Declare methods for the custom object
@@ -140,6 +137,9 @@ public class CustomObjectGenerator {
 
   /**
    * Generate the implementation file content for a custom object.
+   * 
+   * @param customObject the custom object definition
+   * @return the cpp file content 
    */
   private static String generateImplementationFile(ObjectHolder customObject) {
     StringBuilder impl = new StringBuilder();
@@ -148,26 +148,30 @@ public class CustomObjectGenerator {
     impl.append("#include \"../runtime/stringUtils.hpp\"\n");
     impl.append("#include <iostream>\n");
     impl.append("#include <string>\n\n");
-
-    if (!customObject.isModule) {
-      // Initialization function implementation
-      impl.append(customObject.name).append(" init_")
-              .append(customObject.name.toLowerCase()).append("(");
-        appendConstructorParameters(impl, customObject);
-      impl.append(") {\n");
-      impl.append(customObject.name).append(" obj;\n");
-      if (customObject.constructorBody != null) {
-        String constructorBody = customObject.constructorBody;
-        int bodyStart = constructorBody.indexOf('{');
-        int bodyEnd = constructorBody.lastIndexOf('}');
-        if (bodyStart >= 0 && bodyEnd > bodyStart) {
-          constructorBody = constructorBody.substring(bodyStart + 1, bodyEnd);
-        }
-        impl.append(replaceFieldNamesInBody(constructorBody, customObject));
-      }
-      impl.append("  return obj;\n");
-      impl.append("}\n\n");
+    for (String requiredInclude : customObject.requiredIncludes) {
+      impl.append(requiredInclude);
     }
+    for (String requiredDeclaration : customObject.requiredDeclarations) {
+      impl.append(requiredDeclaration).append('\n');
+    }
+
+    // Initialization function implementation
+    impl.append(customObject.name).append(" init_")
+            .append(customObject.name.toLowerCase()).append("(");
+      appendConstructorParameters(impl, customObject);
+    impl.append(") {\n");
+    impl.append(customObject.name).append(" obj;\n");
+    if (customObject.constructorBody != null) {
+      String constructorBody = customObject.constructorBody;
+      int bodyStart = constructorBody.indexOf('{');
+      int bodyEnd = constructorBody.lastIndexOf('}');
+      if (bodyStart >= 0 && bodyEnd > bodyStart) {
+        constructorBody = constructorBody.substring(bodyStart + 1, bodyEnd);
+      }
+      impl.append(replaceFieldNamesInBody(constructorBody, customObject));
+    }
+    impl.append("  return obj;\n");
+    impl.append("}\n\n");
 
     // Method implementations
     for (ObjectHolder.Method method : customObject.methods) {
@@ -192,12 +196,31 @@ public class CustomObjectGenerator {
 
       // Instance method bodies access fields through the generated object reference.
       String body = method.body != null ? method.body : "{\n}\n";
+      /*
+        Reference to object itself only passed if it is not static
+
+        // static: //
+        
+        function printBrand(String brand) {
+          print("Brand: ", brand)
+        }
+
+        Car.printBrand("Audi")
+
+        // object-bound: //
+
+        setBrand(Car& car, String newBrand) {
+           car.brand = newBrand
+        }
+        
+        Car car = new Car("Vw", 60) 
+        car.setBrand("Audi")  
+      */
       if (!method.isStatic) {
         body = replaceFieldNamesInBody(body, customObject);
       }
       impl.append(body);
     }
-
     return impl.toString();
   }
 
@@ -251,7 +274,7 @@ public class CustomObjectGenerator {
    * Ensure that the generated_objects folder exists.
    */
   private static void ensureFolderExists() {
-    java.io.File folder = new java.io.File(objectsFolder);
+    File folder = new File(objectsFolder);
     if (!folder.exists()) {
       boolean success = folder.mkdirs();
       if (success) {

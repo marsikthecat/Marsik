@@ -1,6 +1,9 @@
 grammar Marsik;
 
-program: (stmt* | class_def | module_def) EOF;
+program: imports (stmt* | class_def | module_def) EOF;
+
+import_decl: IMPORT STRING;
+imports: import_decl*;
 
 // All data types
 type: INTEGER | CHAR | BOOLEAN | STRING | DOUBLE
@@ -126,6 +129,7 @@ NEW      : 'new';
 BREAK    : 'break';
 FUNCTION : 'function';
 MODULE   : 'module';
+IMPORT   : 'import';
 ELSE     : 'else';
 FOR      : 'for';
 IF       : 'if';

@@ -18,12 +18,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.compiler.CustomObjectGenerator;
+import org.example.compiler.CustomModuleGenerator;
 import org.example.compiler.GeneratedFilesTracker;
+import org.example.compiler.ModuleHolder;
 import org.example.compiler.ObjectHolder;
 import org.example.compiler.Utils;
 import org.example.compiler.ValueHolder;
@@ -42,8 +47,12 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private final StringBuilder functionDeclarations = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, ObjectHolder> customObjects = new HashMap<>();
-  public final HashMap<String, ObjectHolder> modules = new HashMap<>();
+  public final HashMap<String, ModuleHolder> modules = new HashMap<>();
+  private final Map<String, ModuleHolder> moduleAliases = new HashMap<>();
+  private final Set<Path> importedSources = new HashSet<>();
+  private final Set<Path> importingSources = new HashSet<>();
   public ObjectHolder currentCustomObject = null;
+  private ModuleHolder currentModule = null;
   public boolean isObjectFile = false;
 
   @Override
@@ -197,9 +206,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
       return visitBuiltInLibraryMethodCall(ctx, target, method);
     }
 
-    ObjectHolder module = modules.get(target);
+    ModuleHolder module = findModule(target);
     if (module != null) {
-      ObjectHolder.Method moduleFunction = module.methods.stream()
+      ModuleHolder.Function moduleFunction = module.functions.stream()
               .filter(candidate -> candidate.name.equals(method))
               .findFirst()
               .orElseThrow(() -> new RuntimeException("Function " + method
@@ -210,6 +219,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
                 + moduleFunction.parameters.size() + " arguments, got "
                 + ctx.arguments().expr().size());
       }
+      addFunctionDeclaration(module, moduleFunction);
       return module.name.toLowerCase() + "_" + method
               + "(" + renderArguments(ctx.arguments()) + ")";
     }
@@ -231,13 +241,18 @@ public class Compiler extends MarsikBaseVisitor<String> {
                 + " expects " + classMethod.parameters.size() + " arguments, got "
                 + ctx.arguments().expr().size());
       }
+      addObjectInclude(classTarget);
       return classTarget.name.toLowerCase() + "_" + method
               + "(" + renderArguments(ctx.arguments()) + ")";
     }
 
     Path classHeader = availableHeadersForImports.get(target.toLowerCase());
     if (classHeader != null && !variables.containsKey(target)) {
-      imports.add("#include \"" + classHeader.toString().replace("\\", "/") + "\"\n");
+      String include = "#include \"" + classHeader.toString().replace("\\", "/") + "\"\n";
+      imports.add(include);
+      if (currentCustomObject != null) {
+        currentCustomObject.requiredIncludes.add(include);
+      }
       return target.toLowerCase() + "_" + method
               + "(" + renderArguments(ctx.arguments()) + ")";
     }
@@ -280,7 +295,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (!Utils.multiEquals(target, "Math", "FileHandler", "DateTime", "Caster")) {
       throw new RuntimeException("Unknown builtin target: " + target);
     }
-    imports.add("#include \"../runtime/" + target.toLowerCase() + ".hpp\"\n");                                            
+    String include = "#include \"../runtime/" + target.toLowerCase() + ".hpp\"\n";
+    addRequiredInclude(include);
     List<String> args = new ArrayList<>();
     if (ctx.arguments() != null) {
       for (var e : ctx.arguments().expr()) {
@@ -597,6 +613,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
   @Override
   public String visitClass_def(MarsikParser.Class_defContext ctx) {
     String className = ctx.NAME().getText();
+    ensureContainerNameIsAvailable(className);
     // Create custom object holder
     ObjectHolder customObj = new ObjectHolder(className);
     customObjects.put(className, customObj);
@@ -680,32 +697,90 @@ public class Compiler extends MarsikBaseVisitor<String> {
   @Override
   public String visitModule_def(MarsikParser.Module_defContext ctx) {
     String moduleName = ctx.NAME().getText();
-    ObjectHolder module = new ObjectHolder(moduleName);
-    module.isModule = true;
+    ensureContainerNameIsAvailable(moduleName);
+    ModuleHolder module = new ModuleHolder(moduleName);
     modules.put(moduleName, module);
 
+    ObjectHolder previousCustomObject = currentCustomObject;
+    ModuleHolder previousModule = currentModule;
+    currentCustomObject = null;
+    currentModule = module;
     StringBuilder previousCode = new StringBuilder(code);
     code.setLength(0);
     try {
       for (MarsikParser.FuncdefContext function : ctx.funcdef()) {
-        module.methods.add(captureMethod(function.function_signature(), function.block(), true, false));
+        module.functions.add(createModuleFunction(function.function_signature(), module));
+      }
+      for (int i = 0; i < ctx.funcdef().size(); i++) {
+        captureModuleFunction(module.functions.get(i), ctx.funcdef(i).block());
       }
     } finally {
       code.setLength(0);
       code.append(previousCode);
+      currentCustomObject = previousCustomObject;
+      currentModule = previousModule;
     }
 
-    CustomObjectGenerator.generateCustomObject(module);
-    imports.add("#include \"" + moduleName.toLowerCase() + ".hpp\"\n");
+    CustomModuleGenerator.generateModule(module);
     isObjectFile = true;
     return null;
+  }
+
+  private ModuleHolder.Function createModuleFunction(
+      MarsikParser.Function_signatureContext signature,
+      ModuleHolder module) {
+    String functionName = signature.NAME().getText();
+    if (module.functions.stream().anyMatch(function -> function.name.equals(functionName))) {
+      throw new IllegalArgumentException("Duplicate function " + functionName
+              + " in module " + module.name);
+    }
+
+    ModuleHolder.Function function = new ModuleHolder.Function();
+    function.name = functionName;
+    function.returnType = signature.type_label() == null ? "void" : signature.type_label().getText();
+    if (signature.parameters() != null) {
+      for (MarsikParser.ParameterContext parameter : signature.parameters().parameter()) {
+        String parameterName = parameter.NAME().getText();
+        if (Utils.isForbiddenName(parameterName)) {
+          throw new RuntimeException("Name " + parameterName + " is forbidden for function parameters");
+        }
+        function.parameters.add(new ModuleHolder.Parameter(
+                parameter.type_label().getText(), parameterName));
+      }
+    }
+    return function;
+  }
+
+  private void captureModuleFunction(ModuleHolder.Function function,
+                                     MarsikParser.BlockContext block) {
+    for (ModuleHolder.Parameter parameter : function.parameters) {
+      variables.put(parameter.name, new ValueHolder(Utils.toCppType(parameter.type), true));
+    }
+    StringBuilder previousCode = new StringBuilder(code);
+    code.setLength(0);
+    try {
+      visitBlock(block);
+      function.body = code.toString();
+    } finally {
+      code.setLength(0);
+      code.append(previousCode);
+      for (ModuleHolder.Parameter parameter : function.parameters) {
+        variables.remove(parameter.name);
+      }
+    }
   }
 
   private ObjectHolder.Method captureMethod(MarsikParser.Function_signatureContext signature,
                                              MarsikParser.BlockContext block,
                                              boolean isStatic, boolean isInternal) {
+    String methodName = signature.NAME().getText();
+    if (currentCustomObject.methods.stream().anyMatch(method -> method.name.equals(methodName))) {
+      throw new IllegalArgumentException("Duplicate function " + methodName
+              + " in " + currentCustomObject.name);
+    }
+
     ObjectHolder.Method method = new ObjectHolder.Method();
-    method.name = signature.NAME().getText();
+    method.name = methodName;
     method.returnType = signature.type_label() == null ? "void" : signature.type_label().getText();
     method.isStatic = isStatic;
     method.isInternal = isInternal;
@@ -830,7 +905,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   private void compile(String srcPath, String outDir) throws IOException, InterruptedException {
-    File sourceFile = new File(srcPath);
+    Path sourcePath = Path.of(srcPath).toAbsolutePath().normalize();
+    File sourceFile = sourcePath.toFile();
     File outputDir = new File(outDir);
     if (!outputDir.exists()) {
       outputDir.mkdirs();
@@ -839,13 +915,21 @@ public class Compiler extends MarsikBaseVisitor<String> {
     // ----------------------------
     // 1. PARSE + C/CPP CODEGEN
     // ----------------------------
-    CharStream input = CharStreams.fromFileName(sourceFile.getAbsolutePath());
-    MarsikLexer lexer = new MarsikLexer(input);
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-    MarsikParser parser = new MarsikParser(tokens);
-    ParseTree tree = parser.program();
+    importedSources.clear();
+    importingSources.clear();
+    ParsedSource parsedSource = parseSource(sourcePath);
     CustomObjectGenerator.setOutputFolder(outputDir.getAbsolutePath());
-    this.visit(tree);
+    CustomModuleGenerator.setOutputFolder(outputDir.getAbsolutePath());
+    if (!importingSources.add(sourcePath)) {
+      throw new IllegalStateException("Entry source is already being imported: " + sourcePath);
+    }
+    try {
+      processImports(parsedSource.imports(), sourcePath);
+      importedSources.add(sourcePath);
+    } finally {
+      importingSources.remove(sourcePath);
+    }
+    this.visit(parsedSource.program());
     String cppCode = this.generateC();
     File cppFile = new File(outputDir, "generated.cpp");
     if (cppFile.exists()) {
@@ -882,7 +966,12 @@ public class Compiler extends MarsikBaseVisitor<String> {
       }
       for (String generatedFile : GeneratedFilesTracker.getGeneratedFilesSnapshot()) {
         if (generatedFile.endsWith(".cpp")) {
-          translationUnits.add(new File(generatedFile));
+          File trackedFile = new File(generatedFile);
+          if (translationUnits.stream().noneMatch(existing ->
+                  existing.toPath().toAbsolutePath().normalize()
+                          .equals(trackedFile.toPath().toAbsolutePath().normalize()))) {
+            translationUnits.add(trackedFile);
+          }
         }
       }
       Set<String> usedIncludes = extractUsedIncludes(translationUnits, runtimeDir, outputDir);
@@ -895,12 +984,9 @@ public class Compiler extends MarsikBaseVisitor<String> {
         .filter(p -> p.toString().endsWith(".cpp"))
         .filter(p -> !p.toFile().equals(cppFile))
         .forEach(p -> {
-          if (!command.contains(p.toString())) {
-            command.add(p.toString());
-          }
+        addSourceFile(command, p.toFile());
         });
     }
-    addGeneratedObjectSources(command);
     command.add("-I" + outputDir.getAbsolutePath());
     command.add("-std=gnu++17");
     command.add("-static-libgcc");
@@ -1021,18 +1107,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       
       File sourceFile = findSourceFile(runtimeDir, sourceFileName);
       if (sourceFile != null && sourceFile.exists() && addedFiles.add(sourceFile.getAbsolutePath())) {
-        command.add(sourceFile.getAbsolutePath());
-      }
-    }
-  }
-
-  private static void addGeneratedObjectSources(List<String> command) {
-    for (String generatedFile : GeneratedFilesTracker.getGeneratedFilesSnapshot()) {
-      if (generatedFile.endsWith(".cpp") || generatedFile.endsWith(".c")) {
-        String absolutePath = new File(generatedFile).getAbsolutePath();
-        if (!command.contains(absolutePath)) {
-          command.add(absolutePath);
-        }
+        addSourceFile(command, sourceFile);
       }
     }
   }
@@ -1040,7 +1115,18 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private static void addCoreRuntimeFile(File runtimeDir, String fileName, List<String> command, Set<String> addedFiles) {
     File sourceFile = findSourceFile(runtimeDir, fileName);
     if (sourceFile != null && sourceFile.exists() && addedFiles.add(sourceFile.getAbsolutePath())) {
-      command.add(sourceFile.getAbsolutePath());
+      addSourceFile(command, sourceFile);
+    }
+  }
+
+  private static void addSourceFile(List<String> command, File sourceFile) {
+    Path sourcePath = sourceFile.toPath().toAbsolutePath().normalize();
+    boolean alreadyAdded = command.stream()
+            .filter(argument -> !argument.startsWith("-"))
+            .map(argument -> Path.of(argument).toAbsolutePath().normalize())
+            .anyMatch(sourcePath::equals);
+    if (!alreadyAdded) {
+      command.add(sourcePath.toString());
     }
   }
 
@@ -1077,5 +1163,148 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String input = args[0];
     String output = args.length == 2 ? args[1]: "src/main/java/org/example/out";
     compile(input, output);
+  }
+
+  private record ParsedSource(MarsikParser.ImportsContext imports, MarsikParser.ProgramContext program) {}
+
+  private ParsedSource parseSource(Path sourcePath) throws IOException {
+    if (!Files.isRegularFile(sourcePath)) {
+      throw new IOException("Marsik source file not found: " + sourcePath);
+    }
+    CharStream input = CharStreams.fromPath(sourcePath);
+    MarsikLexer lexer = new MarsikLexer(input);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(throwingSyntaxErrorListener(sourcePath));
+    MarsikParser parser = new MarsikParser(new CommonTokenStream(lexer));
+    parser.removeErrorListeners();
+    parser.addErrorListener(throwingSyntaxErrorListener(sourcePath));
+    MarsikParser.ImportsContext sourceImports = parser.imports();
+    return new ParsedSource(sourceImports, parser.program());
+  }
+
+  private BaseErrorListener throwingSyntaxErrorListener(Path sourcePath) {
+    return new BaseErrorListener() {
+      @Override
+      public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                              int charPositionInLine, String message, RecognitionException exception) {
+        throw new IllegalArgumentException(sourcePath + ":" + line + ":"
+                + (charPositionInLine + 1) + ": " + message, exception);
+      }
+    };
+  }
+
+  private void processImports(MarsikParser.ImportsContext sourceImports, Path importingFile)
+      throws IOException {
+    for (MarsikParser.Import_declContext importDecl : sourceImports.import_decl()) {
+      String importPath = importDecl.STRING().getText();
+      if (!importPath.endsWith(".marsik\"")) {
+        throw new IllegalArgumentException("Imported file must have a .marsik extension: "
+                + importPath);
+      }
+      Path importedPath = importingFile.getParent()
+              .resolve(importPath.substring(1, importPath.length() - 1))
+              .toAbsolutePath()
+              .normalize();
+      if (importedSources.contains(importedPath)) {
+        continue;
+      }
+      if (!importingSources.add(importedPath)) {
+        throw new IllegalArgumentException("Circular Marsik import: " + importedPath
+                + " imported from " + importingFile);
+      }
+
+      try {
+        ParsedSource importedSource = parseSource(importedPath);
+        if (importedSource.program().class_def() == null
+                && importedSource.program().module_def() == null) {
+          throw new IllegalArgumentException("Imported Marsik source must define a class or module: "
+                  + importedPath);
+        }
+        processImports(importedSource.imports(), importedPath);
+
+        boolean wasObjectFile = isObjectFile;
+        try {
+          visit(importedSource.program());
+        } finally {
+          isObjectFile = wasObjectFile;
+        }
+        if (importedSource.program().module_def() != null) {
+          String moduleAlias = importedPath.getFileName().toString();
+          moduleAlias = moduleAlias.substring(0, moduleAlias.length() - ".marsik".length());
+          ModuleHolder module = modules.get(importedSource.program().module_def().NAME().getText());
+          ModuleHolder previousAlias = moduleAliases.putIfAbsent(moduleAlias.toLowerCase(), module);
+          if (previousAlias != null && previousAlias != module) {
+            throw new IllegalArgumentException("Module import name " + moduleAlias
+                    + " is ambiguous in " + importingFile);
+          }
+        }
+        importedSources.add(importedPath);
+      } finally {
+        importingSources.remove(importedPath);
+      }
+    }
+  }
+
+  private void addObjectInclude(ObjectHolder object) {
+    String include = "#include \"" + object.name.toLowerCase() + ".hpp\"\n";
+    imports.add(include);
+    if (currentCustomObject != null && currentCustomObject != object) {
+      currentCustomObject.requiredIncludes.add(include);
+    }
+    if (currentModule != null) {
+      currentModule.requiredIncludes.add(include);
+    }
+  }
+
+  private void addFunctionDeclaration(ModuleHolder owner, ModuleHolder.Function function) {
+    StringBuilder declaration = new StringBuilder();
+    declaration.append(Utils.toCppType(function.returnType)).append(' ')
+            .append(owner.name.toLowerCase()).append('_').append(function.name).append('(');
+    for (int i = 0; i < function.parameters.size(); i++) {
+      ModuleHolder.Parameter parameter = function.parameters.get(i);
+      if (i > 0) {
+        declaration.append(", ");
+      }
+      declaration.append(Utils.toCppType(parameter.type)).append(' ').append(parameter.name);
+      Path parameterHeader = availableHeadersForImports.get(parameter.type.toLowerCase());
+      if (parameterHeader != null) {
+        addRequiredInclude("#include \"" + parameterHeader.toString().replace("\\", "/") + "\"\n");
+      }
+    }
+    declaration.append(");");
+    Path returnHeader = availableHeadersForImports.get(function.returnType.toLowerCase());
+    if (returnHeader != null) {
+      addRequiredInclude("#include \"" + returnHeader.toString().replace("\\", "/") + "\"\n");
+    }
+    String functionDeclaration = declaration.toString();
+    if (currentModule != null) {
+      currentModule.requiredDeclarations.add(functionDeclaration);
+    } else {
+      functionDeclarations.append(functionDeclaration).append('\n');
+    }
+    if (currentCustomObject != null) {
+      currentCustomObject.requiredDeclarations.add(functionDeclaration);
+    }
+  }
+
+  private void ensureContainerNameIsAvailable(String name) {
+    if (customObjects.containsKey(name) || modules.containsKey(name)) {
+      throw new IllegalArgumentException("Duplicate class or module name: " + name);
+    }
+  }
+
+  private ModuleHolder findModule(String name) {
+    ModuleHolder module = modules.get(name);
+    return module != null ? module : moduleAliases.get(name.toLowerCase());
+  }
+
+  private void addRequiredInclude(String include) {
+    imports.add(include);
+    if (currentCustomObject != null) {
+      currentCustomObject.requiredIncludes.add(include);
+    }
+    if (currentModule != null) {
+      currentModule.requiredIncludes.add(include);
+    }
   }
 }

@@ -1,7 +1,9 @@
 package org.example.compiler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ObjectHolder {
   public String name;
@@ -10,7 +12,8 @@ public class ObjectHolder {
   public List<Parameter> constructorParameters = new ArrayList<>();
   public String constructorBody;
   public boolean hasConstructor;
-  public boolean isModule;
+  public Set<String> requiredIncludes = new HashSet<>();
+  public Set<String> requiredDeclarations = new HashSet<>();
 
   public ObjectHolder(String name) {
     this.name = name;
