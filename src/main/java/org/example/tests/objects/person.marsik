@@ -17,33 +17,32 @@ class Person {
     set = new BitSet()
 }
 
-  Method: int getAge( ) {
+  int getAge( ) {
     return age
 }
 
-  Method: increaseAge( ) {
+  increaseAge( ) {
     age++
 }
 
-  Method: setAddress(string newAddress) {
+  setAddress(string newAddress) {
     address = newAddress
 }
 
-  Method: printInfo( ) {
+  printInfo( ) {
     print("Name: ", name, "Age: ", age)
 }
 
-  Method: boolean isAdult( ) {
+  boolean isAdult( ) {
     return age >= 18
 }
 
-  Method: string reverseName( ) {
-    string reversedName = name
+  function string reverseName(string name) {
     name.reverse()
-    return reversedName
+    return name
 }
 
-  Method: addHobby(string hobby) {
+  addHobby(string hobby) {
     hobbies.add(hobby)
 }
 }

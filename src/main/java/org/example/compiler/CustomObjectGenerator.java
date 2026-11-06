@@ -68,34 +68,36 @@ public class CustomObjectGenerator {
     headerImports.append("#include <stdint.h>\n");
     headerImports.append("#include <string>\n");
     headerContent.append("using namespace std;\n\n");
-    /*
-      Define struct of custom object with attributes/fields
+    if (!customObject.isModule) {
+      /*
+        Define struct of custom object with attributes/fields
 
-      typedef struct Car {
-         int horsepower;
-         string brand;
-      } Car;
-    */
-    headerContent.append("typedef struct ").append(customObject.name).append(" {\n");
-    for (ObjectHolder.Field field : customObject.fields) {
-      String cType = mapTypeToCType(field.type);
-      String includeString = getIncludePathOfObject(cType, availableHeadersForImports);
-      if (!includeString.isEmpty()) {
-        headerImports.append(includeString);
+        typedef struct Car {
+           int horsepower;
+           string brand;
+        } Car;
+      */
+      headerContent.append("typedef struct ").append(customObject.name).append(" {\n");
+      for (ObjectHolder.Field field : customObject.fields) {
+        String cType = Utils.toCppType(field.type);
+        String includeString = getIncludePathOfObject(cType, availableHeadersForImports);
+        if (!includeString.isEmpty()) {
+          headerImports.append(includeString);
+        }
+        headerContent.append("  ").append(cType).append(" ").append(field.name).append(";\n");
       }
-      headerContent.append("  ").append(cType).append(" ").append(field.name).append(";\n");
-    }
-    headerContent.append("} ").append(customObject.name).append(";\n\n");
+      headerContent.append("} ").append(customObject.name).append(";\n\n");
 
-    /*
-      Declare initialization function for the custom object
+      /*
+        Declare initialization function for the custom object
 
-      Car init_car();
-    */
-    headerContent.append(customObject.name).append(" init_")
-            .append(customObject.name.toLowerCase()).append("(");
+        Car init_car(string brand, int hoursePower);
+      */
+      headerContent.append(customObject.name).append(" init_")
+              .append(customObject.name.toLowerCase()).append("(");
         appendConstructorParameters(headerContent, customObject);
-    headerContent.append(");\n\n");
+      headerContent.append(");\n\n");
+    }
 
     /*
       Declare methods for the custom object
@@ -104,15 +106,30 @@ public class CustomObjectGenerator {
       void car_setHorsepower(Car obj, int horsepower);
     */
     for (ObjectHolder.Method method : customObject.methods) {
-      String returnType = mapTypeToCType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
+      String returnType = Utils.toCppType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
       if (method.returnType == null || method.returnType.equals("void")) {
         returnType = "void";
       }
+      String includeString = getIncludePathOfObject(returnType, availableHeadersForImports);
+      if (!includeString.isEmpty()) {
+        headerImports.append(includeString);
+      }
       headerContent.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
-              .append(method.name).append("(").append(customObject.name).append("& obj");
-      for (ObjectHolder.Parameter param : method.parameters) {
-        String paramType = mapTypeToCType(param.type);
-        headerContent.append(", ").append(paramType).append(" ").append(param.name);
+              .append(method.name).append("(");
+      if (!method.isStatic) {
+        headerContent.append(customObject.name).append("& obj");
+      }
+      for (int i = 0; i < method.parameters.size(); i++) {
+        ObjectHolder.Parameter param = method.parameters.get(i);
+        String paramType = Utils.toCppType(param.type);
+        includeString = getIncludePathOfObject(paramType, availableHeadersForImports);
+        if (!includeString.isEmpty()) {
+          headerImports.append(includeString);
+        }
+        if (i > 0 || !method.isStatic) {
+          headerContent.append(", ");
+        }
+        headerContent.append(paramType).append(" ").append(param.name);
       }
       headerContent.append(");\n");
     }
@@ -132,50 +149,52 @@ public class CustomObjectGenerator {
     impl.append("#include <iostream>\n");
     impl.append("#include <string>\n\n");
 
-    // Initialization function implementation
-    impl.append(customObject.name).append(" init_")
-            .append(customObject.name.toLowerCase()).append("(");
+    if (!customObject.isModule) {
+      // Initialization function implementation
+      impl.append(customObject.name).append(" init_")
+              .append(customObject.name.toLowerCase()).append("(");
         appendConstructorParameters(impl, customObject);
-    impl.append(") {\n");
-    
-
-   /*  for (ObjectHolder.Field field : customObject.fields) {
-      String cType = mapTypeToCType(field.type);
-      String defaultValue = getDefaultValueForType(cType);
-      impl.append("  obj.").append(field.name).append(" = ").append(defaultValue).append(";\n");
-    }*/
-
-    if (customObject.constructorBody != null) {
+      impl.append(") {\n");
       impl.append(customObject.name).append(" obj;\n");
-      String constructorBody = customObject.constructorBody;
-      int bodyStart = constructorBody.indexOf('{');
-      int bodyEnd = constructorBody.lastIndexOf('}');
-      if (bodyStart >= 0 && bodyEnd > bodyStart) {
-        constructorBody = constructorBody.substring(bodyStart + 1, bodyEnd);
+      if (customObject.constructorBody != null) {
+        String constructorBody = customObject.constructorBody;
+        int bodyStart = constructorBody.indexOf('{');
+        int bodyEnd = constructorBody.lastIndexOf('}');
+        if (bodyStart >= 0 && bodyEnd > bodyStart) {
+          constructorBody = constructorBody.substring(bodyStart + 1, bodyEnd);
+        }
+        impl.append(replaceFieldNamesInBody(constructorBody, customObject));
       }
-      impl.append(replaceFieldNamesInBody(constructorBody, customObject));
+      impl.append("  return obj;\n");
+      impl.append("}\n\n");
     }
-
-    impl.append("  return obj;\n");
-    impl.append("}\n\n");
 
     // Method implementations
     for (ObjectHolder.Method method : customObject.methods) {
-      String returnType = mapTypeToCType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
+      String returnType = Utils.toCppType(method.returnType != null && !method.returnType.equals("void") ? method.returnType : "void");
       if (method.returnType == null || method.returnType.equals("void")) {
         returnType = "void";
       }
       impl.append(returnType).append(" ").append(customObject.name.toLowerCase()).append("_")
-              .append(method.name).append("(").append(customObject.name).append("& obj");
-      for (ObjectHolder.Parameter param : method.parameters) {
-        String paramType = mapTypeToCType(param.type);
-        impl.append(", ").append(paramType).append(" ").append(param.name);
+              .append(method.name).append("(");
+      if (!method.isStatic) {
+        impl.append(customObject.name).append("& obj");
+      }
+      for (int i = 0; i < method.parameters.size(); i++) {
+        ObjectHolder.Parameter param = method.parameters.get(i);
+        String paramType = Utils.toCppType(param.type);
+        if (i > 0 || !method.isStatic) {
+          impl.append(", ");
+        }
+        impl.append(paramType).append(" ").append(param.name);
       }
       impl.append(") ");
 
-      // Process method body: replace field names with obj.fieldname
+      // Instance method bodies access fields through the generated object reference.
       String body = method.body != null ? method.body : "{\n}\n";
-      body = replaceFieldNamesInBody(body, customObject);
+      if (!method.isStatic) {
+        body = replaceFieldNamesInBody(body, customObject);
+      }
       impl.append(body);
     }
 
@@ -188,7 +207,7 @@ public class CustomObjectGenerator {
       if (i > 0) {
         output.append(", ");
       }
-      output.append(mapTypeToCType(parameter.type)).append(" ").append(parameter.name);
+      output.append(Utils.toCppType(parameter.type)).append(" ").append(parameter.name);
     }
   }
 
@@ -226,20 +245,6 @@ public class CustomObjectGenerator {
       }
     }
     return result;
-  }
-
-  /**
-   * Map Marsik type names to C types.
-   *
-   * @param marsikType the Marsik type name
-   * @return the corresponding C type
-   */
-  private static String mapTypeToCType(String marsikType) {
-    return switch (marsikType) {
-      case "boolean" -> "bool";
-      case "baby_int" -> "uint8_t";
-      default -> marsikType;
-    };
   }
 
   /**

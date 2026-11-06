@@ -84,7 +84,6 @@ public class Utils {
       case "int" -> value.INTEGER() != null;
       case "double" -> value.DOUBLE() != null;
       case "char" -> value.CHAR() != null;
-      case "baby_int", "uint8_t" -> value.BABY_INTEGER() != null || value.INTEGER() != null;
       default -> false;
     };
   }
@@ -96,15 +95,8 @@ public class Utils {
       }
   }
 
-  public static String toCppType(String marsikType, Set<String> imports) {
-    return switch (marsikType) {
-      case "boolean" -> "bool";
-      case "baby_int" -> {
-        imports.add("#include <stdint.h>\n");
-        yield "uint8_t";
-      }
-      default -> marsikType;
-    };
+  public static String toCppType(String marsikType) {
+    return marsikType.equals("boolean") ? "bool" : marsikType;
   }
 
   public static String joinBinaryExpressions(List<? extends ParseTree> expressions, Function<ParseTree, String> renderer, String operator) {

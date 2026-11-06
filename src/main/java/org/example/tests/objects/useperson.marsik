@@ -2,7 +2,7 @@ Person person = new Person("Bob", 21)
 makePersonOlder(person)
 printLine("Age: ", person.getAge())
 
-function makePersonOlder: int(Person person) {
+function int makePersonOlder(Person person) {
     person.increaseAge()
     return person.getAge()
 } 

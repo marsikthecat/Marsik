@@ -95,6 +95,12 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFuncdef(MarsikParser.FuncdefContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MarsikParser#function_signature}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunction_signature(MarsikParser.Function_signatureContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MarsikParser#parameters}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -250,6 +256,12 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitClass_def(MarsikParser.Class_defContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MarsikParser#module_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitModule_def(MarsikParser.Module_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MarsikParser#class_member}.
 	 * @param ctx the parse tree

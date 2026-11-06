@@ -3,14 +3,17 @@
 ## Problems:
 
 ## Discussion and Ideas:
-- Feat: Rewrite runtime in marsik, not in c
-- Feat: import statements of marsik files
+- Feat: Compilation of all files refered in the main marsik file
 
 ## Open:
+- Feat: Rewrite runtime in marsik, not in c
 
 ## In Progress:
+- Refactor: Compiler
+- Feat: import statements of marsik files
 
 ## Complete
+- Feat: Add modules and static function-support
 - Feat: Implement support for static functions
 - Feat: Introduce constructor for initializing objects
 - Fix: handle fields in objects that are nonprimitive

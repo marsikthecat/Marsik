@@ -42,20 +42,26 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private final StringBuilder functionDeclarations = new StringBuilder();
   public final Set<String> imports = new HashSet<>();
   public final HashMap<String, ObjectHolder> customObjects = new HashMap<>();
+  public final HashMap<String, ObjectHolder> modules = new HashMap<>();
   public ObjectHolder currentCustomObject = null;
   public boolean isObjectFile = false;
 
   @Override
   public String visitProgram(MarsikParser.ProgramContext ctx) {
-    // First pass: collect all custom object definitions
+    // Collect declarations first so static calls can be resolved in function bodies.
     for (var child : ctx.children) {
-      if (child instanceof MarsikParser.Class_defContext classDef) {
-        visitClass_def(classDef);
-      }
+        switch (child) {
+            case MarsikParser.Class_defContext classDef -> visitClass_def(classDef);
+            case MarsikParser.Module_defContext moduleDef -> visitModule_def(moduleDef);
+            default -> {
+            }
+        }
     }
-    // Second pass: process statements
+    // Process executable statements after declarations are available.
     for (var child : ctx.children) {
-      if (!(child instanceof MarsikParser.Class_defContext)) {
+      if (!(child instanceof MarsikParser.Class_defContext)
+              && !(child instanceof MarsikParser.Module_defContext)
+              && !(child instanceof org.antlr.v4.runtime.tree.TerminalNode)) {
         this.visit(child);
       }
     }
@@ -69,7 +75,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitType_label(MarsikParser.Type_labelContext ctx) {
-    return Utils.toCppType(ctx.getText(), imports);
+    return Utils.toCppType(ctx.getText());
   }
 
   @Override
@@ -190,6 +196,52 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (Utils.isBuiltInLibraryMethod(target, method)) {
       return visitBuiltInLibraryMethodCall(ctx, target, method);
     }
+
+    ObjectHolder module = modules.get(target);
+    if (module != null) {
+      ObjectHolder.Method moduleFunction = module.methods.stream()
+              .filter(candidate -> candidate.name.equals(method))
+              .findFirst()
+              .orElseThrow(() -> new RuntimeException("Function " + method
+                      + " not found in module " + module.name));
+      if (ctx.arguments() != null
+              && ctx.arguments().expr().size() != moduleFunction.parameters.size()) {
+        throw new RuntimeException("Function " + method + " in module " + module.name + " expects "
+                + moduleFunction.parameters.size() + " arguments, got "
+                + ctx.arguments().expr().size());
+      }
+      return module.name.toLowerCase() + "_" + method
+              + "(" + renderArguments(ctx.arguments()) + ")";
+    }
+
+    ObjectHolder classTarget = customObjects.get(target);
+    if (classTarget != null) {
+      ObjectHolder.Method classMethod = classTarget.methods.stream()
+              .filter(candidate -> candidate.name.equals(method))
+              .findFirst()
+              .orElseThrow(() -> new RuntimeException("Function " + method
+                      + " not found in class " + classTarget.name));
+      if (!classMethod.isStatic) {
+        throw new RuntimeException("Instance method " + method
+                + " must be called on an object of class " + classTarget.name);
+      }
+      if (ctx.arguments() != null
+              && ctx.arguments().expr().size() != classMethod.parameters.size()) {
+        throw new RuntimeException("Static function " + method + " in class " + classTarget.name
+                + " expects " + classMethod.parameters.size() + " arguments, got "
+                + ctx.arguments().expr().size());
+      }
+      return classTarget.name.toLowerCase() + "_" + method
+              + "(" + renderArguments(ctx.arguments()) + ")";
+    }
+
+    Path classHeader = availableHeadersForImports.get(target.toLowerCase());
+    if (classHeader != null && !variables.containsKey(target)) {
+      imports.add("#include \"" + classHeader.toString().replace("\\", "/") + "\"\n");
+      return target.toLowerCase() + "_" + method
+              + "(" + renderArguments(ctx.arguments()) + ")";
+    }
+
     ValueHolder targetValue = variables.get(target);
     if (targetValue == null) {
       throw new RuntimeException("Variable " + target + " does not exist");
@@ -198,10 +250,16 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String baseType = type.contains("<") ? type.substring(0, type.indexOf('<')) : type;
     ObjectHolder customObject = customObjects.get(baseType);
     if (customObject != null) {
-      boolean methodFound = customObject.methods.stream()
-              .anyMatch(candidate -> candidate.name.equals(method));
-      if (!methodFound) {
+      ObjectHolder.Method objectMethod = customObject.methods.stream()
+              .filter(candidate -> candidate.name.equals(method))
+              .findFirst()
+              .orElse(null);
+      if (objectMethod == null) {
         throw new RuntimeException("Method " + method + " not found in class " + customObject.name);
+      }
+      if (objectMethod.isStatic) {
+        throw new RuntimeException("Static function " + method
+                + " must be called on class " + customObject.name);
       }
     } else {
       if (baseType.equals("string") && !Utils.stringMethods.contains(method)) {
@@ -265,7 +323,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (ctx.type_label().NAME() != null && !customObjects.containsKey(runtimeType)) {
       registerObject(runtimeType, declaredType.contains("<"));
     }
-    String type = Utils.toCppType(declaredType, imports);
+    String type = Utils.toCppType(declaredType);
     if (ctx.scan_stmt() != null) {
       appendScanDeclaration(ctx.scan_stmt(), type, name);
       variables.put(name, new ValueHolder(runtimeType, true));
@@ -318,7 +376,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     if (Utils.isForbiddenName(name)) {
       throw new RuntimeException("Name " + name + " is forbidden for variable names");
     }
-    String type = Utils.toCppType(ctx.type_label().getText(), imports);
+    String type = Utils.toCppType(ctx.type_label().getText());
     String value = ctx.type().getText();
     Utils.validateLiteralType(ctx.type_label().getText(), ctx.type());
     code.append("const ").append(type).append(" ").append(name)
@@ -391,16 +449,17 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   @Override
   public String visitFuncdef(MarsikParser.FuncdefContext ctx) {
-    String name = ctx.NAME().getText();
+    MarsikParser.Function_signatureContext signature = ctx.function_signature();
+    String name = signature.NAME().getText();
     StringBuilder mainCode = new StringBuilder(code);
     code.setLength(0);
     try {
-      String functionReturnType = ctx.type_label() != null ?
-       ctx.type_label().getText() + " " : "void ";
+      String functionReturnType = signature.type_label() != null ?
+       signature.type_label().getText() + " " : "void ";
       code.append("static ").append(functionReturnType)
           .append(name).append("(");
-      if (ctx.parameters() != null) {
-        code.append(visit(ctx.parameters()));
+      if (signature.parameters() != null) {
+        code.append(visit(signature.parameters()));
       }
       code.append(") ");
       functionDeclarations.append(code, 0, code.length() - 1).append(";\n");
@@ -540,6 +599,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String className = ctx.NAME().getText();
     // Create custom object holder
     ObjectHolder customObj = new ObjectHolder(className);
+    customObjects.put(className, customObj);
     currentCustomObject = customObj;
     // First pass: Process all fields to make them available in the scope
     for (var member : ctx.class_member()) {
@@ -552,7 +612,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
         customObj.fields.add(field);
 
         // Add field to variables scope for method access
-        variables.put(field.name, new ValueHolder(Utils.toCppType(field.type, imports), true));
+        variables.put(field.name, new ValueHolder(Utils.toCppType(field.type), true));
       }
     }
     // Second pass: Process all methods (without appending to main code)
@@ -560,30 +620,14 @@ public class Compiler extends MarsikBaseVisitor<String> {
     code.setLength(0); // Clear main code temporarily
     for (var member : ctx.class_member()) {
       if (member.method_decl() != null) {
-        ObjectHolder.Method method = new ObjectHolder.Method();
         MarsikParser.Method_declContext methodCtx = member.method_decl();
-        method.name = methodCtx.NAME().getText();
-        method.returnType = methodCtx.type_label() != null ? methodCtx.type_label().getText() : "void";
-        method.isInternal = methodCtx.getText().startsWith("internal");
-
-        if (methodCtx.parameters() != null) {
-          for (var p : methodCtx.parameters().parameter()) {
-            method.parameters.add(new ObjectHolder.Parameter(
-                    p.type_label().getText(),
-                    p.NAME().getText()
-            ));
-                variables.put(p.NAME().getText(), new ValueHolder(
-                  Utils.toCppType(p.type_label().getText(), imports), true));
-          }
-        }
-        // Capture method body without appending to main code
-        visitBlock(methodCtx.block());
-        method.body = code.toString();
-        code.setLength(0); // Reset for next method
-        customObj.methods.add(method);
-        for (ObjectHolder.Parameter param : method.parameters) {
-          variables.remove(param.name);
-        }
+        MarsikParser.Function_signatureContext signature = methodCtx.function_signature();
+        customObj.methods.add(captureMethod(signature, methodCtx.block(), false,
+                methodCtx.getText().startsWith("internal")));
+      } else if (member.funcdef() != null) {
+        MarsikParser.FuncdefContext functionCtx = member.funcdef();
+        customObj.methods.add(captureMethod(functionCtx.function_signature(), functionCtx.block(),
+                true, false));
       }
       if (member.constructor_decl() != null) {
         if (customObj.hasConstructor) {
@@ -608,7 +652,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
             customObj.constructorParameters.add(new ObjectHolder.Parameter(
                     parameter.type_label().getText(), parameterName));
             variables.put(parameterName, new ValueHolder(
-                    Utils.toCppType(parameter.type_label().getText(), imports), true));
+                    Utils.toCppType(parameter.type_label().getText()), true));
           }
         }
         visitBlock(constructorCtx.block());
@@ -621,7 +665,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     code.append(tempCodeStorage); // Restore main code
 
-    customObjects.put(className, customObj);
     CustomObjectGenerator.generateCustomObject(customObj);
     imports.add("#include \"" + className.toLowerCase() + ".hpp\"\n");
 
@@ -632,6 +675,67 @@ public class Compiler extends MarsikBaseVisitor<String> {
     currentCustomObject = null;
     isObjectFile = true;
     return null;
+  }
+
+  @Override
+  public String visitModule_def(MarsikParser.Module_defContext ctx) {
+    String moduleName = ctx.NAME().getText();
+    ObjectHolder module = new ObjectHolder(moduleName);
+    module.isModule = true;
+    modules.put(moduleName, module);
+
+    StringBuilder previousCode = new StringBuilder(code);
+    code.setLength(0);
+    try {
+      for (MarsikParser.FuncdefContext function : ctx.funcdef()) {
+        module.methods.add(captureMethod(function.function_signature(), function.block(), true, false));
+      }
+    } finally {
+      code.setLength(0);
+      code.append(previousCode);
+    }
+
+    CustomObjectGenerator.generateCustomObject(module);
+    imports.add("#include \"" + moduleName.toLowerCase() + ".hpp\"\n");
+    isObjectFile = true;
+    return null;
+  }
+
+  private ObjectHolder.Method captureMethod(MarsikParser.Function_signatureContext signature,
+                                             MarsikParser.BlockContext block,
+                                             boolean isStatic, boolean isInternal) {
+    ObjectHolder.Method method = new ObjectHolder.Method();
+    method.name = signature.NAME().getText();
+    method.returnType = signature.type_label() == null ? "void" : signature.type_label().getText();
+    method.isStatic = isStatic;
+    method.isInternal = isInternal;
+
+    if (signature.parameters() != null) {
+      for (MarsikParser.ParameterContext parameter : signature.parameters().parameter()) {
+        String parameterName = parameter.NAME().getText();
+        if (Utils.isForbiddenName(parameterName)) {
+          throw new RuntimeException("Name " + parameterName + " is forbidden for function parameters");
+        }
+        method.parameters.add(new ObjectHolder.Parameter(
+                parameter.type_label().getText(), parameterName));
+        variables.put(parameterName, new ValueHolder(
+                Utils.toCppType(parameter.type_label().getText()), true));
+      }
+    }
+
+    StringBuilder previousCode = new StringBuilder(code);
+    code.setLength(0);
+    try {
+      visitBlock(block);
+      method.body = code.toString();
+    } finally {
+      code.setLength(0);
+      code.append(previousCode);
+      for (ObjectHolder.Parameter parameter : method.parameters) {
+        variables.remove(parameter.name);
+      }
+    }
+    return method;
   }
 
   @Override
@@ -701,9 +805,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
     }
     if (ctx.INTEGER() != null) {
       return ctx.INTEGER().getText();
-    }
-    if (ctx.BABY_INTEGER() != null) {
-      return ctx.BABY_INTEGER().getText();
     }
     if (ctx.DOUBLE() != null) {
       return ctx.DOUBLE().getText();

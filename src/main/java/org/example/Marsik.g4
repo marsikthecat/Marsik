@@ -1,13 +1,13 @@
 grammar Marsik;
 
-program: (stmt* | class_def) EOF;
+program: (stmt* | class_def | module_def) EOF;
 
 // All data types
-type: BABY_INTEGER | INTEGER | CHAR | BOOLEAN | STRING | DOUBLE
+type: INTEGER | CHAR | BOOLEAN | STRING | DOUBLE
     | '-' (INTEGER | DOUBLE);
 
 // Data-Type declaration
-type_label: (INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | BABY_INT_TYPE | NAME)
+type_label: (INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | NAME)
             ('<' type_label (',' type_label)? '>')?;
 
 // statements
@@ -41,7 +41,8 @@ dec_stmt: NAME MINUSMINUS INTEGER?;
 array_decl: type_label '[' INTEGER ']' NAME EQUAL ('[' (type (',' type)*)? ']' | method_call);
 
 // Functions
-funcdef: FUNCTION NAME (COLON type_label)? LPAR parameters? RPAR NEWLINE* block;
+funcdef: FUNCTION function_signature NEWLINE* block;
+function_signature: type_label? NAME (LPAR parameters? RPAR | '()');
 parameters: parameter (COMMA parameter)*;
 parameter: type_label NAME;
 
@@ -72,13 +73,14 @@ additive_expr : multiplicative_expr (('+'|'-') multiplicative_expr)* ;
 multiplicative_expr : unary_expr (('*'|'/'|'%') unary_expr)* ;
 unary_expr : ('+'|'-'|'not') unary_expr | power_expr ;
 power_expr : atom_expr ('**' unary_expr)? ;
-atom_expr : method_call | function_call | NAME | INTEGER | BABY_INTEGER | CHAR
+atom_expr : method_call | function_call | NAME | INTEGER | CHAR
           | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
 
-class_def: 'class' NAME '{' class_member* '}';
-class_member: (field_decl | method_decl | constructor_decl) NEWLINE*;
+class_def: 'class' NAME ('{' class_member* '}' | function_call*);
+module_def: MODULE NAME '{' funcdef* '}';
+class_member: (field_decl | method_decl | funcdef | constructor_decl) NEWLINE*;
 field_decl: ('public')? 'const'? type_label NAME;
-method_decl: ('internal')? 'Method:' (type_label)? NAME '(' parameters? ')' block;
+method_decl: ('internal')? function_signature NEWLINE* block;
 constructor_decl: 'Constructor' '(' parameters? ')' block;
 
 PLUSPLUS         : '++';
@@ -123,6 +125,7 @@ SLASHEQUAL       : '/=';
 NEW      : 'new';
 BREAK    : 'break';
 FUNCTION : 'function';
+MODULE   : 'module';
 ELSE     : 'else';
 FOR      : 'for';
 IF       : 'if';
@@ -139,12 +142,9 @@ DOUBLE_TYPE : 'double';
 CHAR_TYPE   : 'char';
 BOOL_TYPE   : 'boolean';
 STRING_TYPE : 'string';
-BABY_INT_TYPE : 'baby_int';
 
 // primitve datatypes
 INTEGER: NON_ZERO_DIGIT DIGIT* | '0';
-BABY_INTEGER: [1-9] | [1-9][0-9] | '1'[0-9][0-9]
-    | '2'[0-4][0-9] | '25'[0-5];
 STRING: '"' ( CHAR | ESC | ~["\\\r\n] )* '"' ;
 CHAR: '\'' (LETTER | ESC) '\'';
 DOUBLE : INT_PART '.' DIGIT+;

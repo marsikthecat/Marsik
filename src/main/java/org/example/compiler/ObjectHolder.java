@@ -10,6 +10,7 @@ public class ObjectHolder {
   public List<Parameter> constructorParameters = new ArrayList<>();
   public String constructorBody;
   public boolean hasConstructor;
+  public boolean isModule;
 
   public ObjectHolder(String name) {
     this.name = name;
@@ -25,6 +26,7 @@ public class ObjectHolder {
   public static class Method {
     public String name;
     public String returnType;
+    public boolean isStatic;
     public boolean isInternal;
     public List<Parameter> parameters = new ArrayList<>();
     public String body;
