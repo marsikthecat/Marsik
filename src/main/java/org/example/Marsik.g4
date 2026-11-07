@@ -1,38 +1,38 @@
 grammar Marsik;
 
-program: imports (stmt* | class_def | module_def) EOF;
+program: imports (custom_type)* (stmt*) EOF;
 
 import_decl: IMPORT STRING;
 imports: import_decl*;
 
-// All data types
-type: INTEGER | CHAR | BOOLEAN | STRING | DOUBLE
-    | '-' (INTEGER | DOUBLE);
+// All primitive data types
+type: INTEGER | CHAR | BOOLEAN | STRING | DOUBLE | '-' (INTEGER | DOUBLE);
 
 // Data-Type declaration
 type_label: (INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | NAME)
             ('<' type_label (',' type_label)? '>')?;
+            
+// Custom Types inspired by structs
+custom_type: TYPE NAME LBRACE (type_label NAME | object_stmt)* RBRACE;
 
 // statements
-stmt: (var_decl | const_decl | assign_stmt | method_call | function_call | if_stmt | while_stmt | return_stmt
-    | funcdef | for_stmt | array_decl | inc_stmt | dec_stmt
-    | object_stmt | print_stmt | println_stmt | exit_stmt | expr) NEWLINE*;
+stmt: (var_decl | const_decl | assign_stmt | function_call | if_stmt | while_stmt | return_stmt
+    | for_stmt | array_decl | inc_stmt | dec_stmt | print_stmt | println_stmt | exit_stmt | expr) NEWLINE*;
 
-// For Strings and Objects: Calling methods
-method_call: NAME '.' NAME ('(' arguments? ')' | '()');
-function_call: NAME '(' arguments? ')';
+// For Strings and Types: Calling methods
+function_call: NAME '.' NAME ('(' arguments? ')' | '()');
 
 // initializing Objects
-object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME? EQUAL NEW NAME ('(' arguments? ')' | '()');
+object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME? EQUAL ('(' arguments? ')' | '()');
 
 // Declare Variables
-var_decl: type_label NAME (EQUAL (type | scan_stmt | method_call | expr))? NEWLINE?;
+var_decl: type_label NAME (EQUAL (type | scan_stmt | function_call | expr))? NEWLINE?;
 
 // Constants (only one time asignable)
 const_decl: CONST type_label NAME EQUAL type NEWLINE;
 
 // Asign a Value to the Varible
-assign_stmt: NAME EQUAL (type | method_call | expr) NEWLINE?;
+assign_stmt: NAME EQUAL (type | function_call | expr) NEWLINE?;
 
 // Increment value by 1 or more
 inc_stmt: NAME PLUSPLUS INTEGER?;
@@ -41,11 +41,9 @@ inc_stmt: NAME PLUSPLUS INTEGER?;
 dec_stmt: NAME MINUSMINUS INTEGER?;
 
 // Static Array
-array_decl: type_label '[' INTEGER ']' NAME EQUAL ('[' (type (',' type)*)? ']' | method_call);
+array_decl: type_label '[' INTEGER ']' NAME EQUAL ('[' (type (',' type)*)? ']' | function_call);
 
 // Functions
-funcdef: FUNCTION function_signature NEWLINE* block;
-function_signature: type_label? NAME (LPAR parameters? RPAR | '()');
 parameters: parameter (COMMA parameter)*;
 parameter: type_label NAME;
 
@@ -76,15 +74,7 @@ additive_expr : multiplicative_expr (('+'|'-') multiplicative_expr)* ;
 multiplicative_expr : unary_expr (('*'|'/'|'%') unary_expr)* ;
 unary_expr : ('+'|'-'|'not') unary_expr | power_expr ;
 power_expr : atom_expr ('**' unary_expr)? ;
-atom_expr : method_call | function_call | NAME | INTEGER | CHAR
-          | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
-
-class_def: 'class' NAME ('{' class_member* '}' | function_call*);
-module_def: MODULE NAME '{' funcdef* '}';
-class_member: (field_decl | method_decl | funcdef | constructor_decl) NEWLINE*;
-field_decl: ('public')? 'const'? type_label NAME;
-method_decl: ('internal')? function_signature NEWLINE* block;
-constructor_decl: 'Constructor' '(' parameters? ')' block;
+atom_expr : function_call | NAME | INTEGER | CHAR | STRING | DOUBLE | BOOLEAN | '(' expr ')' ;
 
 PLUSPLUS         : '++';
 MINUSMINUS       : '--';
@@ -125,10 +115,9 @@ STAREQUAL        : '*=';
 SLASHEQUAL       : '/=';
 
 // Keywords
-NEW      : 'new';
+TYPE     : 'type';
 BREAK    : 'break';
 FUNCTION : 'function';
-MODULE   : 'module';
 IMPORT   : 'import';
 ELSE     : 'else';
 FOR      : 'for';

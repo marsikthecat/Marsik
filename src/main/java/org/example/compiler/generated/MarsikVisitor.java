@@ -41,17 +41,17 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitType_label(MarsikParser.Type_labelContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MarsikParser#custom_type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCustom_type(MarsikParser.Custom_typeContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MarsikParser#stmt}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitStmt(MarsikParser.StmtContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#method_call}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMethod_call(MarsikParser.Method_callContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MarsikParser#function_call}.
 	 * @param ctx the parse tree
@@ -100,18 +100,6 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArray_decl(MarsikParser.Array_declContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#funcdef}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFuncdef(MarsikParser.FuncdefContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#function_signature}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFunction_signature(MarsikParser.Function_signatureContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MarsikParser#parameters}.
 	 * @param ctx the parse tree
@@ -262,40 +250,4 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAtom_expr(MarsikParser.Atom_exprContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#class_def}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitClass_def(MarsikParser.Class_defContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#module_def}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitModule_def(MarsikParser.Module_defContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#class_member}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitClass_member(MarsikParser.Class_memberContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#field_decl}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitField_decl(MarsikParser.Field_declContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#method_decl}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitMethod_decl(MarsikParser.Method_declContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link MarsikParser#constructor_decl}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitConstructor_decl(MarsikParser.Constructor_declContext ctx);
 }
