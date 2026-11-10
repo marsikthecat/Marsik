@@ -14,18 +14,15 @@ type_label: (INT_TYPE | DOUBLE_TYPE | CHAR_TYPE | BOOL_TYPE | STRING_TYPE | NAME
             ('<' type_label (',' type_label)? '>')?;
             
 // Custom Types inspired by structs
-custom_type: TYPE NAME LBRACE NEWLINE* ((type_label NAME | object_stmt) NEWLINE*)* RBRACE;
+custom_type: TYPE NAME LBRACE NEWLINE* ((type_label NAME) NEWLINE*)* RBRACE;
 
 // statements
-stmt: (object_stmt | var_decl | const_decl | assign_stmt | function_call | if_stmt | while_stmt | return_stmt
+stmt: (var_decl | const_decl | assign_stmt | function_call | if_stmt | while_stmt | return_stmt
     | for_stmt | array_decl | inc_stmt | dec_stmt | print_stmt | println_stmt | exit_stmt | expr) SEMI? NEWLINE*;
 
 // Qualified names support both free functions and methods such as person.getAge().
 qualified_name: NAME (DOT NAME)*;
 function_call: qualified_name '(' arguments? ')';
-
-// initializing Objects
-object_stmt: NAME ('<' type_label (',' type_label)? '>')? NAME EQUAL '(' arguments? ')';
 
 // Declare Variables
 var_decl: type_label NAME (EQUAL (type | scan_stmt | function_call | expr))? NEWLINE?;

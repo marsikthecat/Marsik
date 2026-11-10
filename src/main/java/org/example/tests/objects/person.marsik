@@ -13,6 +13,7 @@ function Person init(string name, int age) {
    person.address = ""
    person.hobbies = List.init(10)
    person.set = BitSet.init()
+   return person
 }
 
 function int getAge(Person p) {

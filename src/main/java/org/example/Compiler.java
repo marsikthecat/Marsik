@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -41,6 +40,8 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private String moduleName;
   private Set<String> importedModuleNames = Set.of();
   private Set<String> localFunctionNames = Set.of();
+  private Map<String, Map<String, String>> customTypeFields = new HashMap<>();
+  private Map<String, String> customTypeModules = new HashMap<>();
 
   public static Path getProjectRoot() {
     return Path.of("").toAbsolutePath();
@@ -59,6 +60,65 @@ public class Compiler extends MarsikBaseVisitor<String> {
     return null;
   }
 
+  private String renderCallForExpectedType(MarsikParser.Function_callContext call, String expectedType) {
+    if (expectedType != null) {
+      int genericStart = expectedType.indexOf('<');
+      int genericEnd = expectedType.lastIndexOf('>');
+      if (genericStart >= 0 && genericEnd > genericStart) {
+        List<String> callNameParts = call.qualified_name().NAME().stream()
+                .map(ParseTree::getText).toList();
+        String expectedModule = expectedType.substring(0, genericStart);
+        if (callNameParts.size() == 2 && callNameParts.get(1).equals("init")
+                && callNameParts.get(0).equals(expectedModule)
+                && Utils.buildInTypedObjects.contains(expectedModule)) {
+          return renderFunctionCall(call, expectedModule,
+                  expectedType.substring(genericStart + 1, genericEnd));
+        }
+      }
+    }
+    return visit(call);
+  }
+
+  private String resolveExpressionType(String expression) {
+    String[] parts = expression.split("\\.");
+    ValueHolder variable = variablesAndConstants.get(parts[0]);
+    if (variable == null) {
+      return null;
+    }
+    String type = variable.getType();
+    for (int i = 1; i < parts.length; i++) {
+      Map<String, String> fields = customTypeFields.get(typeName(type));
+      if (fields == null) {
+        return null;
+      }
+      type = fields.get(parts[i]);
+      if (type == null) {
+        return null;
+      }
+    }
+    return type;
+  }
+
+  private static String typeName(String type) {
+    if (type == null) {
+      return null;
+    }
+    int genericStart = type.indexOf('<');
+    return genericStart < 0 ? type : type.substring(0, genericStart);
+  }
+
+  private String runtimeModuleForType(String type) {
+    String name = typeName(type);
+    return name != null && Utils.isBuiltInModule(name) ? name : null;
+  }
+
+  private String importedModuleForName(String name) {
+    if (importedModuleNames.contains(name)) {
+      return name;
+    }
+    return customTypeModules.get(name);
+  }
+
   @Override
   public String visitFunction_call(MarsikParser.Function_callContext ctx) {
     return renderFunctionCall(ctx, null, null);
@@ -69,7 +129,18 @@ public class Compiler extends MarsikBaseVisitor<String> {
     List<String> nameParts = ctx.qualified_name().NAME().stream()
             .map(ParseTree::getText).toList();
     String name = ctx.qualified_name().getText();
-    if (nameParts.size() == 2) {
+    if (nameParts.size() >= 3) {
+      String receiver = String.join(".", nameParts.subList(0, nameParts.size() - 1));
+      String receiverType = resolveExpressionType(receiver);
+      String runtimeModule = runtimeModuleForType(receiverType);
+      String runtimeFunction = runtimeModule == null
+              ? null : Utils.builtInModuleFunction(runtimeModule, nameParts.get(nameParts.size() - 1));
+      if (runtimeFunction != null) {
+        name = runtimeFunction + "(" + receiver;
+        String arguments = renderArguments(ctx.arguments());
+        return name + (arguments.isEmpty() ? "" : ", " + arguments) + ")";
+      }
+    } else if (nameParts.size() == 2) {
       String module = nameParts.get(0);
       String function = nameParts.get(1);
       String builtInFunction = Utils.builtInModuleFunction(module, function);
@@ -82,8 +153,11 @@ public class Compiler extends MarsikBaseVisitor<String> {
         name = function;
       } else if (Utils.isBuiltInModule(module)) {
         throw new IllegalArgumentException("Unknown " + module + " module function: " + function);
-      } else if (importedModuleNames.contains(module)) {
-        name = moduleFunctionName(module, function);
+      } else {
+        String importedModule = importedModuleForName(module);
+        if (importedModule != null) {
+          name = moduleFunctionName(importedModule, function);
+        }
       }
     } else if (nameParts.size() == 1 && moduleName != null
             && localFunctionNames.contains(nameParts.get(0))) {
@@ -134,27 +208,12 @@ public class Compiler extends MarsikBaseVisitor<String> {
       fieldTypes.add(visit(ctx.type_label(i)));
       fieldNames.add(ctx.NAME(i + 1).getText());
     }
-
     typeDefinitions.append("struct ").append(typeName).append(" {\n");
     for (int i = 0; i < fieldTypes.size(); i++) {
       typeDefinitions.append("  ").append(fieldTypes.get(i)).append(' ')
               .append(fieldNames.get(i)).append(";\n");
     }
     typeDefinitions.append("};\n");
-    typeDefinitions.append("inline ").append(typeName).append(" init_")
-            .append(typeName.toLowerCase(Locale.ROOT)).append('(');
-    for (int i = 0; i < fieldTypes.size(); i++) {
-      if (i > 0) {
-        typeDefinitions.append(", ");
-      }
-      typeDefinitions.append(fieldTypes.get(i)).append(" value").append(i);
-    }
-    typeDefinitions.append(") {\n  ").append(typeName).append(" result{};\n");
-    for (int i = 0; i < fieldNames.size(); i++) {
-      typeDefinitions.append("  result.").append(fieldNames.get(i)).append(" = value")
-              .append(i).append(";\n");
-    }
-    typeDefinitions.append("  return result;\n}\n");
     return null;
   }
 
@@ -173,36 +232,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
       code.append(visit(ctx.function_call())).append(";\n");
     }
     return super.visitStmt(ctx);
-  }
-
-  @Override
-  public String visitObject_stmt(MarsikParser.Object_stmtContext ctx) {
-    // Person p = ("Bob", 22)
-    String objectType = ctx.NAME(0).getText();
-    String objectVariable = ctx.NAME(ctx.NAME().size() - 1).getText();
-
-    if (variablesAndConstants.containsKey(objectVariable)) {
-      throw new RuntimeException("Variable " + objectVariable + " already exists");
-    }
-    String type = "";
-    type = ctx.getRuleContexts(MarsikParser.Type_labelContext.class).isEmpty()
-              ? "" : "<" + ctx.getRuleContexts(MarsikParser.Type_labelContext.class).stream()
-                      .map(ParseTree::getText).collect(java.util.stream.Collectors.joining(", ")) + ">";
-    if (Utils.isForbiddenName(objectVariable)) {
-      throw new RuntimeException("Name " + objectVariable + " is forbidden for variable names");
-    }
-    String parameters = renderArguments(ctx.arguments());
-    variablesAndConstants.put(objectVariable, new ValueHolder(objectType + type, true, false));
-    appendObjectInitialization(objectType, objectVariable, type, parameters);
-    return null;
-  }
-
-  private void appendObjectInitialization(String objectType, String variable,
-                                          String type, String parameters) {
-    code.append("struct ").append(objectType).append(" ").append(type)
-            .append(variable).append(" = init_").append(objectType.toLowerCase(Locale.ROOT))
-            .append(type).append("(")
-            .append(parameters).append(");\n");
   }
 
   private String renderArguments(MarsikParser.ArgumentsContext ctx) {
@@ -255,20 +284,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       return ctx.type().getText();
     }
     if (ctx.function_call() != null) {
-      String declaredType = ctx.type_label().getText();
-      int genericStart = declaredType.indexOf('<');
-      int genericEnd = declaredType.lastIndexOf('>');
-      if (genericStart >= 0 && genericEnd > genericStart) {
-        List<String> callNameParts = ctx.function_call().qualified_name().NAME().stream()
-                .map(ParseTree::getText).toList();
-        if (callNameParts.size() == 2 && callNameParts.get(1).equals("init")
-                && callNameParts.get(0).equals(declaredType.substring(0, genericStart))
-                && Utils.buildInTypedObjects.contains(callNameParts.get(0))) {
-          return renderFunctionCall(ctx.function_call(), callNameParts.get(0),
-                  declaredType.substring(genericStart + 1, genericEnd));
-        }
-      }
-      return visit(ctx.function_call());
+      return renderCallForExpectedType(ctx.function_call(), ctx.type_label().getText());
     }
     if (ctx.expr() != null) {
       return visit(ctx.expr());
@@ -321,8 +337,14 @@ public class Compiler extends MarsikBaseVisitor<String> {
       Utils.validateLiteralType(variable.getType(), ctx.type());
     }
 
-    String value = ctx.type() != null ? ctx.type().getText()
-            : ctx.expr() != null ? visit(ctx.expr()) : visit(ctx.function_call());
+    String value;
+    if (ctx.type() != null) {
+      value = ctx.type().getText();
+    } else if (ctx.expr() != null) {
+      value = visit(ctx.expr());
+    } else {
+      value = renderCallForExpectedType(ctx.function_call(), resolveExpressionType(target));
+    }
     code.append(target).append(" = ").append(value).append(";\n");
     return null;
   }
@@ -583,6 +605,27 @@ public class Compiler extends MarsikBaseVisitor<String> {
     Path runtimeDir = findRuntimeDirectory(sourcePath);
 
     List<SourceModule> modules = loadModules(sourcePath);
+    ensureUniqueTypes(modules);
+    Map<String, Map<String, String>> allCustomTypeFields = new HashMap<>();
+    Map<String, String> allCustomTypeModules = new HashMap<>();
+    for (SourceModule module : modules) {
+      for (MarsikParser.Top_level_itemContext item : module.program().top_level_item()) {
+        MarsikParser.Custom_typeContext customType = item.custom_type();
+        if (customType == null) {
+          continue;
+        }
+        Map<String, String> fields = new HashMap<>();
+        for (int i = 0; i < customType.type_label().size(); i++) {
+          fields.put(customType.NAME(i + 1).getText(), customType.type_label(i).getText());
+        }
+        String typeName = customType.NAME(0).getText();
+        allCustomTypeFields.put(typeName, Map.copyOf(fields));
+        if (module.name() != null) {
+          allCustomTypeModules.put(typeName, module.name());
+        }
+      }
+    }
+
     modules.get(0).compiler().moduleName = null;
     Set<String> moduleNames = new HashSet<>();
     for (SourceModule module : modules) {
@@ -597,9 +640,16 @@ public class Compiler extends MarsikBaseVisitor<String> {
         module.compiler().moduleName = module.name();
       }
       module.compiler().importedModuleNames = moduleNames;
+      module.compiler().customTypeFields = allCustomTypeFields;
+      module.compiler().customTypeModules = allCustomTypeModules;
     }
     importedModuleNames = moduleNames;
+    customTypeFields = allCustomTypeFields;
+    customTypeModules = allCustomTypeModules;
     modules.set(0, new SourceModule(sourcePath, null, modules.get(0).program(), this));
+    importedModuleNames = moduleNames;
+    customTypeFields = allCustomTypeFields;
+    customTypeModules = allCustomTypeModules;
 
     for (int i = 1; i < modules.size(); i++) {
       SourceModule module = modules.get(i);
@@ -613,8 +663,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
     String allTypeDefinitions = modules.stream()
             .map(module -> module.compiler().typeDefinitions.toString())
             .collect(java.util.stream.Collectors.joining());
-    ensureUniqueTypes(modules);
-
     sharedTypeDefinitions = allTypeDefinitions;
     sharedFunctionDeclarations = allModuleDeclarations;
     for (int i = 1; i < modules.size(); i++) {

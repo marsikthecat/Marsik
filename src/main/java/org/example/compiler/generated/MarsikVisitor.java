@@ -71,12 +71,6 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunction_call(MarsikParser.Function_callContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link MarsikParser#object_stmt}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitObject_stmt(MarsikParser.Object_stmtContext ctx);
-	/**
 	 * Visit a parse tree produced by {@link MarsikParser#var_decl}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
