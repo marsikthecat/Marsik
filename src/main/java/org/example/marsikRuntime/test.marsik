@@ -1,3 +1,0 @@
-import "marsikmath.marsik"
-
-int pi = MarsikMath.getPi()

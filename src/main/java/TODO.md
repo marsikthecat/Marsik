@@ -3,14 +3,11 @@
 ## Problems:
 
 ## Discussion and Ideas:
-- Feat: Compilation of all files refered in the main marsik file
 
 ## Open:
-- Feat: Rewrite runtime in marsik, not in c
-- Fix: static functions only in modules
 
 ## In Progress:
-- Refactor: Compiler
+- Feat: Procedual Approach instead of oop
 
 ## Complete
 - Feat: import statements of marsik files

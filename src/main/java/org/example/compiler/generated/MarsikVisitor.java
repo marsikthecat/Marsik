@@ -29,6 +29,12 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitImports(MarsikParser.ImportsContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link MarsikParser#top_level_item}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitTop_level_item(MarsikParser.Top_level_itemContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link MarsikParser#type}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -52,6 +58,12 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStmt(MarsikParser.StmtContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MarsikParser#qualified_name}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitQualified_name(MarsikParser.Qualified_nameContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MarsikParser#function_call}.
 	 * @param ctx the parse tree
@@ -100,6 +112,12 @@ public interface MarsikVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArray_decl(MarsikParser.Array_declContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link MarsikParser#function_def}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFunction_def(MarsikParser.Function_defContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link MarsikParser#parameters}.
 	 * @param ctx the parse tree

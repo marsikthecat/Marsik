@@ -1,0 +1,32 @@
+#pragma once
+
+#include "caster.hpp"
+#include "datetime.hpp"
+#include "filehandler.hpp"
+#include "math.hpp"
+#include "stringUtils.hpp"
+
+#include "allocator/allocator.hpp"
+#include "error/error.hpp"
+
+#include "datastructures/array.hpp"
+#include "datastructures/bitset.hpp"
+#include "datastructures/gapbuffer.hpp"
+#include "datastructures/genericlist.hpp"
+#include "datastructures/hashmap.hpp"
+#include "datastructures/list.hpp"
+#include "datastructures/perfecthashmap.hpp"
+#include "datastructures/queue.hpp"
+#include "datastructures/set.hpp"
+#include "datastructures/sparsearray.hpp"
+#include "datastructures/splayarray.hpp"
+#include "datastructures/stack.hpp"
+#include "datastructures/graphs/edge.hpp"
+#include "datastructures/graphs/graph.hpp"
+#include "datastructures/graphs/node.hpp"
+#include "datastructures/trees/avlTree.hpp"
+#include "datastructures/trees/binaryTree.hpp"
+#include "datastructures/trees/treenode.hpp"
+
+#include "extra/matrix.hpp"
+#include "math.h"

@@ -17,7 +17,7 @@ struct GapBuffer {
     int size;
 };
 
-GapBuffer init_gapbuffer() {
+inline GapBuffer init_gapbuffer() {
     GapBuffer buffer;
     buffer.gapSize = DEFAULT_GAP_BUFFER_CAPACITY;
     buffer.gapLeft = 0;
@@ -26,7 +26,7 @@ GapBuffer init_gapbuffer() {
     return buffer;
 }
 
-void gapbuffer_moveGapLeft(GapBuffer& buffer, int pos) {
+inline void gapbuffer_moveGapLeft(GapBuffer& buffer, int pos) {
     while (buffer.gapLeft > pos) {
         buffer.data[buffer.gapRight] = buffer.data[buffer.gapLeft - 1];
         buffer.gapLeft--;
@@ -35,7 +35,7 @@ void gapbuffer_moveGapLeft(GapBuffer& buffer, int pos) {
     }
 }
 
-void gapbuffer_moveGapRight(GapBuffer& buffer, int pos) {
+inline void gapbuffer_moveGapRight(GapBuffer& buffer, int pos) {
     while (buffer.gapLeft < pos) {
         buffer.data[buffer.gapLeft] = buffer.data[buffer.gapRight + 1];
         buffer.gapLeft++;
@@ -44,7 +44,7 @@ void gapbuffer_moveGapRight(GapBuffer& buffer, int pos) {
     }
 }
 
-void gapbuffer_moveCursor(GapBuffer& buffer, int pos) {
+inline void gapbuffer_moveCursor(GapBuffer& buffer, int pos) {
     if (pos < 0 || pos > buffer.size) {
         runtimeError("Position out of bounds");
         return;
@@ -56,7 +56,7 @@ void gapbuffer_moveCursor(GapBuffer& buffer, int pos) {
     }
 }
 
-void gapbuffer_insert(GapBuffer& buffer, string str, int pos) {
+inline void gapbuffer_insert(GapBuffer& buffer, string str, int pos) {
     if (pos < 0 || pos > buffer.size) {
         runtimeError("Position out of bounds");
         return;

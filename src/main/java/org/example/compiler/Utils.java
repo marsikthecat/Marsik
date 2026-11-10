@@ -14,6 +14,12 @@ import org.example.compiler.generated.MarsikParser;
 
 public class Utils {
 
+  public static final Set<String> BUILT_IN_MODULES = Set.of(
+          "Math", "DateTime", "Caster", "FileHandler", "String", "Array", "BitSet",
+          "GapBuffer", "GenericList", "HashMap", "PerfectHashMap", "List", "Matrix",
+          "Queue", "Set", "SparseArray", "SplayArray", "Stack", "AvlTree", "BinaryTree",
+          "TreeNode", "Graph", "Node", "Edge");
+
   public static final Set<String> buildInTypedObjects = Set.of(
           "HashMap", "List", "PerfectHashMap", "Queue", "Set", "SparseArray", "SplayArray", "Stack",
           "AvlTree", "BinaryTree", "TreeNode");
@@ -23,7 +29,7 @@ public class Utils {
 
   public static final Set<String> stringMethods = Set.of(
           "hash", "setCharAt", "lastIndexOf", "length", "substring", "contains",
-          "count", "reverse", "append", "capitalize", "indexOf", "equals",
+          "reverse", "append", "capitalize", "indexOf", "equals",
           "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "hasWhiteSpace",
           "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric",
           "numberOfVowels", "numberOfConsonants", "isLowercase", "isUppercase",
@@ -31,12 +37,85 @@ public class Utils {
           "toLowerCase", "startsWith", "endsWith", "countOccurrence");
 
   public static final Set<String> arrayMethods = Set.of(
-          "set", "get", "length", "memorySize", "isEmpty",
-          "contains", "indexOf", "getRandomElement", "slice",
-          "reverse", "sort",
-          "clone", "mostAppearingElement", "printArray", "shuffle",
-          "isNumericArray"
+          "set", "get", "length", "memorySize", "isEmpty", "contains", "indexOf",
+          "getRandomElement", "getRandomElementFromRange", "slice", "reverse", "sort",
+          "clone", "mostAppearingElement", "mostAppearingElementCount", "printArray",
+          "shuffle", "isNumericArray", "unionWith", "intersectionWith",
+          "containsDuplicateElements"
   );
+
+  private static final Map<String, String> RUNTIME_MODULE_PREFIXES = Map.ofEntries(
+          Map.entry("Array", "array_"),
+          Map.entry("BitSet", "bitset_"),
+          Map.entry("GapBuffer", "gapbuffer_"),
+          Map.entry("GenericList", "genericlist_"),
+          Map.entry("HashMap", "hashmap_"),
+          Map.entry("PerfectHashMap", "perfecthashmap_"),
+          Map.entry("List", "list_"),
+          Map.entry("Matrix", "matrix_"),
+          Map.entry("Queue", "queue_"),
+          Map.entry("Set", "set_"),
+          Map.entry("SparseArray", "sparsearray_"),
+          Map.entry("SplayArray", "splayarray_"),
+          Map.entry("Stack", "stack_"),
+          Map.entry("AvlTree", "avltree_"),
+          Map.entry("BinaryTree", "binarytree_"),
+          Map.entry("TreeNode", "treenode_"),
+          Map.entry("Graph", "graph_"),
+          Map.entry("Node", "node_"),
+          Map.entry("Edge", "edge_"));
+
+  private static final Map<String, Set<String>> RUNTIME_MODULE_METHODS = Map.ofEntries(
+          Map.entry("Array", arrayMethods),
+          Map.entry("BitSet", Set.of("set", "get", "toggle", "clear", "setAll", "clearAll", "count", "isEmpty", "isFull")),
+          Map.entry("GapBuffer", Set.of("insert", "moveCursor", "moveGapLeft", "moveGapRight")),
+          Map.entry("GenericList", Set.of("addBool", "addChar", "addDouble", "addFloat", "addInt", "addString",
+                  "allNumeric", "allSameType", "allStrings", "clear", "contains", "get", "getType",
+                  "indexOf", "isEmpty", "remove", "size")),
+          Map.entry("HashMap", Set.of("capacity", "clear", "containsKey", "get", "isEmpty", "put", "remove", "size")),
+          Map.entry("PerfectHashMap", Set.of("capacity", "clear", "containsKey", "defineKey", "get", "isEmpty", "put", "remove", "size")),
+          Map.entry("List", Set.of("add", "addAt", "capacity", "clear", "clone", "contains", "get", "indexOf",
+                  "isEmpty", "lastIndexOf", "mostAppearingElement", "mostAppearingElementCount", "printList",
+                  "randomElement", "randomElementInRange", "remove", "removeAll", "removeAt", "removeDuplicateOf",
+                  "removeDuplicates", "removeRetrieve", "resize", "reverse", "set", "size", "sort", "toSet",
+                  "trim", "withoutDuplicates")),
+          Map.entry("Matrix", Set.of("add", "clone", "fill", "get", "getDeterminant", "isInvertible", "multiply",
+                  "normal", "numberOfColumns", "numberOfRows", "printMatrix", "set", "sum", "trace", "transpose")),
+          Map.entry("Queue", Set.of("dequeue", "enqueue", "isEmpty", "isFull", "peek", "size")),
+          Map.entry("Set", Set.of("add", "capacity", "clear", "contains", "isEmpty", "remove", "size")),
+          Map.entry("SparseArray", Set.of("clear", "contains", "firstfreeSpot", "get", "getRandomElement", "has",
+                  "holeCount", "indexOf", "isEmpty", "lastfreeSpot", "lastIndexOf", "maxIndex", "printArray",
+                  "pushfromEnd", "pushfromStart", "remove", "set", "size", "toArray")),
+          Map.entry("SplayArray", Set.of("clone", "contains", "get", "getRandomElement", "indexOf", "isEmpty",
+                  "isNumericArray", "length", "memorySize", "mostAppearingElement", "printArray", "rearrange",
+                  "removeAt", "removeDuplicateOf", "removeDuplicates", "reverse", "set", "shuffle", "slice", "sort")),
+          Map.entry("Stack", Set.of("isEmpty", "isFull", "peek", "pop", "push", "size")),
+          Map.entry("AvlTree", Set.of("contains", "delete", "height", "inorder", "postorder", "preorder", "search", "insert")),
+          Map.entry("BinaryTree", Set.of("height", "inorder", "levelorder", "postorder", "preorder", "search", "insert", "remove")),
+          Map.entry("TreeNode", Set.of("getData", "getLeft", "getRight", "setData")),
+          Map.entry("Graph", Set.of("addNode", "containsNode", "print", "removeNode")),
+          Map.entry("Node", Set.of("addEdge", "containsEdge", "getIdentifier", "getNumberOfEdges", "removeEdge")),
+          Map.entry("Edge", Set.of("getDestination", "getWeight", "setDestination", "setWeight")));
+
+  private static final Map<String, String> RUNTIME_MODULE_INITIALIZERS = Map.ofEntries(
+          Map.entry("BitSet", "init_bitset"),
+          Map.entry("GapBuffer", "init_gapbuffer"),
+          Map.entry("GenericList", "init_genericlist"),
+          Map.entry("HashMap", "init_hashmap"),
+          Map.entry("PerfectHashMap", "init_perfecthashmap"),
+          Map.entry("List", "init_list"),
+          Map.entry("Matrix", "init_matrix"),
+          Map.entry("Queue", "init_queue"),
+          Map.entry("Set", "init_set"),
+          Map.entry("SparseArray", "init_sparsearray"),
+          Map.entry("SplayArray", "init_splayarray"),
+          Map.entry("Stack", "init_stack"),
+          Map.entry("AvlTree", "init_avltree"),
+          Map.entry("BinaryTree", "init_binarytree"),
+          Map.entry("TreeNode", "init_treenode"),
+          Map.entry("Graph", "init_graph"),
+          Map.entry("Node", "init_node"),
+          Map.entry("Edge", "init_edge"));
 
   public static final Set<String> forbiddenNamesforVariables = Set.of(
     "alignas", "alignof", "and", "and_eq", "asm", "auto",
@@ -75,6 +154,25 @@ public class Utils {
 
   public static boolean isBuiltInLibraryMethod(String target, String method) {
     return libraryDispatch.isLibraryMethod(target, method);
+  }
+
+  public static boolean isBuiltInModule(String module) {
+    return BUILT_IN_MODULES.contains(module);
+  }
+
+  public static String builtInModuleFunction(String module, String method) {
+    if (module.equals("String")) {
+      return stringMethods.contains(method) ? "string_" + method : null;
+    }
+    if (method.equals("init")) {
+      return RUNTIME_MODULE_INITIALIZERS.get(module);
+    }
+    String prefix = RUNTIME_MODULE_PREFIXES.get(module);
+    Set<String> methods = RUNTIME_MODULE_METHODS.get(module);
+    if (prefix == null || methods == null || !methods.contains(method)) {
+      return null;
+    }
+    return module.equals("Matrix") && method.equals("printMatrix") ? "matrix_print" : prefix + method;
   }
 
   public static boolean isCompatibleLiteral(String declaredType, MarsikParser.TypeContext value) {
@@ -129,7 +227,6 @@ public class Utils {
         #include <iostream>
         #include <stdbool.h>
         #include <string>
-        #include "stringUtils.hpp"
         %s
         %s
 

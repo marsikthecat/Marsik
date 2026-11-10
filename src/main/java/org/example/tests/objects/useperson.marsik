@@ -1,8 +1,10 @@
-Person person = new Person("Bob", 21)
-makePersonOlder(person)
-printLine("Age: ", person.getAge())
+import "personmodule.marsik"
 
-function int makePersonOlder(Person person) {
+Person person = Personmodule.init("Bob", 12)
+int age = Personmodule.getAge(person)
+makePersonOlder(person)
+printLine("Is Adult?: ", Personmodule.isAdult(person))
+
+function makePersonOlder(Person person) {
     person.increaseAge()
-    return person.getAge()
 } 

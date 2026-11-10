@@ -1,3 +1,0 @@
-int a = Math.pi()
-
-int b = Math.sine("lol")

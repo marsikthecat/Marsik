@@ -41,7 +41,6 @@ public class LibraryDispatch {
     if (libraryName == null || method == null) {
       return false;
     }
-
     int idx = switch (libraryName) {
       case "Math" -> 0;
       case "DateTime" -> 1;

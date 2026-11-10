@@ -1,0 +1,40 @@
+type Person {
+  string name
+  int age
+  string address
+  List<string> hobbies
+  BitSet set
+}
+
+function Person init(string name, int age) {
+   Person person
+   person.name = name
+   person.age = age
+   person.address = ""
+   person.hobbies = List.init(10)
+   person.set = BitSet.init()
+}
+
+function int getAge(Person p) {
+    return p.age
+}
+
+function increaseAge(Person p) {
+    p.age++
+}
+
+function setAddress(Person p, string newAddress) {
+    p.address = newAddress
+}
+
+function printInfo(Person p) {
+    print("Name: ", p.name, "Age: ", p.age)
+}
+
+function boolean isAdult(Person p) {
+    return p.age >= 18
+}
+
+function addHobby(Person p, string hobby) {
+    p.hobbies.add(hobby)
+}
