@@ -7,9 +7,11 @@
 ## Open:
 
 ## In Progress:
-- Feat: Procedual Approach instead of oop
 
 ## Complete
+- Feat: Static runtime linking for faster compile
+- Refactor: Code cleanup
+- Feat: Procedual Approach instead of oop
 - Feat: import statements of marsik files
 - Feat: Add modules and static function-support
 - Feat: Implement support for static functions

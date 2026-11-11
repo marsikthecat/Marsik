@@ -21,6 +21,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.example.compiler.CompilerFileManager;
+import org.example.compiler.RuntimeLibraryBuilder;
 import org.example.compiler.Utils;
 import org.example.compiler.ValueHolder;
 import org.example.compiler.generated.MarsikBaseVisitor;
@@ -29,6 +31,8 @@ import org.example.compiler.generated.MarsikParser;
 
 public class Compiler extends MarsikBaseVisitor<String> {
 
+  private final CompilerFileManager fileManager =
+          new CompilerFileManager(Path.of("").toAbsolutePath());
   public final HashMap<String, ValueHolder> variablesAndConstants = new HashMap<>();
   public final Set<String> imports = new HashSet<>();;
   public final StringBuilder code = new StringBuilder();
@@ -42,10 +46,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
   private Set<String> localFunctionNames = Set.of();
   private Map<String, Map<String, String>> customTypeFields = new HashMap<>();
   private Map<String, String> customTypeModules = new HashMap<>();
-
-  public static Path getProjectRoot() {
-    return Path.of("").toAbsolutePath();
-  }
 
   @Override
   public String visitProgram(MarsikParser.ProgramContext ctx) {
@@ -68,15 +68,34 @@ public class Compiler extends MarsikBaseVisitor<String> {
         List<String> callNameParts = call.qualified_name().NAME().stream()
                 .map(ParseTree::getText).toList();
         String expectedModule = expectedType.substring(0, genericStart);
+        Utils.BuiltInModule builtIn = Utils.builtInModule(expectedModule);
         if (callNameParts.size() == 2 && callNameParts.get(1).equals("init")
                 && callNameParts.get(0).equals(expectedModule)
-                && Utils.buildInTypedObjects.contains(expectedModule)) {
+                && builtIn != null && builtIn.genericCount() != Utils.GenericCount.NOT
+                && genericArgumentCount(expectedType.substring(genericStart + 1, genericEnd))
+                        == builtIn.genericCount().count()) {
           return renderFunctionCall(call, expectedModule,
                   expectedType.substring(genericStart + 1, genericEnd));
         }
       }
     }
     return visit(call);
+  }
+
+  private static int genericArgumentCount(String genericArguments) {
+    int count = 1;
+    int nesting = 0;
+    for (int i = 0; i < genericArguments.length(); i++) {
+      char current = genericArguments.charAt(i);
+      if (current == '<') {
+        nesting++;
+      } else if (current == '>') {
+        nesting--;
+      } else if (current == ',' && nesting == 0) {
+        count++;
+      }
+    }
+    return count;
   }
 
   private String resolveExpressionType(String expression) {
@@ -109,7 +128,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
 
   private String runtimeModuleForType(String type) {
     String name = typeName(type);
-    return name != null && Utils.isBuiltInModule(name) ? name : null;
+    return name != null && Utils.isBuiltInType(name) ? name : null;
   }
 
   private String importedModuleForName(String name) {
@@ -149,8 +168,6 @@ public class Compiler extends MarsikBaseVisitor<String> {
         if (function.equals("init") && module.equals(genericModule) && genericArguments != null) {
           name += "<" + genericArguments + ">";
         }
-      } else if (Utils.isBuiltInLibraryMethod(module, function)) {
-        name = function;
       } else if (Utils.isBuiltInModule(module)) {
         throw new IllegalArgumentException("Unknown " + module + " module function: " + function);
       } else {
@@ -181,14 +198,12 @@ public class Compiler extends MarsikBaseVisitor<String> {
                 new ValueHolder(parameter.type_label().getText(), true, false));
       }
     }
-
     int functionBodyStart = code.length();
     visit(ctx.block());
     String body = code.substring(functionBodyStart);
     code.setLength(functionBodyStart);
     variablesAndConstants.clear();
     variablesAndConstants.putAll(outerVariables);
-
     functionDeclarations.append(signature).append(";\n");
     functionDefinitions.append(signature).append(' ').append(body);
     return null;
@@ -593,16 +608,14 @@ public class Compiler extends MarsikBaseVisitor<String> {
   }
 
   public String generateC() {
-    return Utils.generateC(imports, code.toString(),
-            sharedTypeDefinitions + sharedFunctionDeclarations + functionDeclarations)
-        + "\n" + functionDefinitions;
+    return Utils.generateC(imports, code.toString(), sharedTypeDefinitions + sharedFunctionDeclarations
+     + functionDeclarations) + "\n" + functionDefinitions;
   }
 
   void compile(String srcPath, String outDir) throws IOException, InterruptedException {
     Path sourcePath = Path.of(srcPath).toAbsolutePath().normalize();
-    Path outputDir = Path.of(outDir).toAbsolutePath().normalize();
-    Files.createDirectories(outputDir);
-    Path runtimeDir = findRuntimeDirectory(sourcePath);
+    Path outputDir = fileManager.prepareOutputDirectory(Path.of(outDir));
+    Path runtimeDir = fileManager.findRuntimeDirectory(sourcePath);
 
     List<SourceModule> modules = loadModules(sourcePath);
     ensureUniqueTypes(modules);
@@ -669,26 +682,20 @@ public class Compiler extends MarsikBaseVisitor<String> {
       SourceModule module = modules.get(i);
       module.compiler().sharedTypeDefinitions = allTypeDefinitions;
       module.compiler().sharedFunctionDeclarations = allModuleDeclarations;
-      Path moduleCpp = outputDir.resolve("module_" + module.name() + ".cpp");
-      Files.writeString(moduleCpp, module.compiler().generateModuleCpp());
+      fileManager.writeModuleSource(outputDir, module.name(), module.compiler().generateModuleCpp());
     }
 
-    Path mainCpp = outputDir.resolve("generated.cpp");
-    Files.writeString(mainCpp, generateC());
+    Path mainCpp = fileManager.writeMainSource(outputDir, generateC());
 
-    Path executable = outputDir.resolve("app.exe");
+    String cppCompiler = findCppCompiler();
+    Path runtimeLibrary = new RuntimeLibraryBuilder(fileManager.runtimeBuildDirectory())
+            .build(runtimeDir, fileManager.runtimeSources(runtimeDir), cppCompiler);
+    Path executable = fileManager.executablePath(outputDir);
     List<String> command = new ArrayList<>();
-    command.add(findCppCompiler());
+    command.add(cppCompiler);
     command.add(mainCpp.toString());
     for (int i = 1; i < modules.size(); i++) {
-      command.add(outputDir.resolve("module_" + modules.get(i).name() + ".cpp").toString());
-    }
-    try (var runtimeSources = Files.walk(runtimeDir)) {
-      runtimeSources.filter(Files::isRegularFile)
-              .filter(path -> path.toString().endsWith(".cpp"))
-              .sorted()
-              .map(path -> path.toAbsolutePath().normalize().toString())
-              .forEach(command::add);
+      command.add(fileManager.moduleSourcePath(outputDir, modules.get(i).name()).toString());
     }
     command.add("-I" + runtimeDir);
     command.add("-I" + outputDir);
@@ -697,6 +704,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     command.add("-static-libstdc++");
     command.add("-Wall");
     command.add("-O2");
+    command.add(runtimeLibrary.toString());
     command.add("-o");
     command.add(executable.toString());
 
@@ -721,13 +729,11 @@ public class Compiler extends MarsikBaseVisitor<String> {
           if (optionMatcher.find()) {
             message = message.substring(0, optionMatcher.start()).trim();
           }
-          switch (severity) {
-              case "error" -> {
-                  Utils.printError("[ERROR] a fatal error happened: " + message + " in Line: " + lineNumber);
-              }
-              case "warning" -> {
-                  Utils.printWarning("[WARNING] marsik needs to tell you something: " + message + " in Line: " + lineNumber);
-              }
+          if (severity.equals("error")) {
+            Utils.printError("[ERROR] a fatal error happened: " + message + " in Line: " + lineNumber);
+          }
+          if (severity.equals("warning")) {
+            Utils.printWarning("[WARNING] marsik needs to tell you something: " + message + " in Line: " + lineNumber);
           }
         }
       }
@@ -765,25 +771,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
     return Files.isExecutable(windowsCompiler) ? windowsCompiler.toString() : "g++";
   }
 
-  private static Path findRuntimeDirectory(Path sourcePath) throws IOException {
-    Path projectRuntime = getProjectRoot().resolve("src/main/java/org/example/runtime");
-    if (Files.isRegularFile(projectRuntime.resolve("marsik_runtime.hpp"))) {
-      return projectRuntime.toAbsolutePath().normalize();
-    }
-    for (Path parent = sourcePath.getParent(); parent != null; parent = parent.getParent()) {
-      Path runtime = parent.resolve("runtime");
-      if (Files.isRegularFile(runtime.resolve("marsik_runtime.hpp"))) {
-        return runtime;
-      }
-      runtime = parent.resolve("src/main/java/org/example/runtime");
-      if (Files.isRegularFile(runtime.resolve("marsik_runtime.hpp"))) {
-        return runtime;
-      }
-    }
-    throw new IOException("Could not locate runtime directory containing marsik_runtime.hpp");
-  }
-
-  private static List<SourceModule> loadModules(Path mainSource) throws IOException {
+  private List<SourceModule> loadModules(Path mainSource) throws IOException {
     List<SourceModule> modules = new ArrayList<>();
     Map<Path, SourceModule> loaded = new HashMap<>();
     Map<String, Path> names = new HashMap<>();
@@ -797,7 +785,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
       }
       ParsedSource parsed = new Compiler().parseSource(source);
       boolean isMain = source.equals(mainSource.toAbsolutePath().normalize());
-      String name = isMain ? null : moduleName(source);
+      String name = isMain ? null : fileManager.moduleName(source);
       if (name != null) {
         Path previous = names.putIfAbsent(name, source);
         if (previous != null && !previous.equals(source)) {
@@ -810,37 +798,10 @@ public class Compiler extends MarsikBaseVisitor<String> {
       modules.add(module);
 
       for (MarsikParser.Import_declContext importDecl : parsed.imports().import_decl()) {
-        pending.add(resolveImport(source, importDecl.STRING().getText()));
+        pending.add(fileManager.resolveImport(source, importDecl.STRING().getText()));
       }
     }
     return modules;
-  }
-
-  private static Path resolveImport(Path importingFile, String stringLiteral) throws IOException {
-    String importPath = stringLiteral.substring(1, stringLiteral.length() - 1)
-            .replace("\\\"", "\"").replace("\\\\", "\\");
-    Path requested = Path.of(importPath);
-    if (!requested.isAbsolute()) {
-      requested = importingFile.getParent().resolve(requested);
-    }
-    if (!requested.getFileName().toString().endsWith(".marsik")) {
-      requested = requested.resolveSibling(requested.getFileName() + ".marsik");
-    }
-    requested = requested.toAbsolutePath().normalize();
-    if (!Files.isRegularFile(requested)) {
-      throw new IOException("Imported Marsik file not found: " + requested
-              + " (imported from " + importingFile + ")");
-    }
-    return requested;
-  }
-
-  private static String moduleName(Path source) throws IOException {
-    String fileName = source.getFileName().toString();
-    String name = fileName.substring(0, fileName.length() - ".marsik".length());
-    if (!name.matches("[A-Za-z_][A-Za-z_0-9]*") || Utils.isForbiddenName(name)) {
-      throw new IOException("Imported file name must be a valid module identifier: " + fileName);
-    }
-    return name;
   }
 
   private static void requireModuleDeclarationsOnly(SourceModule module) throws IOException {
@@ -889,10 +850,7 @@ public class Compiler extends MarsikBaseVisitor<String> {
           Path source, String name, MarsikParser.ProgramContext program, Compiler compiler) {}
 
   private ParsedSource parseSource(Path sourcePath) throws IOException {
-    if (!Files.isRegularFile(sourcePath)) {
-      throw new IOException("Marsik source file not found: " + sourcePath);
-    }
-    CharStream input = CharStreams.fromPath(sourcePath);
+    CharStream input = CharStreams.fromString(fileManager.readSource(sourcePath), sourcePath.toString());
     MarsikLexer lexer = new MarsikLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(throwingSyntaxErrorListener(sourcePath));

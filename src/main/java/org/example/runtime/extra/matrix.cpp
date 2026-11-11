@@ -203,7 +203,7 @@ double matrix_normal(Matrix matrix) {
     return sqrt(matrix_trace(matrix));
 }
 
-void matrix_print(Matrix matrix) {
+void matrix_printMatrix(Matrix matrix) {
     for (int i = 0; i < matrix.rows; i++) {
       for (int j = 0; j < matrix.columns; j++) {
         printf("%d", matrix.data[i][j]);

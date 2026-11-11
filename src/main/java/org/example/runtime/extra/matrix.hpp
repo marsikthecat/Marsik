@@ -52,4 +52,4 @@ double matrix_trace(Matrix matrix);
 
 double matrix_normal(Matrix matrix);
 
-void matrix_print(Matrix matrix);
+void matrix_printMatrix(Matrix matrix);

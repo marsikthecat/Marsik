@@ -1,121 +1,127 @@
 package org.example.compiler;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.example.compiler.generated.MarsikParser;
 
 public class Utils {
 
-  public static final Set<String> BUILT_IN_MODULES = Set.of(
-          "Math", "DateTime", "Caster", "FileHandler", "String", "Array", "BitSet",
-          "GapBuffer", "GenericList", "HashMap", "PerfectHashMap", "List", "Matrix",
-          "Queue", "Set", "SparseArray", "SplayArray", "Stack", "AvlTree", "BinaryTree",
-          "TreeNode", "Graph", "Node", "Edge");
+  public enum GenericCount {
+    NOT(0),
+    ONE(1),
+    TWO(2);
 
-  public static final Set<String> buildInTypedObjects = Set.of(
-          "HashMap", "List", "PerfectHashMap", "Queue", "Set", "SparseArray", "SplayArray", "Stack",
-          "AvlTree", "BinaryTree", "TreeNode");
+    private final int count;
 
-  public static final Set<String> getBuildInUnTypedObjects = Set.of(
-          "BitSet", "GapBuffer", "GenericList", "Node", "Edge", "Graph", "Matrix");
+    GenericCount(int count) {
+      this.count = count;
+    }
 
-  public static final Set<String> stringMethods = Set.of(
-          "hash", "setCharAt", "lastIndexOf", "length", "substring", "contains",
-          "reverse", "append", "capitalize", "indexOf", "equals",
-          "isPalindrome", "alphabetIndexes", "hasOnlyDigits", "hasWhiteSpace",
-          "hasDigits", "hasOnlyLetters", "hasLetters", "isAlphaNumeric",
-          "numberOfVowels", "numberOfConsonants", "isLowercase", "isUppercase",
-          "isWhiteSpace", "numberOfWhiteSpaces", "getCharAt", "toUpperCase",
-          "toLowerCase", "startsWith", "endsWith", "countOccurrence");
+    public int count() {
+      return count;
+    }
+  }
 
-  public static final Set<String> arrayMethods = Set.of(
-          "set", "get", "length", "memorySize", "isEmpty", "contains", "indexOf",
-          "getRandomElement", "getRandomElementFromRange", "slice", "reverse", "sort",
-          "clone", "mostAppearingElement", "mostAppearingElementCount", "printArray",
-          "shuffle", "isNumericArray", "unionWith", "intersectionWith",
-          "containsDuplicateElements"
-  );
+  public record BuiltInModule(
+          String type, GenericCount genericCount, Set<String> methods) {}
 
-  private static final Map<String, String> RUNTIME_MODULE_PREFIXES = Map.ofEntries(
-          Map.entry("Array", "array_"),
-          Map.entry("BitSet", "bitset_"),
-          Map.entry("GapBuffer", "gapbuffer_"),
-          Map.entry("GenericList", "genericlist_"),
-          Map.entry("HashMap", "hashmap_"),
-          Map.entry("PerfectHashMap", "perfecthashmap_"),
-          Map.entry("List", "list_"),
-          Map.entry("Matrix", "matrix_"),
-          Map.entry("Queue", "queue_"),
-          Map.entry("Set", "set_"),
-          Map.entry("SparseArray", "sparsearray_"),
-          Map.entry("SplayArray", "splayarray_"),
-          Map.entry("Stack", "stack_"),
-          Map.entry("AvlTree", "avltree_"),
-          Map.entry("BinaryTree", "binarytree_"),
-          Map.entry("TreeNode", "treenode_"),
-          Map.entry("Graph", "graph_"),
-          Map.entry("Node", "node_"),
-          Map.entry("Edge", "edge_"));
+  private static final Map<String, BuiltInModule> BUILT_IN_MODULES = Map.ofEntries(
+          Map.entry("Math", libraryModule(
+                  "roundBasic", "roundUp", "roundDown", "ln", "logarithm", "ePowX", "gcd", "scd",
+                  "modInverse", "factorial", "fibonacci", "hypotenuse", "hypotenuse3D", "isEven",
+                  "isNegative", "isPrime", "areCongruentModuloM", "calculateCapital", "increasingSum",
+                  "max", "min", "sum", "avg", "median", "randomInt", "randomDouble", "variance",
+                  "standardDeviation", "binomialCoefficient", "squareRoot", "cubeRoot", "toRadians",
+                  "toDegrees", "posDifference", "sine", "cosine", "tangent", "asine", "acosine",
+                  "atangent", "pi", "e", "phi")),
+          Map.entry("DateTime", libraryModule(
+                  "now", "currentDateISO", "currentMillis", "currentYear", "currentMonth", "currentDay",
+                  "currentDayOfWeek", "currentHour", "currentMinute", "currentSeconds", "currentDateTime",
+                  "getSeconds", "getMinutes", "getHours", "getDay", "getMonth", "getYear", "setSeconds",
+                  "setMinutes", "setHours", "setDay", "setMonth", "setYear", "isLeapYear", "isBefore",
+                  "isAfter", "toGermanFormat", "toIsoUtcFormat", "monthName", "getCurrentMonthName",
+                  "dayName", "getCurrentDayName")),
+          Map.entry("Caster", libraryModule(
+                  "intToDouble", "intToChar", "intToString", "booleanToString", "doubleToInt",
+                  "doubleToString", "stringToInt", "stringToBoolean", "stringToDouble",
+                  "booleanToInt", "intToBoolean")),
+          Map.entry("FileHandler", libraryModule(
+                  "writeContentToFile", "appendContentToFile", "clearFile", "doesFileExist",
+                  "deleteFile", "readFile", "createFile")),
+          Map.entry("String", runtimeModule("String", GenericCount.NOT,
+                  "hash", "setCharAt", "lastIndexOf", "length", "substring", "contains", "reverse",
+                  "append", "capitalize", "indexOf", "equals", "isPalindrome", "alphabetIndexes",
+                  "hasOnlyDigits", "hasWhiteSpace", "hasDigits", "hasOnlyLetters", "hasLetters",
+                  "isAlphaNumeric", "numberOfVowels", "numberOfConsonants", "isLowercase",
+                  "isUppercase", "isWhiteSpace", "numberOfWhiteSpaces", "getCharAt", "toUpperCase",
+                  "toLowerCase", "startsWith", "endsWith", "countOccurrence")),
+          Map.entry("Array", runtimeModule("Array", GenericCount.ONE,
+                  "set", "get", "length", "memorySize", "isEmpty", "contains", "indexOf",
+                  "getRandomElement", "getRandomElementFromRange", "slice", "reverse", "sort", "clone",
+                  "mostAppearingElement", "mostAppearingElementCount", "printArray", "shuffle",
+                  "isNumericArray", "unionWith", "intersectionWith", "containsDuplicateElements")),
+          Map.entry("BitSet", runtimeModule("BitSet", GenericCount.NOT,
+                  "init", "set", "get", "toggle", "clear", "setAll", "clearAll", "count", "isEmpty", "isFull")),
+          Map.entry("GapBuffer", runtimeModule("GapBuffer", GenericCount.NOT,
+                  "init", "insert", "moveCursor", "moveGapLeft", "moveGapRight")),
+          Map.entry("GenericList", runtimeModule("GenericList", GenericCount.NOT,
+                  "init", "addBool", "addChar", "addDouble", "addFloat", "addInt", "addString", "allNumeric",
+                  "allSameType", "allStrings", "clear", "contains", "get", "getType", "indexOf",
+                  "isEmpty", "remove", "size")),
+          Map.entry("HashMap", runtimeModule("HashMap", GenericCount.TWO,
+                  "init", "capacity", "clear", "containsKey", "get", "isEmpty", "put", "remove", "size")),
+          Map.entry("PerfectHashMap", runtimeModule("PerfectHashMap", GenericCount.ONE,
+                  "init", "capacity", "clear", "containsKey",
+                  "defineKey", "get", "isEmpty", "put", "remove", "size")),
+          Map.entry("List", runtimeModule("List", GenericCount.ONE,
+                  "init", "add", "addAt", "capacity", "clear", "clone", "contains", "get", "indexOf",
+                  "isEmpty", "lastIndexOf", "mostAppearingElement", "mostAppearingElementCount",
+                  "printList", "randomElement", "randomElementInRange", "remove", "removeAll",
+                  "removeAt", "removeDuplicateOf", "removeDuplicates", "removeRetrieve", "resize",
+                  "reverse", "set", "size", "sort", "toSet", "trim", "withoutDuplicates")),
+          Map.entry("Matrix", runtimeModule("Matrix", GenericCount.NOT, 
+                  "init", "add", "clone", "fill", "get", "getDeterminant", "isInvertible", "multiply",
+                  "normal", "numberOfColumns", "numberOfRows", "set", "sum", "trace", "transpose", "printMatrix")),
+          Map.entry("Queue", runtimeModule("Queue", GenericCount.ONE,
+                  "init", "dequeue", "enqueue", "isEmpty", "isFull", "peek", "size")),
+          Map.entry("Set", runtimeModule("Set", GenericCount.ONE,
+                  "init", "add", "capacity", "clear", "contains", "isEmpty", "remove", "size")),
+          Map.entry("SparseArray", runtimeModule("SparseArray", GenericCount.ONE,
+                  "init", "clear", "contains", "firstfreeSpot", "get", "getRandomElement",
+                  "has", "holeCount", "indexOf", "isEmpty", "lastfreeSpot", "lastIndexOf", "maxIndex",
+                  "printArray", "pushfromEnd", "pushfromStart", "remove", "set", "size", "toArray")),
+          Map.entry("SplayArray", runtimeModule("SplayArray", GenericCount.ONE,
+                  "init", "clone", "contains", "get", "getRandomElement", "indexOf",
+                  "isEmpty", "isNumericArray", "length", "memorySize", "mostAppearingElement",
+                  "printArray", "rearrange", "removeAt", "removeDuplicateOf", "removeDuplicates",
+                  "reverse", "set", "shuffle", "slice", "sort")),
+          Map.entry("Stack", runtimeModule("Stack", GenericCount.ONE,
+                  "init", "isEmpty", "isFull", "peek", "pop", "push", "size")),
+          Map.entry("AvlTree", runtimeModule("AvlTree", GenericCount.ONE,
+                  "init", "contains", "delete", "height", "inorder", "postorder", "preorder", "search", "insert")),
+          Map.entry("BinaryTree", runtimeModule("BinaryTree", GenericCount.ONE,
+                  "init", "height", "inorder", "levelorder", "postorder", "preorder", "search", "insert", "remove")),
+          Map.entry("TreeNode", runtimeModule("TreeNode", GenericCount.ONE,
+                  "init", "getData", "getLeft", "getRight", "setData")),
+          Map.entry("Graph", runtimeModule("Graph", GenericCount.NOT,
+                  "init", "addNode", "containsNode", "print", "removeNode")),
+          Map.entry("Node", runtimeModule("Node", GenericCount.NOT,
+                  "init", "addEdge", "containsEdge", "getIdentifier", "getNumberOfEdges", "removeEdge")),
+          Map.entry("Edge", runtimeModule("Edge", GenericCount.NOT,
+                  "init", "getDestination", "getWeight", "setDestination", "setWeight")));
 
-  private static final Map<String, Set<String>> RUNTIME_MODULE_METHODS = Map.ofEntries(
-          Map.entry("Array", arrayMethods),
-          Map.entry("BitSet", Set.of("set", "get", "toggle", "clear", "setAll", "clearAll", "count", "isEmpty", "isFull")),
-          Map.entry("GapBuffer", Set.of("insert", "moveCursor", "moveGapLeft", "moveGapRight")),
-          Map.entry("GenericList", Set.of("addBool", "addChar", "addDouble", "addFloat", "addInt", "addString",
-                  "allNumeric", "allSameType", "allStrings", "clear", "contains", "get", "getType",
-                  "indexOf", "isEmpty", "remove", "size")),
-          Map.entry("HashMap", Set.of("capacity", "clear", "containsKey", "get", "isEmpty", "put", "remove", "size")),
-          Map.entry("PerfectHashMap", Set.of("capacity", "clear", "containsKey", "defineKey", "get", "isEmpty", "put", "remove", "size")),
-          Map.entry("List", Set.of("add", "addAt", "capacity", "clear", "clone", "contains", "get", "indexOf",
-                  "isEmpty", "lastIndexOf", "mostAppearingElement", "mostAppearingElementCount", "printList",
-                  "randomElement", "randomElementInRange", "remove", "removeAll", "removeAt", "removeDuplicateOf",
-                  "removeDuplicates", "removeRetrieve", "resize", "reverse", "set", "size", "sort", "toSet",
-                  "trim", "withoutDuplicates")),
-          Map.entry("Matrix", Set.of("add", "clone", "fill", "get", "getDeterminant", "isInvertible", "multiply",
-                  "normal", "numberOfColumns", "numberOfRows", "printMatrix", "set", "sum", "trace", "transpose")),
-          Map.entry("Queue", Set.of("dequeue", "enqueue", "isEmpty", "isFull", "peek", "size")),
-          Map.entry("Set", Set.of("add", "capacity", "clear", "contains", "isEmpty", "remove", "size")),
-          Map.entry("SparseArray", Set.of("clear", "contains", "firstfreeSpot", "get", "getRandomElement", "has",
-                  "holeCount", "indexOf", "isEmpty", "lastfreeSpot", "lastIndexOf", "maxIndex", "printArray",
-                  "pushfromEnd", "pushfromStart", "remove", "set", "size", "toArray")),
-          Map.entry("SplayArray", Set.of("clone", "contains", "get", "getRandomElement", "indexOf", "isEmpty",
-                  "isNumericArray", "length", "memorySize", "mostAppearingElement", "printArray", "rearrange",
-                  "removeAt", "removeDuplicateOf", "removeDuplicates", "reverse", "set", "shuffle", "slice", "sort")),
-          Map.entry("Stack", Set.of("isEmpty", "isFull", "peek", "pop", "push", "size")),
-          Map.entry("AvlTree", Set.of("contains", "delete", "height", "inorder", "postorder", "preorder", "search", "insert")),
-          Map.entry("BinaryTree", Set.of("height", "inorder", "levelorder", "postorder", "preorder", "search", "insert", "remove")),
-          Map.entry("TreeNode", Set.of("getData", "getLeft", "getRight", "setData")),
-          Map.entry("Graph", Set.of("addNode", "containsNode", "print", "removeNode")),
-          Map.entry("Node", Set.of("addEdge", "containsEdge", "getIdentifier", "getNumberOfEdges", "removeEdge")),
-          Map.entry("Edge", Set.of("getDestination", "getWeight", "setDestination", "setWeight")));
+  private static BuiltInModule libraryModule(String... methods) {
+    return new BuiltInModule(null, GenericCount.NOT, Set.of(methods));
+  }
 
-  private static final Map<String, String> RUNTIME_MODULE_INITIALIZERS = Map.ofEntries(
-          Map.entry("BitSet", "init_bitset"),
-          Map.entry("GapBuffer", "init_gapbuffer"),
-          Map.entry("GenericList", "init_genericlist"),
-          Map.entry("HashMap", "init_hashmap"),
-          Map.entry("PerfectHashMap", "init_perfecthashmap"),
-          Map.entry("List", "init_list"),
-          Map.entry("Matrix", "init_matrix"),
-          Map.entry("Queue", "init_queue"),
-          Map.entry("Set", "init_set"),
-          Map.entry("SparseArray", "init_sparsearray"),
-          Map.entry("SplayArray", "init_splayarray"),
-          Map.entry("Stack", "init_stack"),
-          Map.entry("AvlTree", "init_avltree"),
-          Map.entry("BinaryTree", "init_binarytree"),
-          Map.entry("TreeNode", "init_treenode"),
-          Map.entry("Graph", "init_graph"),
-          Map.entry("Node", "init_node"),
-          Map.entry("Edge", "init_edge"));
+  private static BuiltInModule runtimeModule(String type, GenericCount genericCount, String... methods) {
+    return new BuiltInModule(type, genericCount, Set.of(methods));
+  }
 
   public static final Set<String> forbiddenNamesforVariables = Set.of(
     "alignas", "alignof", "and", "and_eq", "asm", "auto",
@@ -141,38 +147,32 @@ public class Utils {
     return forbiddenNamesforVariables.contains(variableName);
   }
 
-  private static final LibraryDispatch libraryDispatch = new LibraryDispatch();
-
-  public static boolean multiEquals(String value, String... strings) {
-    for (String str : strings) {
-      if (value.equals(str)) {
-        return true;
-      }
-    }
-    return false;    
-  }
-
-  public static boolean isBuiltInLibraryMethod(String target, String method) {
-    return libraryDispatch.isLibraryMethod(target, method);
+  public static BuiltInModule builtInModule(String module) {
+    return BUILT_IN_MODULES.get(module);
   }
 
   public static boolean isBuiltInModule(String module) {
-    return BUILT_IN_MODULES.contains(module);
+    return BUILT_IN_MODULES.containsKey(module);
+  }
+
+  public static boolean isBuiltInType(String type) {
+    BuiltInModule module = BUILT_IN_MODULES.get(type);
+    return module != null && module.type() != null;
   }
 
   public static String builtInModuleFunction(String module, String method) {
-    if (module.equals("String")) {
-      return stringMethods.contains(method) ? "string_" + method : null;
-    }
-    if (method.equals("init")) {
-      return RUNTIME_MODULE_INITIALIZERS.get(module);
-    }
-    String prefix = RUNTIME_MODULE_PREFIXES.get(module);
-    Set<String> methods = RUNTIME_MODULE_METHODS.get(module);
-    if (prefix == null || methods == null || !methods.contains(method)) {
+    BuiltInModule builtIn = BUILT_IN_MODULES.get(module);
+    if (builtIn == null) {
       return null;
     }
-    return module.equals("Matrix") && method.equals("printMatrix") ? "matrix_print" : prefix + method;
+    if (!builtIn.methods().contains(method)) {
+      return null;
+    }
+    if (builtIn.type() == null) {
+      return method;
+    }
+    String typeName = builtIn.type().toLowerCase(Locale.ROOT);
+    return method.equals("init") ? "init_" + typeName : typeName + "_" + method;
   }
 
   public static boolean isCompatibleLiteral(String declaredType, MarsikParser.TypeContext value) {
@@ -248,19 +248,5 @@ public class Utils {
 
   public static void printSuccess(String s) {
     System.out.println("\u001B[32m" + s + "\u001B[0m");
-  }
-
-  public static void addAllHeaderFiles(Path projectRoot, Map<String, Path> headerFiles) {
-    try (Stream<Path> paths = Files.walk(projectRoot)) {
-        paths.filter(Files::isRegularFile)
-            .filter(path -> path.toString().endsWith(".hpp"))
-            .forEach(path -> {
-                String fileName = path.getFileName().toString();
-                String objectType = fileName.substring( 0, fileName.length() - 4);
-                headerFiles.put(objectType.toLowerCase(), path);
-            });
-    } catch (IOException e) {
-        throw new RuntimeException("Failed to index project headers", e);
-    }
   }
 }

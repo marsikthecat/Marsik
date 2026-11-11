@@ -11,7 +11,7 @@ import java.util.Set;
  * For example:
  * MarsikPerfectHashMap libaries = new MarsikPerfectHashMap();
  * libaries.defineKeys("Caster", "Math", "FileHandler"); and so on
- * It might also get used as a perfect hashSet that checks whether a key (methodname) exists for a giben libary.
+ * It might also get used as a perfect hashSet that checks whether a key (methodname) exists for a given libary.
  * So it might get a hashmap and each key gets maped to a hashset, all without collisions (hopefully I manage to do it):
 
  * == SuperHashMap vs. java Hashmap ==
